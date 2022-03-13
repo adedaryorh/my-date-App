@@ -1,0 +1,20 @@
+.idea/
+.vscode/
+
+vendor/
+
+.env
+gin-bin
+__debug_bin
+
+# Do not allow security credentials in repo.
+.netrc
+output
+
+#Mac
+.DS_Store
+docs/.DS_Store
+
+# Coverage files
+**/cover.out
+
