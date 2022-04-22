@@ -17,4 +17,4 @@ docs/.DS_Store
 
 # Coverage files
 **/cover.out
-
+bin/

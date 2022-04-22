@@ -1,1 +1,32 @@
 version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        PORT: ${PORT}
+        APP_PORT: ${APP_PORT}
+    # Expose gin proxy port, gin will listen to the app port
+    ports:
+      - ${DEBUG_PORT}:${DEBUG_PORT}
+      - ${APP_PORT}:${APP_PORT}
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    environment:
+      GO111MODULE: "on"
+      DEBUG_PORT: ${DEBUG_PORT}
+    volumes:
+      - .:/app
+      - $GOPATH/pkg/mod:/go/pkg/mod
+  database:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "5432:5432"
