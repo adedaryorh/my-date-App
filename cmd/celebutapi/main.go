@@ -13,7 +13,7 @@ func main() {
 	routes.NewAppRouter()
 
 	srv := http.Server{
-		Addr:    "127.0.0.1:8080",
+		Addr:    ":8080",
 		Handler: routes.NewAppRouter(),
 	}
 

@@ -23,4 +23,6 @@ FROM debian:buster-slim
 # Import the compiled executable.
 COPY --from=builder /app/bin/celebut-api /app/
 
+EXPOSE 8080
+
 CMD ["/app/celebut-api"]

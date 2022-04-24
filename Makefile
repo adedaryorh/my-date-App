@@ -29,6 +29,9 @@ generate: ## Generate code using directives
 init: tools.env
 	@docker-compose build
 
+run: ## Start the containers and attach it
+	@docker-compose up -d
+
 stop: ## Stop any running container
 	@docker-compose stop
 
