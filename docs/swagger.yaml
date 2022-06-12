@@ -1,0 +1,278 @@
+basePath: /v1
+definitions:
+  auth.RegisterResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/users.User'
+    type: object
+  auth.authRequest:
+    properties:
+      client_id:
+        example: abcede
+        type: string
+      secret:
+        example: password
+        type: string
+    required:
+    - client_id
+    - secret
+    type: object
+  auth.authResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  auth.createRequest:
+    properties:
+      client_id:
+        example: abcede
+        type: string
+      client_name:
+        example: Celebut iOS
+        type: string
+      secret:
+        example: password
+        type: string
+    required:
+    - client_id
+    - client_name
+    - secret
+    type: object
+  auth.createResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  auth.registerRequest:
+    properties:
+      account_type:
+        example: 1
+        type: integer
+      email:
+        example: user@email.com
+        type: string
+      password:
+        example: password
+        type: string
+    required:
+    - account_type
+    - email
+    - password
+    type: object
+  business.Industry:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        example: entertainment
+        type: string
+      updated_at:
+        type: string
+    type: object
+  business.createIndustryRequest:
+    properties:
+      description:
+        example: en
+        type: string
+      name:
+        example: auto
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  business.getIndustryResponse:
+    properties:
+      industries:
+        items:
+          $ref: '#/definitions/business.Industry'
+        type: array
+    type: object
+  users.User:
+    properties:
+      countryCode:
+        type: string
+      createdAt:
+        type: string
+      dateOfBirth:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      interests:
+        type: string
+      lastName:
+        type: string
+      passwordHash:
+        type: string
+      phoneNumber:
+        type: string
+      relationshipStatus:
+        type: string
+      updatedAt:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8083
+info:
+  contact: {}
+  description: Celebut Backend REST endpoints
+  title: Celebut API
+  version: "1.0"
+paths:
+  /business/industry:
+    get:
+      consumes:
+      - application/json
+      description: Get list of business industries
+      operationId: industries-list
+      parameters:
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/business.getIndustryResponse'
+      summary: Get industries
+      tags:
+      - Industries
+    post:
+      consumes:
+      - application/json
+      description: Create a new business industry
+      operationId: create-industry
+      parameters:
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
+      - description: Create new industry
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/business.createIndustryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/business.Industry'
+      summary: Create industry
+      tags:
+      - Industries
+  /client:
+    post:
+      consumes:
+      - application/json
+      description: Create a new client
+      operationId: create-client
+      parameters:
+      - description: Create a client
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.createRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.createResponse'
+      summary: Create a client
+      tags:
+      - Client
+  /client/auth:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a client
+      operationId: auth-client
+      parameters:
+      - description: Authenticate a client
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.authResponse'
+      summary: Authenticate a client
+      tags:
+      - Authentication
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user
+      operationId: login
+      parameters:
+      - description: Login user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+      summary: User login
+      tags:
+      - Authentication
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a user
+      operationId: register
+      parameters:
+      - description: Registers a new user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+      summary: User Register
+      tags:
+      - Authentication
+swagger: "2.0"

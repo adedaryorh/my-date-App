@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS clients
+(
+    id serial PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    client_id VARCHAR(255) NOT NULL,
+    secret VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP default CURRENT_TIMESTAMP NOT NULL
+);

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"celebut-api/internal/routes"
-	"net/http"
+	"celebut-api/configs"
+	"celebut-api/internal/app"
+	"log"
 )
 
 func init() {
@@ -10,15 +11,11 @@ func init() {
 }
 
 func main() {
-	routes.NewAppRouter()
-
-	srv := http.Server{
-		Addr:    ":8080",
-		Handler: routes.NewAppRouter(),
-	}
-
-	err := srv.ListenAndServe()
+	// Configuration
+	cfg, err := configs.NewConfig()
 	if err != nil {
-
+		log.Fatalf("Config error: %s", err)
 	}
+
+	app.Run(cfg)
 }
