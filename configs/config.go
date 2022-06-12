@@ -1,9 +1,7 @@
 package configs
 
 import (
-	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
-	"os"
 )
 
 type (
@@ -24,7 +22,7 @@ type (
 	// HTTP -.
 	HTTP struct {
 		Port           string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
-		ServiceAddress string `env-required:"false" yaml:"service_address" env:"SERVICE_ADDRESS"`
+		ServiceAddress string `env-required:"false" yaml:"service_address" env:"SERVICE_ADDR"`
 	}
 
 	// Log -.
@@ -43,14 +41,14 @@ type (
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	configPath := os.Getenv("CONFIG_ENV")
-	err := cleanenv.ReadConfig(configPath, cfg)
+	//configPath := os.Getenv("CONFIG_ENV")
+	//err := cleanenv.ReadConfig(configPath, cfg)
 
-	if err != nil {
-		return nil, fmt.Errorf("config error: %w", err)
-	}
+	//if err != nil {
+	//	return nil, fmt.Errorf("config error: %w", err)
+	//}
 
-	err = cleanenv.ReadEnv(cfg)
+	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
 	}
