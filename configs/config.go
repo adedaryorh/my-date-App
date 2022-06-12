@@ -3,6 +3,7 @@ package configs
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"os"
 )
 
 type (
@@ -34,7 +35,7 @@ type (
 	// PG -.
 	PG struct {
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PG_POOL_MAX"`
-		//URL     string `env-required:"true"                 env:"PG_URL"`
+		URL     string `env-required:"true" yaml:"url"      env:"PG_URL"`
 	}
 )
 
@@ -42,7 +43,9 @@ type (
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("./configs/config.yml", cfg)
+	configPath := os.Getenv("CONFIG_ENV")
+	err := cleanenv.ReadConfig(configPath, cfg)
+
 	if err != nil {
 		return nil, fmt.Errorf("config error: %w", err)
 	}

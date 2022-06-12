@@ -12,3 +12,4 @@ logger:
 
 postgres:
   pool_max: 2
+  url: 'postgres://postgres:root@database:5432/celebut_db'
