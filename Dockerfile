@@ -22,6 +22,7 @@ FROM debian:buster-slim
 
 # Import the compiled executable.
 COPY --from=builder /app/bin/celebut-api /app/
+COPY --from=builder /app/migrations /app/
 
 EXPOSE 8080
 
