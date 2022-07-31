@@ -1,15 +1,17 @@
 package v1
 
 import (
+	"celebut-api/configs"
+	"celebut-api/internal/controller/http/v1/handlers"
 	"celebut-api/internal/controller/http/v1/handlers/auth"
 	"celebut-api/internal/controller/http/v1/handlers/business"
-	"celebut-api/internal/controller/http/v1/middleware"
+	"celebut-api/internal/mappers"
+	"celebut-api/internal/middleware"
+	postgres2 "celebut-api/internal/repo/postgres"
+	"celebut-api/internal/services"
 	"celebut-api/internal/usecase"
-	repo "celebut-api/internal/usecase/repo/postgres"
-	"celebut-api/pkg/postgres"
-
 	"celebut-api/pkg/logger"
-
+	"celebut-api/pkg/postgres"
 	"github.com/gin-gonic/gin"
 
 	// IMPORTANT: swagger docs
@@ -28,11 +30,23 @@ import (
 // @version     1.0
 // @host        localhost:8083
 // @BasePath    /v1
-func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres) {
+func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres, cfg *configs.Config) {
+
+	// repo
+	industryRepo := postgres2.NewIndustryRepo(pg)
+	clientRepo := postgres2.NewClientRepo(pg)
+	userRepo := postgres2.NewUserRepo(pg)
+	celebrationsRepo := postgres2.NewCelebrationRepo(pg)
 
 	// Use cases
-	clientUseCase := usecase.NewClientUseCase(repo.NewClientRepo(pg))
-	industryUseCase := usecase.NewIndustryUseCase(repo.NewIndustryRepo(pg))
+	clientUseCase := usecase.NewClientUseCase(clientRepo)
+	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
+	userUseCase := usecase.NewUserUseCase(userRepo)
+	celebrationsUseCase := usecase.NewCelebrationUseCase(celebrationsRepo)
+
+	mapper := &mappers.DtoUserMapper{}
+	celebrationMapper := &mappers.DtoCelebrationMapper{}
+	tokenService := services.NewTokenService(cfg.Token.Secret)
 
 	// Options
 	handler.Use(gin.Logger())
@@ -59,11 +73,20 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		auth.NewClientAuthRoute(client, clientUseCase, l)
 	}
 
-	routes := handler.Group("/v1")
-	{
-		business.NewIndustryRoutes(routes, industryUseCase, l)
+	clientAuthMiddleware := middleware.ClientAuthorization(clientUseCase, l)
 
+	authRoutes := handler.Group("/v1")
+	authRoutes.Use(clientAuthMiddleware)
+	{
+		auth.NewRegisterRoute(authRoutes, userUseCase, l, tokenService, mapper)
+		auth.NewLoginRoute(authRoutes, userUseCase, l, mapper, tokenService)
+		business.NewIndustryRoutes(authRoutes, industryUseCase, l)
 	}
 
-	routes.Use(middleware.Authorization(clientUseCase))
+	appRoutes := handler.Group("/v1")
+	appRoutes.Use(clientAuthMiddleware)
+	{
+		handlers.NewCelebrationsRoute(authRoutes, celebrationsUseCase, l, celebrationMapper)
+	}
+
 }

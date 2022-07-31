@@ -1,0 +1,26 @@
+package models
+
+import (
+	"time"
+)
+
+type User struct {
+	ID                 uint
+	UserID             string
+	FirstName          *string
+	LastName           *string
+	Username           *string
+	CountryCode        string
+	PhoneNumber        string
+	Email              string
+	DateOfBirth        *time.Time
+	Gender             *string
+	RelationshipStatus *string
+	BusinessName       *string
+	Industry           *Industry
+	AccountType        AccountType
+	Interests          *string
+	Password           string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}

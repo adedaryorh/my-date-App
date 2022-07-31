@@ -1,11 +1,18 @@
 basePath: /v1
 definitions:
+  auth.RegisterBusinessResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/dtos.Business'
+    type: object
   auth.RegisterResponse:
     properties:
       token:
         type: string
       user:
-        $ref: '#/definitions/users.User'
+        $ref: '#/definitions/dtos.User'
     type: object
   auth.authRequest:
     properties:
@@ -45,7 +52,14 @@ definitions:
       message:
         type: string
     type: object
-  auth.registerRequest:
+  auth.loginBusinessResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/dtos.Business'
+    type: object
+  auth.loginRequest:
     properties:
       account_type:
         example: 1
@@ -61,19 +75,88 @@ definitions:
     - email
     - password
     type: object
-  business.Industry:
+  auth.loginUserResponse:
     properties:
-      created_at:
+      token:
         type: string
-      description:
+      user:
+        $ref: '#/definitions/dtos.User'
+    type: object
+  auth.registerBusinessRequest:
+    properties:
+      business_name:
+        example: John XYZ Plc
         type: string
-      id:
+      country_code:
+        example: "234"
+        type: string
+      email:
+        example: user@email.com
+        type: string
+      industry_type:
+        example: 1
         type: integer
-      name:
-        example: entertainment
+      password:
+        example: password
         type: string
-      updated_at:
+      phone_number:
+        example: "0712345678"
         type: string
+    required:
+    - business_name
+    - country_code
+    - email
+    - industry_type
+    - password
+    - phone_number
+    type: object
+  auth.registerUserRequest:
+    properties:
+      country_code:
+        example: "234"
+        type: string
+      dob:
+        example: "2020-10-12"
+        type: string
+      email:
+        example: user@email.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      gender:
+        example: male
+        type: string
+      interests:
+        example: fashion,entertainment
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      password:
+        example: password
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+      relationship_status:
+        example: single
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - country_code
+    - dob
+    - email
+    - first_name
+    - gender
+    - interests
+    - last_name
+    - password
+    - phone_number
+    - relationship_status
+    - username
     type: object
   business.createIndustryRequest:
     properties:
@@ -91,40 +174,109 @@ definitions:
     properties:
       industries:
         items:
-          $ref: '#/definitions/business.Industry'
+          $ref: '#/definitions/models.Industry'
         type: array
     type: object
-  users.User:
+  dtos.Business:
     properties:
-      countryCode:
+      business_name:
         type: string
-      createdAt:
-        type: string
-      dateOfBirth:
+      country_code:
         type: string
       email:
         type: string
-      firstName:
+      industry_type:
+        type: string
+      phone_number:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dtos.Celebration:
+    properties:
+      created_at:
+        type: string
+      message:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dtos.User'
+    type: object
+  dtos.User:
+    properties:
+      country_code:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      first_name:
         type: string
       gender:
         type: string
-      id:
-        type: integer
       interests:
         type: string
-      lastName:
+      last_name:
         type: string
-      passwordHash:
+      phone_number:
         type: string
-      phoneNumber:
-        type: string
-      relationshipStatus:
-        type: string
-      updatedAt:
+      relationship_status:
         type: string
       user_id:
         type: string
       username:
+        type: string
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: message
+        type: string
+    type: object
+  handlers.createCelebrationRequest:
+    properties:
+      celebrations:
+        items:
+          type: object
+        type: array
+      message:
+        example: What is happening?
+        type: string
+    required:
+    - celebrations
+    - message
+    type: object
+  handlers.createCelebrationResponse:
+    type: object
+  handlers.deleteCelebrationResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.getCelebrationResponse:
+    properties:
+      celebrations:
+        items:
+          $ref: '#/definitions/dtos.Celebration'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+    type: object
+  models.Industry:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        example: entertainment
+        type: string
+      updated_at:
         type: string
     type: object
 host: localhost:8083
@@ -179,10 +331,93 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/business.Industry'
+            $ref: '#/definitions/models.Industry'
       summary: Create industry
       tags:
       - Industries
+  /celebrations:
+    get:
+      consumes:
+      - application/json
+      description: Get user's celebrations
+      operationId: get-celebrations
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.getCelebrationResponse'
+      summary: Get Celebrations
+      tags:
+      - Celebrations
+    post:
+      consumes:
+      - application/json
+      description: Create a celebration
+      operationId: create-celebration
+      parameters:
+      - description: create a new celebration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createCelebrationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.createCelebrationResponse'
+      summary: Create Celebration
+      tags:
+      - Celebrations
+  /celebrations/{celebrationID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a celebration
+      operationId: delete-celebration
+      parameters:
+      - description: celebration post identifier
+        in: path
+        name: celebrationID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.deleteCelebrationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete Celebration
+      tags:
+      - Celebrations
   /client:
     post:
       consumes:
@@ -203,7 +438,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/auth.createResponse'
-      summary: Create a client
+      summary: '[Admin] Create a client'
       tags:
       - Client
   /client/auth:
@@ -236,35 +471,63 @@ paths:
       description: Login a user
       operationId: login
       parameters:
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
       - description: Login user
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/auth.registerRequest'
+          $ref: '#/definitions/auth.loginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.RegisterResponse'
+            $ref: '#/definitions/auth.loginBusinessResponse'
       summary: User login
       tags:
       - Authentication
-  /register:
+  /register/business:
+    post:
+      consumes:
+      - application/json
+      description: Register a business
+      operationId: register-business
+      parameters:
+      - description: Registers a new business
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerBusinessRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterBusinessResponse'
+      summary: Business Register
+      tags:
+      - Authentication
+  /register/user:
     post:
       consumes:
       - application/json
       description: Register a user
-      operationId: register
+      operationId: register-user
       parameters:
       - description: Registers a new user
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/auth.registerRequest'
+          $ref: '#/definitions/auth.registerUserRequest'
       produces:
       - application/json
       responses:

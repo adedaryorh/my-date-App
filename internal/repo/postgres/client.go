@@ -79,7 +79,7 @@ func (r *ClientPostgresRepo) GetClientToken(ctx context.Context, token string) (
 		return nil, fmt.Errorf("ClientPostgresRepo - GetClientToken - r.Builder: %w", err)
 	}
 
-	row := r.Pool.QueryRow(ctx, sql)
+	row := r.Pool.QueryRow(ctx, sql, token)
 	if err != nil {
 		return nil, fmt.Errorf("ClientPostgresRepo - GetClientToken - r.Pool.Query: %w", err)
 	}

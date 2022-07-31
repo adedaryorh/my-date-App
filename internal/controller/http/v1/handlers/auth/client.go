@@ -35,18 +35,18 @@ type authRequest struct {
 // @Summary     Authenticate a client
 // @Description Authenticate a client
 // @ID          auth-client
-// @Tags  	    Authentication
+// @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body authRequest true "Authenticate a client"
-// @Success     200 {object} authResponse
+// @Param       request body     authRequest true "Authenticate a client"
+// @Success     200     {object} authResponse
 // @Router      /client/auth [post]
 func (r *clientAuthRoute) authenticate(c *gin.Context) {
 	var request authRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		r.l.Error(err, "http - v1 -  client authenticate")
-		handlers.ErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
 		return
 	}
@@ -55,7 +55,7 @@ func (r *clientAuthRoute) authenticate(c *gin.Context) {
 
 	if err != nil {
 		r.l.Error(err, "http - v1 - client authenticate")
-		handlers.ErrorResponse(c, http.StatusUnauthorized, "invalid credentials: client authentication failed")
+		handlers.HTTPError(c, http.StatusUnauthorized, "invalid credentials: client authentication failed")
 		return
 	}
 
@@ -74,21 +74,21 @@ type createResponse struct {
 	Message string `json:"message"`
 }
 
-// @Summary     Create a client
+// @Summary     [Admin] Create a client
 // @Description Create a new client
 // @ID          create-client
-// @Tags  	    Client
+// @Tags        Client
 // @Accept      json
 // @Produce     json
-// @Param       request body createRequest true "Create a client"
-// @Success     200 {object} createResponse
+// @Param       request body     createRequest true "Create a client"
+// @Success     200     {object} createResponse
 // @Router      /client [post]
 func (r *clientAuthRoute) create(c *gin.Context) {
 	var request createRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		r.l.Error(err, "http - v1 -  client create")
-		handlers.ErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
 		return
 	}
@@ -103,7 +103,7 @@ func (r *clientAuthRoute) create(c *gin.Context) {
 
 	if err != nil {
 		r.l.Error(err, "http - v1 - client authenticate")
-		handlers.ErrorResponse(c, http.StatusUnauthorized, "invalid credentials: client authentication failed")
+		handlers.HTTPError(c, http.StatusUnauthorized, "invalid credentials: client authentication failed")
 		return
 	}
 

@@ -1,4 +1,19 @@
 package config
 
-const ACCOUNT_INDIVIDUAL = "person"
+// ACCOUNT_BASIC -
+const ACCOUNT_BASIC = "basic"
+
+// ACCOUNT_BUSINESS -
 const ACCOUNT_BUSINESS = "business"
+
+// ACCOUNT_ADMIN -
+const ACCOUNT_ADMIN = "admin"
+
+// ACCOUNT_BASIC_ID -
+const ACCOUNT_BASIC_ID = 1
+
+// ACCOUNT_BUSINESS_ID -
+const ACCOUNT_BUSINESS_ID = 2
+
+// ACCOUNT_ADMIN_ID -
+const ACCOUNT_ADMIN_ID = 3

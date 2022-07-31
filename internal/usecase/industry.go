@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"celebut-api/internal/models/business"
-	repo "celebut-api/internal/usecase/repo"
+	"celebut-api/internal/models"
+	"celebut-api/internal/repo"
 	"context"
 	"fmt"
 	//"github.com/evrone/go-clean-template/internal/entity"
@@ -10,8 +10,8 @@ import (
 
 // Industry -.
 type Industry interface {
-	Create(context.Context, *business.Industry) error
-	Industries(context.Context) ([]business.Industry, error)
+	Create(context.Context, *models.Industry) error
+	Industries(context.Context) ([]models.Industry, error)
 }
 
 // IndustryUseCase -.
@@ -27,7 +27,7 @@ func NewIndustryUseCase(r repo.Industry) *IndustryUseCase {
 }
 
 // Industries - get list of industries from database.
-func (uc *IndustryUseCase) Industries(ctx context.Context) ([]business.Industry, error) {
+func (uc *IndustryUseCase) Industries(ctx context.Context) ([]models.Industry, error) {
 	industries, err := uc.repo.GetIndustries(ctx)
 
 	if err != nil {
@@ -38,7 +38,7 @@ func (uc *IndustryUseCase) Industries(ctx context.Context) ([]business.Industry,
 }
 
 //Create -.
-func (uc *IndustryUseCase) Create(ctx context.Context, i *business.Industry) error {
+func (uc *IndustryUseCase) Create(ctx context.Context, i *models.Industry) error {
 	err := uc.repo.CreateIndustry(context.Background(), i)
 
 	if err != nil {

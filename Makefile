@@ -1,4 +1,9 @@
 SHELL:=bash
+POSTGRES_DB:=postgres://postgres:root@127.0.0.1:5432/celebut_db?sslmode=disable
+ifndef MIGRATION_STEPS
+override MIGRATION_STEPS = 1
+endif
+
 
 # runtime options
 COMMIT_HASH := $(shell git rev-parse --short HEAD)
@@ -30,12 +35,16 @@ init: tools.env
 	@docker-compose build
 
 migrate-create:
-	migrate create -ext sql -dir migrations 'create_industries'
+	migrate create -ext sql -dir migrations $(name)
 .PHONY: migrate-create
 
 migrate-up:
-	migrate -path migrations -database 'postgres://postgres:root@127.0.0.1:5432/celebut_db?sslmode=disable' up
+	migrate -path migrations -database '$(POSTGRES_DB)' up
 .PHONY: migrate-up
+
+migrate-down:
+	migrate -path migrations -database '$(POSTGRES_DB)' down $(MIGRATION_STEPS)
+.PHONY: migrate-down
 
 run: ## Start the containers and attach it
 	@docker-compose up -d
@@ -43,6 +52,10 @@ run: ## Start the containers and attach it
 swag-v1: ### swag init
 	swag init -g internal/controller/http/v1/router.go
 .PHONY: swag-v1
+
+swag-fmt: ### swag format
+	swag fmt
+.PHONY: swag-fmt
 
 stop: ## Stop any running container
 	@docker-compose stop
@@ -54,6 +67,7 @@ test-unit: ## Execute unit tests
 tools: ## Install development tools
 	go install github.com/onsi/ginkgo/v2/ginkgo@latest
 	go install github.com/codegangsta/gin@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
 
 tools.env: ## Copy .env.dist to .env if it does not exist yet
 	@cp -n .env.dist .env 2> /dev/null || true

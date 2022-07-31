@@ -27,7 +27,7 @@ func Run(cfg *configs.Config) {
 	// HTTP Server
 	handler := gin.New()
 
-	v1.NewAppRouter(handler, l, pg)
+	v1.NewAppRouter(handler, l, pg, cfg)
 	httpServer := httpserver.New(handler)
 
 	// Waiting signal

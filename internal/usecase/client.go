@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"celebut-api/internal/models"
-	"celebut-api/internal/usecase/repo"
+	"celebut-api/internal/repo"
 	"context"
 	"errors"
 	"fmt"

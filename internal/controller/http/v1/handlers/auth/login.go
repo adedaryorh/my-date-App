@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"celebut-api/internal/config"
 	"celebut-api/internal/controller/http/v1/handlers"
-	"celebut-api/internal/models/users"
+	"celebut-api/internal/dtos"
+	"celebut-api/internal/mappers"
+	"celebut-api/internal/services"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
 	"net/http"
@@ -11,20 +14,27 @@ import (
 )
 
 type loginRoute struct {
-	i usecase.Industry
-	l logger.Interface
+	user         usecase.User
+	logger       logger.Interface
+	mapper       mappers.UserMapper
+	tokenService services.TokenService
 }
 
-func NewLoginRoute(handler *gin.RouterGroup, i usecase.Industry, l logger.Interface) {
-	r := &loginRoute{i, l}
+func NewLoginRoute(handler *gin.RouterGroup, i usecase.User, l logger.Interface, m mappers.UserMapper, t services.TokenService) {
+	r := &loginRoute{i, l, m, t}
 
 	handler.POST("/login", r.login)
 
 }
 
-type loginResponse struct {
-	User  users.User `json:"user"`
-	Token string     `json:"token"`
+type loginUserResponse struct {
+	User  dtos.User `json:"user"`
+	Token string    `json:"token"`
+}
+
+type loginBusinessResponse struct {
+	User  dtos.Business `json:"user"`
+	Token string        `json:"token"`
 }
 
 type loginRequest struct {
@@ -36,34 +46,64 @@ type loginRequest struct {
 // @Summary     User login
 // @Description Login a user
 // @ID          login
-// @Tags  	    Authentication
+// @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body registerRequest true "Login user"
-// @Success     200 {object} RegisterResponse
+// @Param       x-auth-token header   string       true "Authorization Token"
+// @Param       request      body     loginRequest true "Login user"
+// @Success     200          {object} loginUserResponse
+// @Success     200          {object} loginBusinessResponse
 // @Router      /login [post]
 func (r *loginRoute) login(c *gin.Context) {
 	var request loginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		r.l.Error(err, "http - v1 - login")
-		handlers.ErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		r.logger.Error(err, "http - v1 - login")
+		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
 		return
 	}
 
-	//translation, err := r.i.Create(
-	//	c.Request.Context(),
-	//	business.Industry{
-	//		Name:        request.Name,
-	//		Description: request.Description,
-	//	},
-	//)
-	//if err != nil {
-	//	r.l.Error(err, "http - v1 - createIndustry")
-	//	//errorResponse(c, http.StatusInternalServerError, "translation service problems")
-	//
-	//	return
-	//}
+	ctx := c.Request.Context()
+	user, err := r.user.Login(ctx, request.Email, request.Password, request.AccountType)
 
-	c.JSON(http.StatusOK, loginResponse{})
+	if err != nil {
+		r.logger.Error(err, "http - v1 - login")
+		handlers.HTTPError(c, http.StatusInternalServerError, "unable to login user")
+
+		return
+	}
+
+	claims := services.Claims{
+		Email: user.Email,
+	}
+
+	if request.AccountType == config.ACCOUNT_BASIC_ID {
+		claims.Name = *user.Username
+	} else {
+		claims.Name = *user.BusinessName
+	}
+
+	token, err := r.tokenService.GenerateToken(claims)
+
+	if err != nil {
+		r.logger.Error(err, "http - v1 - login")
+		handlers.HTTPError(c, http.StatusInternalServerError, "unable to login user")
+
+		return
+	}
+
+	if request.AccountType == config.ACCOUNT_BASIC_ID {
+		c.JSON(http.StatusOK, loginUserResponse{
+			User:  r.mapper.MapToUserDto(*user),
+			Token: token,
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, loginBusinessResponse{
+		User:  r.mapper.MapToBusinessDto(*user),
+		Token: token,
+	})
+
 }

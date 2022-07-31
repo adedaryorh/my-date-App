@@ -83,7 +83,133 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/business.Industry"
+                            "$ref": "#/definitions/models.Industry"
+                        }
+                    }
+                }
+            }
+        },
+        "/celebrations": {
+            "get": {
+                "description": "Get user's celebrations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Get Celebrations",
+                "operationId": "get-celebrations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.getCelebrationResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a celebration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Create Celebration",
+                "operationId": "create-celebration",
+                "parameters": [
+                    {
+                        "description": "create a new celebration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createCelebrationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createCelebrationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/celebrations/{celebrationID}": {
+            "delete": {
+                "description": "Delete a celebration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Delete Celebration",
+                "operationId": "delete-celebration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "celebration post identifier",
+                        "name": "celebrationID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.deleteCelebrationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -101,7 +227,7 @@ const docTemplate = `{
                 "tags": [
                     "Client"
                 ],
-                "summary": "Create a client",
+                "summary": "[Admin] Create a client",
                 "operationId": "create-client",
                 "parameters": [
                     {
@@ -175,12 +301,19 @@ const docTemplate = `{
                 "operationId": "login",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Authorization Token",
+                        "name": "x-auth-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Login user",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/auth.registerRequest"
+                            "$ref": "#/definitions/auth.loginRequest"
                         }
                     }
                 ],
@@ -188,13 +321,48 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.RegisterResponse"
+                            "$ref": "#/definitions/auth.loginBusinessResponse"
                         }
                     }
                 }
             }
         },
-        "/register": {
+        "/register/business": {
+            "post": {
+                "description": "Register a business",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Business Register",
+                "operationId": "register-business",
+                "parameters": [
+                    {
+                        "description": "Registers a new business",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.registerBusinessRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/auth.RegisterBusinessResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/register/user": {
             "post": {
                 "description": "Register a user",
                 "consumes": [
@@ -207,7 +375,7 @@ const docTemplate = `{
                     "Authentication"
                 ],
                 "summary": "User Register",
-                "operationId": "register",
+                "operationId": "register-user",
                 "parameters": [
                     {
                         "description": "Registers a new user",
@@ -215,7 +383,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/auth.registerRequest"
+                            "$ref": "#/definitions/auth.registerUserRequest"
                         }
                     }
                 ],
@@ -231,6 +399,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.RegisterBusinessResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dtos.Business"
+                }
+            }
+        },
         "auth.RegisterResponse": {
             "type": "object",
             "properties": {
@@ -238,7 +417,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/users.User"
+                    "$ref": "#/definitions/dtos.User"
                 }
             }
         },
@@ -297,7 +476,18 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.registerRequest": {
+        "auth.loginBusinessResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dtos.Business"
+                }
+            }
+        },
+        "auth.loginRequest": {
             "type": "object",
             "required": [
                 "account_type",
@@ -319,24 +509,113 @@ const docTemplate = `{
                 }
             }
         },
-        "business.Industry": {
+        "auth.loginUserResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "token": {
                     "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
+                "user": {
+                    "$ref": "#/definitions/dtos.User"
+                }
+            }
+        },
+        "auth.registerBusinessRequest": {
+            "type": "object",
+            "required": [
+                "business_name",
+                "country_code",
+                "email",
+                "industry_type",
+                "password",
+                "phone_number"
+            ],
+            "properties": {
+                "business_name": {
                     "type": "string",
-                    "example": "entertainment"
+                    "example": "John XYZ Plc"
                 },
-                "updated_at": {
-                    "type": "string"
+                "country_code": {
+                    "type": "string",
+                    "example": "234"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "industry_type": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                }
+            }
+        },
+        "auth.registerUserRequest": {
+            "type": "object",
+            "required": [
+                "country_code",
+                "dob",
+                "email",
+                "first_name",
+                "gender",
+                "interests",
+                "last_name",
+                "password",
+                "phone_number",
+                "relationship_status",
+                "username"
+            ],
+            "properties": {
+                "country_code": {
+                    "type": "string",
+                    "example": "234"
+                },
+                "dob": {
+                    "type": "string",
+                    "example": "2020-10-12"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "gender": {
+                    "type": "string",
+                    "example": "male"
+                },
+                "interests": {
+                    "type": "string",
+                    "example": "fashion,entertainment"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                },
+                "relationship_status": {
+                    "type": "string",
+                    "example": "single"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "johndoe"
                 }
             }
         },
@@ -363,57 +642,162 @@ const docTemplate = `{
                 "industries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/business.Industry"
+                        "$ref": "#/definitions/models.Industry"
                     }
                 }
             }
         },
-        "users.User": {
+        "dtos.Business": {
             "type": "object",
             "properties": {
-                "countryCode": {
+                "business_name": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "dateOfBirth": {
+                "country_code": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
-                "firstName": {
+                "industry_type": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.Celebration": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dtos.User"
+                }
+            }
+        },
+        "dtos.User": {
+            "type": "object",
+            "properties": {
+                "country_code": {
+                    "type": "string"
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
                     "type": "string"
                 },
                 "gender": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
                 "interests": {
                     "type": "string"
                 },
-                "lastName": {
+                "last_name": {
                     "type": "string"
                 },
-                "passwordHash": {
+                "phone_number": {
                     "type": "string"
                 },
-                "phoneNumber": {
-                    "type": "string"
-                },
-                "relationshipStatus": {
-                    "type": "string"
-                },
-                "updatedAt": {
+                "relationship_status": {
                     "type": "string"
                 },
                 "user_id": {
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "message"
+                }
+            }
+        },
+        "handlers.createCelebrationRequest": {
+            "type": "object",
+            "required": [
+                "celebrations",
+                "message"
+            ],
+            "properties": {
+                "celebrations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "What is happening?"
+                }
+            }
+        },
+        "handlers.createCelebrationResponse": {
+            "type": "object"
+        },
+        "handlers.deleteCelebrationResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.getCelebrationResponse": {
+            "type": "object",
+            "properties": {
+                "celebrations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Celebration"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Industry": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "entertainment"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

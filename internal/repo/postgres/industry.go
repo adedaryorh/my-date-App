@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"celebut-api/internal/models/business"
+	"celebut-api/internal/models"
 	"celebut-api/pkg/postgres"
 	"context"
 	"fmt"
@@ -18,7 +18,7 @@ func NewIndustryRepo(pg *postgres.Postgres) *IndustryPostgresRepo {
 }
 
 // CreateIndustry -.
-func (r *IndustryPostgresRepo) CreateIndustry(ctx context.Context, i *business.Industry) error {
+func (r *IndustryPostgresRepo) CreateIndustry(ctx context.Context, i *models.Industry) error {
 	sql, args, err := r.Builder.
 		Insert("industries").
 		Columns("name, description").
@@ -38,7 +38,7 @@ func (r *IndustryPostgresRepo) CreateIndustry(ctx context.Context, i *business.I
 }
 
 // GetIndustries -.
-func (r *IndustryPostgresRepo) GetIndustries(ctx context.Context) ([]business.Industry, error) {
+func (r *IndustryPostgresRepo) GetIndustries(ctx context.Context) ([]models.Industry, error) {
 	sql, _, err := r.Builder.
 		Select("id, name, description").
 		From("industries").
@@ -54,10 +54,10 @@ func (r *IndustryPostgresRepo) GetIndustries(ctx context.Context) ([]business.In
 	}
 	defer rows.Close()
 
-	industries := make([]business.Industry, 0, _defaultEntityCap)
+	industries := make([]models.Industry, 0, _defaultEntityCap)
 
 	for rows.Next() {
-		i := business.Industry{}
+		i := models.Industry{}
 
 		err = rows.Scan(&i.ID, &i.Name, &i.Description)
 		if err != nil {

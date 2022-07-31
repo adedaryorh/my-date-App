@@ -2,7 +2,7 @@ package business
 
 import (
 	"celebut-api/internal/controller/http/v1/handlers"
-	"celebut-api/internal/models/business"
+	"celebut-api/internal/models"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
 	"net/http"
@@ -26,24 +26,24 @@ func NewIndustryRoutes(handler *gin.RouterGroup, i usecase.Industry, l logger.In
 }
 
 type getIndustryResponse struct {
-	Industries []business.Industry `json:"industries"`
+	Industries []models.Industry `json:"industries"`
 }
 
 // @Summary     Get industries
 // @Description Get list of business industries
 // @ID          industries-list
-// @Tags  	    Industries
+// @Tags        Industries
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header string true "Authorization Token"
-// @Success     200 {object} getIndustryResponse
+// @Param       x-auth-token header   string true "Authorization Token"
+// @Success     200          {object} getIndustryResponse
 // @Router      /business/industry [get]
 func (r *industryRoutes) industries(c *gin.Context) {
 	industries, err := r.i.Industries(c.Request.Context())
 
 	if err != nil {
 		r.l.Error(err, "http - v1 - history")
-		handlers.ErrorResponse(c, http.StatusInternalServerError, "internal server error")
+		handlers.HTTPError(c, http.StatusInternalServerError, "internal server error")
 
 		return
 	}
@@ -59,23 +59,23 @@ type createIndustryRequest struct {
 // @Summary     Create industry
 // @Description Create a new business industry
 // @ID          create-industry
-// @Tags  	    Industries
+// @Tags        Industries
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header string true "Authorization Token"
-// @Param       request body createIndustryRequest true "Create new industry"
-// @Success     200 {object} business.Industry
+// @Param       x-auth-token header   string                true "Authorization Token"
+// @Param       request      body     createIndustryRequest true "Create new industry"
+// @Success     200          {object} models.Industry
 // @Router      /business/industry [post]
 func (r *industryRoutes) createIndustry(c *gin.Context) {
 	var request createIndustryRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		r.l.Error(err, "http - v1 - createIndustry")
-		handlers.ErrorResponse(c, http.StatusBadRequest, "invalid request body")
+		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
 		return
 	}
 
-	industry := &business.Industry{
+	industry := &models.Industry{
 		Name:        request.Name,
 		Description: request.Description,
 	}
@@ -83,7 +83,7 @@ func (r *industryRoutes) createIndustry(c *gin.Context) {
 	err := r.i.Create(c.Request.Context(), industry)
 	if err != nil {
 		r.l.Error(err, "http - v1 - createIndustry")
-		handlers.ErrorResponse(c, http.StatusBadRequest, "internal server error")
+		handlers.HTTPError(c, http.StatusBadRequest, "internal server error")
 
 		return
 	}

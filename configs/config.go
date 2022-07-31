@@ -7,10 +7,11 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App  `yaml:"app"`
-		HTTP `yaml:"http"`
-		Log  `yaml:"logger"`
-		PG   `yaml:"postgres"`
+		App   `yaml:"app"`
+		HTTP  `yaml:"http"`
+		Log   `yaml:"logger"`
+		PG    `yaml:"postgres"`
+		Token `yaml:"token"`
 	}
 
 	// App -.
@@ -34,6 +35,11 @@ type (
 	PG struct {
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PG_POOL_MAX"`
 		URL     string `env-required:"true" yaml:"url"      env:"PG_URL"`
+	}
+
+	// Token -.
+	Token struct {
+		Secret string `env-required:"true" yaml:"token_secret" env:"TOKEN_SECRET"`
 	}
 )
 
