@@ -5,13 +5,13 @@ import (
 )
 
 type User struct {
-	ID                 uint
+	ID                 int
 	UserID             string
 	FirstName          *string
 	LastName           *string
 	Username           *string
-	CountryCode        string
-	PhoneNumber        string
+	CountryCode        *string
+	PhoneNumber        *string
 	Email              string
 	DateOfBirth        *time.Time
 	Gender             *string
@@ -21,6 +21,7 @@ type User struct {
 	AccountType        AccountType
 	Interests          *string
 	Password           string
+	Status             string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }

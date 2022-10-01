@@ -26,6 +26,14 @@ type (
 	User interface {
 		GetUserByField(ctx context.Context, field string, value string) (*models.User, error)
 		CreateUser(context.Context, *models.User) error
+		UpdateUser(context.Context, *models.User, bool) error
+	}
+
+	//UserOTP -.
+	UserOTP interface {
+		CreateOTP(context.Context, *models.UserOTP) error
+		GetOTPByUserIDAndMode(ctx context.Context, userID int, mode string) (*models.UserOTP, error)
+		UseOTP(context.Context, *models.UserOTP) error
 	}
 
 	//Celebration -.

@@ -1,4 +1,4 @@
-package postgres
+package accounts
 
 import (
 	"celebut-api/internal/models"

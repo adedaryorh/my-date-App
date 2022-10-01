@@ -36,7 +36,7 @@ func (uc *Client) AuthenticateClient(ctx context.Context, clientId string, secre
 	client, err := uc.repo.GetClient(ctx, clientId)
 
 	if err != nil {
-		return nil, fmt.Errorf("Client - AuthenticateClient - s.repo.AuthenticateClient: %w", err)
+		return nil, fmt.Errorf("Client - AuthenticateClient - s.userRepo.AuthenticateClient: %w", err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(client.Secret), []byte(secret))
@@ -66,7 +66,7 @@ func (uc *Client) ValidateClientToken(ctx context.Context, token string) error {
 	ct, err := uc.repo.GetClientToken(ctx, token)
 
 	if err != nil {
-		return fmt.Errorf("client - AuthenticateClient - uc.repo.GetClientToken: %w", err)
+		return fmt.Errorf("client - AuthenticateClient - uc.userRepo.GetClientToken: %w", err)
 	}
 
 	// Check Expiry
@@ -95,14 +95,14 @@ func (uc *Client) CreateClient(ctx context.Context, c *models.Client) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Secret), bcrypt.DefaultCost)
 
 	if err != nil {
-		return fmt.Errorf("client - create - s.repo.CreateClient: %w", err)
+		return fmt.Errorf("client - create - s.userRepo.CreateClient: %w", err)
 	}
 
 	c.Secret = string(hashedPassword)
 
 	err = uc.repo.CreateClient(ctx, c)
 	if err != nil {
-		return fmt.Errorf("client - create - s.repo.CreateClient: %w", err)
+		return fmt.Errorf("client - create - s.userRepo.CreateClient: %w", err)
 	}
 
 	return nil

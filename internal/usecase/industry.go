@@ -31,7 +31,7 @@ func (uc *IndustryUseCase) Industries(ctx context.Context) ([]models.Industry, e
 	industries, err := uc.repo.GetIndustries(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("IndustryUseCase - Industries - s.repo.GetIndustries: %w", err)
+		return nil, fmt.Errorf("IndustryUseCase - Industries - s.userRepo.GetIndustries: %w", err)
 	}
 
 	return industries, nil
@@ -42,7 +42,7 @@ func (uc *IndustryUseCase) Create(ctx context.Context, i *models.Industry) error
 	err := uc.repo.CreateIndustry(context.Background(), i)
 
 	if err != nil {
-		return fmt.Errorf("IndustryUseCase - Industry - s.repo.CreateIndustry: %w", err)
+		return fmt.Errorf("IndustryUseCase - Industry - s.userRepo.CreateIndustry: %w", err)
 	}
 
 	return nil

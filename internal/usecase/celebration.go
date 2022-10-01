@@ -28,10 +28,10 @@ func NewCelebrationUseCase(r repo.Celebration) *CelebrationUseCase {
 
 // Industries - get list of industries from database.
 //func (uc *IndustryUseCase) Industries(ctx context.Context) ([]models.Industry, error) {
-//	industries, err := uc.repo.GetIndustries(ctx)
+//	industries, err := uc.userRepo.GetIndustries(ctx)
 //
 //	if err != nil {
-//		return nil, fmt.Errorf("IndustryUseCase - Industries - s.repo.GetIndustries: %w", err)
+//		return nil, fmt.Errorf("IndustryUseCase - Industries - s.userRepo.GetIndustries: %w", err)
 //	}
 //
 //	return industries, nil
@@ -42,7 +42,7 @@ func (uc *CelebrationUseCase) Create(ctx context.Context, c *models.Celebration)
 	err := uc.repo.Create(ctx, c)
 
 	if err != nil {
-		return fmt.Errorf("CelebrationUseCase - Celebrations - s.repo.Create: %w", err)
+		return fmt.Errorf("CelebrationUseCase - Celebrations - s.userRepo.Create: %w", err)
 	}
 
 	return nil

@@ -52,6 +52,25 @@ definitions:
       message:
         type: string
     type: object
+  auth.initialiseRegisterRequest:
+    properties:
+      account_type:
+        example: 1
+        type: integer
+      email:
+        example: user@email.com
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+    required:
+    - account_type
+    type: object
+  auth.initialiseRegisterResponse:
+    properties:
+      message:
+        type: string
+    type: object
   auth.loginBusinessResponse:
     properties:
       token:
@@ -96,6 +115,9 @@ definitions:
       industry_type:
         example: 1
         type: integer
+      otp:
+        example: "456789"
+        type: string
       password:
         example: password
         type: string
@@ -107,6 +129,7 @@ definitions:
     - country_code
     - email
     - industry_type
+    - otp
     - password
     - phone_number
     type: object
@@ -133,6 +156,9 @@ definitions:
       last_name:
         example: Doe
         type: string
+      otp:
+        example: "456789"
+        type: string
       password:
         example: password
         type: string
@@ -153,10 +179,30 @@ definitions:
     - gender
     - interests
     - last_name
+    - otp
     - password
     - phone_number
     - relationship_status
     - username
+    type: object
+  auth.validateOTPRequest:
+    properties:
+      email:
+        example: user@email.com
+        type: string
+      otp:
+        example: "123456"
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+    required:
+    - otp
+    type: object
+  auth.validateOTPResponse:
+    properties:
+      token:
+        type: string
     type: object
   business.createIndustryRequest:
     properties:
@@ -236,15 +282,21 @@ definitions:
     type: object
   handlers.createCelebrationRequest:
     properties:
-      celebrations:
+      media:
         items:
+          properties:
+            alternate_text:
+              type: string
+            url:
+              type: string
+          required:
+          - url
           type: object
         type: array
       message:
         example: What is happening?
         type: string
     required:
-    - celebrations
     - message
     type: object
   handlers.createCelebrationResponse:
@@ -505,6 +557,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/auth.registerBusinessRequest'
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -515,11 +572,39 @@ paths:
       summary: Business Register
       tags:
       - Authentication
+  /register/initialise:
+    post:
+      consumes:
+      - application/json
+      description: Begin registration process
+      operationId: initialise-register
+      parameters:
+      - description: begin a new registration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.initialiseRegisterRequest'
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.initialiseRegisterResponse'
+      summary: Initialise Registration
+      tags:
+      - Authentication
   /register/user:
     post:
       consumes:
       - application/json
-      description: Register a user
+      description: Complete a user's registration with OTP
       operationId: register-user
       parameters:
       - description: Registers a new user
@@ -528,6 +613,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/auth.registerUserRequest'
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -535,7 +625,35 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/auth.RegisterResponse'
-      summary: User Register
+      summary: Complete User Registration
+      tags:
+      - Authentication
+  /register/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate registration OTP
+      operationId: validate-register-otp
+      parameters:
+      - description: otp validation body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.validateOTPRequest'
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.validateOTPResponse'
+      summary: Validate Registration OTP
       tags:
       - Authentication
 swagger: "2.0"

@@ -1,4 +1,4 @@
-package postgres
+package accounts
 
 import (
 	"celebut-api/internal/models"
@@ -53,10 +53,6 @@ func (r *ClientPostgresRepo) GetClient(ctx context.Context, clientId string) (*m
 	}
 
 	row := r.Pool.QueryRow(ctx, sql, clientId)
-	if err != nil {
-		return nil, fmt.Errorf("ClientPostgresRepo - AuthenticateClient - r.Pool.Query: %w", err)
-	}
-
 	c := models.Client{}
 
 	err = row.Scan(&c.Name, &c.ClientID, &c.Secret)
@@ -69,17 +65,17 @@ func (r *ClientPostgresRepo) GetClient(ctx context.Context, clientId string) (*m
 
 // GetClientToken -.
 func (r *ClientPostgresRepo) GetClientToken(ctx context.Context, token string) (*models.ClientToken, error) {
-	sql, _, err := r.Builder.
+	sql, args, err := r.Builder.
 		Select("token, expiry").
 		From("client_tokens").
-		Where(squirrel.Eq{"token": token}).
+		Where("token = ?", token).
 		ToSql()
 
 	if err != nil {
 		return nil, fmt.Errorf("ClientPostgresRepo - GetClientToken - r.Builder: %w", err)
 	}
 
-	row := r.Pool.QueryRow(ctx, sql, token)
+	row := r.Pool.QueryRow(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("ClientPostgresRepo - GetClientToken - r.Pool.Query: %w", err)
 	}

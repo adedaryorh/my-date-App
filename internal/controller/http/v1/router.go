@@ -7,8 +7,10 @@ import (
 	"celebut-api/internal/controller/http/v1/handlers/business"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/middleware"
-	postgres2 "celebut-api/internal/repo/postgres"
-	"celebut-api/internal/services"
+	"celebut-api/internal/repo/postgres/accounts"
+	"celebut-api/internal/repo/postgres/celebrations"
+	"celebut-api/internal/services/mailer"
+	"celebut-api/internal/services/token"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
 	"celebut-api/pkg/postgres"
@@ -30,23 +32,29 @@ import (
 // @version     1.0
 // @host        localhost:8083
 // @BasePath    /v1
-func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres, cfg *configs.Config) {
+func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres, cfg *configs.Config) *gin.RouterGroup {
 
+	// mailer
+	mailerService := mailer.NewMailerService()
 	// repo
-	industryRepo := postgres2.NewIndustryRepo(pg)
-	clientRepo := postgres2.NewClientRepo(pg)
-	userRepo := postgres2.NewUserRepo(pg)
-	celebrationsRepo := postgres2.NewCelebrationRepo(pg)
+	industryRepo := accounts.NewIndustryRepo(pg)
+	clientRepo := accounts.NewClientRepo(pg)
+	userRepo := accounts.NewUserRepo(pg)
+	registerOTPRepo := accounts.NewRegisterOTPRepo(pg)
+
+	celebrationsRepo := celebrations.NewCelebrationRepo(pg)
+
+	otpService := token.NewOTPService(cfg.OTP.Secret)
 
 	// Use cases
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
 	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
-	userUseCase := usecase.NewUserUseCase(userRepo)
+	userUseCase := usecase.NewUserUseCase(userRepo, registerOTPRepo, otpService)
 	celebrationsUseCase := usecase.NewCelebrationUseCase(celebrationsRepo)
 
 	mapper := &mappers.DtoUserMapper{}
 	celebrationMapper := &mappers.DtoCelebrationMapper{}
-	tokenService := services.NewTokenService(cfg.Token.Secret)
+	tokenService := token.NewTokenService(cfg.Token.Secret)
 
 	// Options
 	handler.Use(gin.Logger())
@@ -66,27 +74,21 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	//	w.Write([]byte("Celebut API"))
 	//})
 
-	// Routers
+	routes := handler.Group("/v1")
 
-	client := handler.Group("/v1")
+	// Middleware
+	routes.Use(
+		middleware.ClientAuthorization(clientUseCase, l),
+		middleware.Authorization(*userUseCase, tokenService, l))
+
+	// Routes
 	{
-		auth.NewClientAuthRoute(client, clientUseCase, l)
+		auth.NewClientAuthRoute(routes, clientUseCase, l)
+		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, mapper, mailerService)
+		auth.NewLoginRoute(routes, userUseCase, l, mapper, tokenService)
+		business.NewIndustryRoutes(routes, industryUseCase, l)
+		handlers.NewCelebrationsRoute(routes, celebrationsUseCase, l, celebrationMapper)
 	}
 
-	clientAuthMiddleware := middleware.ClientAuthorization(clientUseCase, l)
-
-	authRoutes := handler.Group("/v1")
-	authRoutes.Use(clientAuthMiddleware)
-	{
-		auth.NewRegisterRoute(authRoutes, userUseCase, l, tokenService, mapper)
-		auth.NewLoginRoute(authRoutes, userUseCase, l, mapper, tokenService)
-		business.NewIndustryRoutes(authRoutes, industryUseCase, l)
-	}
-
-	appRoutes := handler.Group("/v1")
-	appRoutes.Use(clientAuthMiddleware)
-	{
-		handlers.NewCelebrationsRoute(authRoutes, celebrationsUseCase, l, celebrationMapper)
-	}
-
+	return routes
 }

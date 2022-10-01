@@ -1,4 +1,4 @@
-package services
+package token
 
 import (
 	"fmt"
@@ -8,12 +8,13 @@ import (
 
 type TokenService interface {
 	GenerateToken(Claims) (string, error)
-	ValidateToken(string) error
+	ValidateToken(string) (*Claims, error)
 }
 
 type Claims struct {
-	Name  string
-	Email string
+	UserID string
+	Name   string
+	Email  string
 }
 
 type jWTTokenService struct {
@@ -28,9 +29,10 @@ func NewTokenService(secret string) jWTTokenService {
 
 func (ts jWTTokenService) GenerateToken(c Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"name":  c.Name,
-		"email": c.Email,
-		"nbf":   time.Now().Unix(),
+		"name":    c.Name,
+		"email":   c.Email,
+		"user_id": c.UserID,
+		"nbf":     time.Now().Unix(),
 	})
 
 	tokenString, err := token.SignedString(ts.hMacSecret)
@@ -42,7 +44,7 @@ func (ts jWTTokenService) GenerateToken(c Claims) (string, error) {
 	return tokenString, nil
 }
 
-func (ts jWTTokenService) ValidateToken(tokenString string) error {
+func (ts jWTTokenService) ValidateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -53,9 +55,15 @@ func (ts jWTTokenService) ValidateToken(tokenString string) error {
 		return ts.hMacSecret, nil
 	})
 
-	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return nil
+	if c, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if userID, ok := c["user_id"]; ok {
+			return &Claims{
+				UserID: userID.(string),
+			}, nil
+		}
+
+		return nil, nil
 	}
 
-	return err
+	return nil, err
 }

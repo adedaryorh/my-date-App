@@ -16,7 +16,7 @@ var allowedPaths = []string{
 	"/swagger/index.html",
 }
 
-// ClientAuthorization - .
+// ClientAuthorization - ensures that the request comes from an authorised client
 func ClientAuthorization(uc usecase.ClientUseCase, l logger.Interface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if slices.Contains(allowedPaths, c.Request.URL.Path) {

@@ -329,7 +329,7 @@ const docTemplate = `{
         },
         "/register/business": {
             "post": {
-                "description": "Register a business",
+                "description": "CompleteRegistration a business",
                 "consumes": [
                     "application/json"
                 ],
@@ -339,7 +339,7 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Business Register",
+                "summary": "Business CompleteRegistration",
                 "operationId": "register-business",
                 "parameters": [
                     {
@@ -350,6 +350,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/auth.registerBusinessRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization Token",
+                        "name": "x-auth-token",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -362,9 +369,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/register/user": {
+        "/register/initialise": {
             "post": {
-                "description": "Register a user",
+                "description": "Begin registration process",
                 "consumes": [
                     "application/json"
                 ],
@@ -374,7 +381,49 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "User Register",
+                "summary": "Initialise Registration",
+                "operationId": "initialise-register",
+                "parameters": [
+                    {
+                        "description": "begin a new registration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.initialiseRegisterRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization Token",
+                        "name": "x-auth-token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/auth.initialiseRegisterResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/register/user": {
+            "post": {
+                "description": "Complete a user's registration with OTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Complete User Registration",
                 "operationId": "register-user",
                 "parameters": [
                     {
@@ -385,6 +434,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/auth.registerUserRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization Token",
+                        "name": "x-auth-token",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -392,6 +448,48 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/auth.RegisterResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/register/validate": {
+            "post": {
+                "description": "Validate registration OTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Validate Registration OTP",
+                "operationId": "validate-register-otp",
+                "parameters": [
+                    {
+                        "description": "otp validation body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.validateOTPRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization Token",
+                        "name": "x-auth-token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.validateOTPResponse"
                         }
                     }
                 }
@@ -476,6 +574,34 @@ const docTemplate = `{
                 }
             }
         },
+        "auth.initialiseRegisterRequest": {
+            "type": "object",
+            "required": [
+                "account_type"
+            ],
+            "properties": {
+                "account_type": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                }
+            }
+        },
+        "auth.initialiseRegisterResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.loginBusinessResponse": {
             "type": "object",
             "properties": {
@@ -527,6 +653,7 @@ const docTemplate = `{
                 "country_code",
                 "email",
                 "industry_type",
+                "otp",
                 "password",
                 "phone_number"
             ],
@@ -546,6 +673,10 @@ const docTemplate = `{
                 "industry_type": {
                     "type": "integer",
                     "example": 1
+                },
+                "otp": {
+                    "type": "string",
+                    "example": "456789"
                 },
                 "password": {
                     "type": "string",
@@ -567,6 +698,7 @@ const docTemplate = `{
                 "gender",
                 "interests",
                 "last_name",
+                "otp",
                 "password",
                 "phone_number",
                 "relationship_status",
@@ -601,6 +733,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Doe"
                 },
+                "otp": {
+                    "type": "string",
+                    "example": "456789"
+                },
                 "password": {
                     "type": "string",
                     "example": "password"
@@ -616,6 +752,34 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "johndoe"
+                }
+            }
+        },
+        "auth.validateOTPRequest": {
+            "type": "object",
+            "required": [
+                "otp"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "otp": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                }
+            }
+        },
+        "auth.validateOTPResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         },
@@ -737,14 +901,24 @@ const docTemplate = `{
         "handlers.createCelebrationRequest": {
             "type": "object",
             "required": [
-                "celebrations",
                 "message"
             ],
             "properties": {
-                "celebrations": {
+                "media": {
                     "type": "array",
                     "items": {
-                        "type": "object"
+                        "type": "object",
+                        "required": [
+                            "url"
+                        ],
+                        "properties": {
+                            "alternate_text": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string"
+                            }
+                        }
                     }
                 },
                 "message": {

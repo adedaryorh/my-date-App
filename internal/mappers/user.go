@@ -23,9 +23,9 @@ func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
 		DateOfBirth:        *user.DateOfBirth,
-		Gender:             *user.Gender,
-		RelationshipStatus: *user.RelationshipStatus,
-		Interests:          *user.Interests,
+		Gender:             user.Gender,
+		RelationshipStatus: user.RelationshipStatus,
+		Interests:          user.Interests,
 	}
 }
 

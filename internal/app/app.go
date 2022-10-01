@@ -24,10 +24,12 @@ func Run(cfg *configs.Config) {
 	}
 	defer pg.Close()
 
+	initialiseRepositories(pg)
+
 	// HTTP Server
 	handler := gin.New()
 
-	v1.NewAppRouter(handler, l, pg, cfg)
+	_ = v1.NewAppRouter(handler, l, pg, cfg)
 	httpServer := httpserver.New(handler)
 
 	// Waiting signal

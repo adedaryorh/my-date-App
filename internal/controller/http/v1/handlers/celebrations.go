@@ -30,9 +30,11 @@ type createCelebrationResponse struct {
 }
 
 type createCelebrationRequest struct {
-	Message      string `json:"message"  binding:"required"  example:"What is happening?"`
-	Celebrations []struct {
-	} `json:"celebrations"  binding:"required"`
+	Message string `json:"message"  binding:"required"  example:"What is happening?"`
+	Media   []struct {
+		URL           string `json:"url"  binding:"required"`
+		AlternateText string `json:"alternate_text"`
+	} `json:"media"`
 }
 
 type getCelebrationRequest struct {

@@ -1,4 +1,4 @@
-package postgres
+package celebrations
 
 import (
 	"celebut-api/internal/models"

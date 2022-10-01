@@ -5,7 +5,7 @@ import (
 	"celebut-api/internal/controller/http/v1/handlers"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
-	"celebut-api/internal/services"
+	"celebut-api/internal/services/token"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
 	"net/http"
@@ -17,10 +17,10 @@ type loginRoute struct {
 	user         usecase.User
 	logger       logger.Interface
 	mapper       mappers.UserMapper
-	tokenService services.TokenService
+	tokenService token.TokenService
 }
 
-func NewLoginRoute(handler *gin.RouterGroup, i usecase.User, l logger.Interface, m mappers.UserMapper, t services.TokenService) {
+func NewLoginRoute(handler *gin.RouterGroup, i usecase.User, l logger.Interface, m mappers.UserMapper, t token.TokenService) {
 	r := &loginRoute{i, l, m, t}
 
 	handler.POST("/login", r.login)
@@ -73,7 +73,7 @@ func (r *loginRoute) login(c *gin.Context) {
 		return
 	}
 
-	claims := services.Claims{
+	claims := token.Claims{
 		Email: user.Email,
 	}
 

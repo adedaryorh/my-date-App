@@ -12,6 +12,7 @@ type (
 		Log   `yaml:"logger"`
 		PG    `yaml:"postgres"`
 		Token `yaml:"token"`
+		OTP   `yaml:"otp"`
 	}
 
 	// App -.
@@ -40,6 +41,11 @@ type (
 	// Token -.
 	Token struct {
 		Secret string `env-required:"true" yaml:"token_secret" env:"TOKEN_SECRET"`
+	}
+
+	// OTP -.
+	OTP struct {
+		Secret string `env-required:"true" yaml:"otp_secret" env:"OTP_SECRET"`
 	}
 )
 
