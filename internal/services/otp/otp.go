@@ -1,4 +1,4 @@
-package token
+package otp
 
 import (
 	"fmt"
@@ -6,11 +6,6 @@ import (
 )
 
 import "github.com/uaraven/gotp"
-
-type OTPGenerator interface {
-	GenerateOTP(time time.Time) string
-	VerifyOTP(code string, time time.Time) error
-}
 
 type OTPService struct {
 	totp *gotp.TOTP

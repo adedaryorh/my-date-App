@@ -2,6 +2,7 @@ package v1
 
 import (
 	"celebut-api/configs"
+	"celebut-api/docs"
 	"celebut-api/internal/controller/http/v1/handlers"
 	"celebut-api/internal/controller/http/v1/handlers/auth"
 	"celebut-api/internal/controller/http/v1/handlers/business"
@@ -10,6 +11,7 @@ import (
 	"celebut-api/internal/repo/postgres/accounts"
 	"celebut-api/internal/repo/postgres/celebrations"
 	"celebut-api/internal/services/mailer"
+	"celebut-api/internal/services/otp"
 	"celebut-api/internal/services/token"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
@@ -34,6 +36,14 @@ import (
 // @BasePath    /v1
 func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres, cfg *configs.Config) *gin.RouterGroup {
 
+	docs.SwaggerInfo.Title = "Celebut API"
+	docs.SwaggerInfo.Description = "Celebut Backend REST endpoints"
+	docs.SwaggerInfo.Version = "1.0"
+
+	docs.SwaggerInfo.Host = "localhost:8083"
+	docs.SwaggerInfo.BasePath = "/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+
 	// mailer
 	mailerService := mailer.NewMailerService()
 	// repo
@@ -44,7 +54,13 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 
 	celebrationsRepo := celebrations.NewCelebrationRepo(pg)
 
-	otpService := token.NewOTPService(cfg.OTP.Secret)
+	var otpService otp.Generator
+
+	if cfg.Env == "production" {
+		otpService = otp.NewOTPService(cfg.OTP.Secret)
+	} else {
+		otpService = otp.NewLocalOTPService()
+	}
 
 	// Use cases
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
