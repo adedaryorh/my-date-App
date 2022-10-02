@@ -12,7 +12,7 @@ WORKDIR /app
 COPY . ./
 
 # Build the statically-linked executable looking into '/vendor' folder
-RUN make .build-migrate
+RUN make build-migrate-static
 
 CMD ["./bin/celebut-migrate"]
 

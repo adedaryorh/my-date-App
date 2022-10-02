@@ -22,6 +22,9 @@ build: clean .build-migrate ## Build binaries
 build-static: ## Build binaries statically
 	CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -mod=mod -v -a -installsuffix cgo -o bin/celebut-api ./cmd/celebutapi/
 
+build-migrate-static:
+	go build -mod=mod -ldflags '$(LDFLAGS)' -tags migrate -o bin/celebut-migrate ./cmd/celebutapi/
+
 clean: ## Cleanup runtime files
 	rm -rf celebut-api *.coverprofile *.out
 
