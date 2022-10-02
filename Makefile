@@ -13,7 +13,10 @@ LDFLAGS     := -X "main.commitHash=$(COMMIT_HASH)"
 bash: ## Run bash inside app container
 	@docker-compose exec app bash
 
-build: clean ## Build binaries
+.build-migrate:
+	go build -mod=vendor -ldflags '$(LDFLAGS)' -tags migrate -o bin/celebut-migrate ./cmd/celebutapi/
+
+build: clean .build-migrate ## Build binaries
 	go build -mod=vendor -ldflags '$(LDFLAGS)' -o bin/celebut-api ./cmd/celebutapi/
 
 build-static: ## Build binaries statically

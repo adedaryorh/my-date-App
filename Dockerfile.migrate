@@ -12,17 +12,8 @@ WORKDIR /app
 COPY . ./
 
 # Build the statically-linked executable looking into '/vendor' folder
-RUN make build-static
+RUN make .build-migrate
 
-# Final stage: the running container.
-FROM debian:buster-slim
+CMD ["./bin/celebut-migrate"]
 
-# Import the Certificate-Authority certificates for enabling HTTPS.
-#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Import the compiled executable.
-COPY --from=builder /app/bin/celebut-api /app/
-
-EXPOSE 8080
-
-CMD ["/app/celebut-api"]

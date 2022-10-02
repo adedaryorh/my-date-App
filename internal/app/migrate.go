@@ -54,10 +54,12 @@ func init() {
 		log.Fatalf("Migrate: up error: %s", err)
 	}
 
+	// We are running this as a standalone task. We should exit to avoid spinning up main app
 	if errors.Is(err, migrate.ErrNoChange) {
 		log.Printf("Migrate: no change")
-		return
+	} else {
+		log.Printf("Migrate: up success")
 	}
 
-	log.Printf("Migrate: up success")
+	os.Exit(0)
 }
