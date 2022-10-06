@@ -11,9 +11,11 @@ import (
 	"celebut-api/internal/repo/postgres/accounts"
 	"celebut-api/internal/repo/postgres/celebrations"
 	"celebut-api/internal/services/mailer"
-	"celebut-api/internal/services/otp"
+	"celebut-api/internal/services/otp_generator"
 	"celebut-api/internal/services/token"
+	"celebut-api/internal/services/user_otp"
 	"celebut-api/internal/usecase"
+	"celebut-api/internal/usecase/otp"
 	"celebut-api/pkg/logger"
 	"celebut-api/pkg/postgres"
 	"github.com/gin-gonic/gin"
@@ -50,23 +52,27 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	industryRepo := accounts.NewIndustryRepo(pg)
 	clientRepo := accounts.NewClientRepo(pg)
 	userRepo := accounts.NewUserRepo(pg)
-	registerOTPRepo := accounts.NewRegisterOTPRepo(pg)
+	userOTPRepo := accounts.NewUserOTPRepo(pg)
 
 	celebrationsRepo := celebrations.NewCelebrationRepo(pg)
 
-	var otpService otp.Generator
+	var otpGeneratorService otp_generator.Generator
 
 	if cfg.Env == "production" {
-		otpService = otp.NewOTPService(cfg.OTP.Secret)
+		otpGeneratorService = otp_generator.NewOTPGeneratorService(cfg.OTP.Secret)
 	} else {
-		otpService = otp.NewLocalOTPService()
+		otpGeneratorService = otp_generator.NewLocalOTPGeneratorService()
 	}
+
+	userOtpService := user_otp.NewUserOTPService(userOTPRepo, otpGeneratorService)
 
 	// Use cases
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
 	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
-	userUseCase := usecase.NewUserUseCase(userRepo, registerOTPRepo, otpService)
+	userUseCase := usecase.NewUserUseCase(userRepo, userOTPRepo, otpGeneratorService)
 	celebrationsUseCase := usecase.NewCelebrationUseCase(celebrationsRepo)
+
+	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
 
 	mapper := &mappers.DtoUserMapper{}
 	celebrationMapper := &mappers.DtoCelebrationMapper{}
@@ -104,6 +110,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		auth.NewLoginRoute(routes, userUseCase, l, mapper, tokenService)
 		business.NewIndustryRoutes(routes, industryUseCase, l)
 		handlers.NewCelebrationsRoute(routes, celebrationsUseCase, l, celebrationMapper)
+		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
 	}
 
 	return routes

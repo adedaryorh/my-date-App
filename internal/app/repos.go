@@ -19,6 +19,6 @@ func initialiseRepositories(pg *postgres.Postgres) {
 	industryRepo = accounts.NewIndustryRepo(pg)
 	clientRepo = accounts.NewClientRepo(pg)
 	userRepo = accounts.NewUserRepo(pg)
-	registerOTPRepo = accounts.NewRegisterOTPRepo(pg)
+	registerOTPRepo = accounts.NewUserOTPRepo(pg)
 	celebrationsRepo = celebrations.NewCelebrationRepo(pg)
 }

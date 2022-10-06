@@ -19,6 +19,7 @@ var skipAuthPaths = []string{
 	"/swagger/index.html",
 	"/v1/register/initialise",
 	"/v1/register/validate",
+	"/v1/otp/resend",
 	"/v1/login",
 }
 

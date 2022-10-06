@@ -34,7 +34,7 @@ func (r *UserPostgresRepo) CreateUser(ctx context.Context, c *models.User) error
 	sql, args, err := r.Builder.
 		Insert("users").
 		Columns("user_id, first_name, last_name, username, country_code, phone, email, dob, gender, relationship_status, business_name, industry_id, account_type_id, password_hash, status").
-		Values(c.UserID, c.FirstName, c.LastName, c.Username, c.CountryCode, c.PhoneNumber, c.Email, dob, c.Gender, c.RelationshipStatus, c.BusinessName, industryId, c.AccountType.ID, c.Password, "enabled").
+		Values(c.UserID, c.FirstName, c.LastName, c.Username, c.CountryCode, c.PhoneNumber, c.Email, dob, c.Gender, c.RelationshipStatus, c.BusinessName, industryId, c.AccountType.ID, c.Password, c.Status).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 

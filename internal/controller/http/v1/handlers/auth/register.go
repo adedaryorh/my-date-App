@@ -39,8 +39,8 @@ func NewRegisterRoutes(
 }
 
 type initialiseRegisterRequest struct {
-	Email       *string `json:"email"              binding:"email"  example:"user@email.com"`
-	PhoneNumber *string `json:"phone_number"       example:"0712345678"`
+	Email       *string `json:"email"              binding:"omitempty,email"  example:"user@email.com"`
+	PhoneNumber *string `json:"phone_number"       binding:"omitempty" example:"0712345678"`
 	AccountType int     `json:"account_type"       binding:"required"  example:"1"`
 }
 
@@ -54,9 +54,9 @@ type initialiseRegisterResponse struct {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body     initialiseRegisterRequest true "begin a new registration"
-// @Param       x-auth-token header   string       true "Authorization Token"
-// @Success     201     {object} initialiseRegisterResponse
+// @Param       request      body     initialiseRegisterRequest true "begin a new registration"
+// @Param       x-auth-token header   string                    true "Authorization Token"
+// @Success     201          {object} initialiseRegisterResponse
 // @Router      /register/initialise [post]
 func (r *registerRoute) initRegister(c *gin.Context) {
 	var request initialiseRegisterRequest
@@ -119,9 +119,9 @@ type validateOTPResponse struct {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body     validateOTPRequest true "otp validation body"
-// @Param       x-auth-token header   string       true "Authorization Token"
-// @Success     200     {object} validateOTPResponse
+// @Param       request      body     validateOTPRequest true "otp validation body"
+// @Param       x-auth-token header   string             true "Authorization Token"
+// @Success     200          {object} validateOTPResponse
 // @Router      /register/validate [post]
 func (r *registerRoute) validateOTP(c *gin.Context) {
 	var request validateOTPRequest
@@ -219,10 +219,10 @@ type registerBusinessRequest struct {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body     registerUserRequest true "complete user registration"
-// @Param       x-auth-token header   string       true "Client authorization token"
-// @Param       Authorization header   string       true "Bearer Authorization Token"
-// @Success     200     {object} registerResponse
+// @Param       request       body     registerUserRequest true "complete user registration"
+// @Param       x-auth-token  header   string              true "Client authorization token"
+// @Param       Authorization header   string              true "Bearer Authorization Token"
+// @Success     200           {object} registerResponse
 // @Router      /register/user [post]
 func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 	var request registerUserRequest
@@ -309,10 +309,10 @@ func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       request body     registerBusinessRequest true "Complete a new business registration"
-// @Param       x-auth-token header   string       true "Authorization Token"
-// @Param       Authorization header   string       true "Bearer Authorization Token"
-// @Success     200     {object} registerBusinessResponse
+// @Param       request       body     registerBusinessRequest true "Complete a new business registration"
+// @Param       x-auth-token  header   string                  true "Authorization Token"
+// @Param       Authorization header   string                  true "Bearer Authorization Token"
+// @Success     200           {object} registerBusinessResponse
 // @Router      /register/business [post]
 func (r *registerRoute) completeBusinessRegistration(c *gin.Context) {
 	var request registerBusinessRequest

@@ -3,7 +3,7 @@ package usecase
 import (
 	"celebut-api/internal/models"
 	"celebut-api/internal/repo"
-	"celebut-api/internal/services/otp"
+	"celebut-api/internal/services/otp_generator"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -36,11 +36,11 @@ var (
 type UserUseCase struct {
 	userRepo   repo.User
 	otpRepo    repo.UserOTP
-	otpService otp.Generator
+	otpService otp_generator.Generator
 }
 
 // NewUserUseCase -.
-func NewUserUseCase(r repo.User, otp repo.UserOTP, otps otp.Generator) *UserUseCase {
+func NewUserUseCase(r repo.User, otp repo.UserOTP, otps otp_generator.Generator) *UserUseCase {
 	return &UserUseCase{
 		userRepo:   r,
 		otpRepo:    otp,

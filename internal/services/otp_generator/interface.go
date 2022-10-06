@@ -1,4 +1,4 @@
-package otp
+package otp_generator
 
 import "time"
 

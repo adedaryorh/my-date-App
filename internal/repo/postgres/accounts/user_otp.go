@@ -14,8 +14,8 @@ type UserOTPRepo struct {
 	*postgres.Postgres
 }
 
-// NewRegisterOTPRepo -.
-func NewRegisterOTPRepo(pg *postgres.Postgres) *UserOTPRepo {
+// NewUserOTPRepo -.
+func NewUserOTPRepo(pg *postgres.Postgres) *UserOTPRepo {
 	return &UserOTPRepo{pg}
 }
 

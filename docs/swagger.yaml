@@ -1,19 +1,5 @@
 basePath: /v1
 definitions:
-  auth.RegisterBusinessResponse:
-    properties:
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/dtos.Business'
-    type: object
-  auth.RegisterResponse:
-    properties:
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/dtos.User'
-    type: object
   auth.authRequest:
     properties:
       client_id:
@@ -115,9 +101,6 @@ definitions:
       industry_type:
         example: 1
         type: integer
-      otp:
-        example: "456789"
-        type: string
       password:
         example: password
         type: string
@@ -126,12 +109,18 @@ definitions:
         type: string
     required:
     - business_name
-    - country_code
-    - email
     - industry_type
-    - otp
     - password
-    - phone_number
+    type: object
+  auth.registerBusinessResponse:
+    properties:
+      user:
+        $ref: '#/definitions/dtos.Business'
+    type: object
+  auth.registerResponse:
+    properties:
+      user:
+        $ref: '#/definitions/dtos.User'
     type: object
   auth.registerUserRequest:
     properties:
@@ -156,14 +145,14 @@ definitions:
       last_name:
         example: Doe
         type: string
-      otp:
-        example: "456789"
-        type: string
       password:
         example: password
         type: string
       phone_number:
         example: "0712345678"
+        type: string
+      profile_image_url:
+        example: https://abc.png
         type: string
       relationship_status:
         example: single
@@ -172,17 +161,10 @@ definitions:
         example: johndoe
         type: string
     required:
-    - country_code
     - dob
-    - email
     - first_name
-    - gender
-    - interests
     - last_name
-    - otp
     - password
-    - phone_number
-    - relationship_status
     - username
     type: object
   auth.validateOTPRequest:
@@ -316,6 +298,25 @@ definitions:
         type: integer
       page:
         type: integer
+    type: object
+  handlers.resendOTPRequest:
+    properties:
+      email:
+        example: user@email.com
+        type: string
+      mode:
+        example: register
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+    required:
+    - mode
+    type: object
+  handlers.resendOTPResponse:
+    properties:
+      message:
+        type: string
     type: object
   models.Industry:
     properties:
@@ -544,14 +545,42 @@ paths:
       summary: User login
       tags:
       - Authentication
+  /otp/resend:
+    post:
+      consumes:
+      - application/json
+      description: Resend OTP code
+      operationId: resend-otp
+      parameters:
+      - description: Authorization Token
+        in: header
+        name: x-auth-token
+        required: true
+        type: string
+      - description: Resend OTP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.resendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.resendOTPResponse'
+      summary: Resend OTP
+      tags:
+      - OTP
   /register/business:
     post:
       consumes:
       - application/json
-      description: Register a business
+      description: Complete business registration
       operationId: register-business
       parameters:
-      - description: Registers a new business
+      - description: Complete a new business registration
         in: body
         name: request
         required: true
@@ -562,14 +591,19 @@ paths:
         name: x-auth-token
         required: true
         type: string
+      - description: Bearer Authorization Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/auth.RegisterBusinessResponse'
-      summary: Business Register
+            $ref: '#/definitions/auth.registerBusinessResponse'
+      summary: Complete business registration
       tags:
       - Authentication
   /register/initialise:
@@ -604,27 +638,32 @@ paths:
     post:
       consumes:
       - application/json
-      description: Complete a user's registration with OTP
+      description: Complete a user's registration
       operationId: register-user
       parameters:
-      - description: Registers a new user
+      - description: complete user registration
         in: body
         name: request
         required: true
         schema:
           $ref: '#/definitions/auth.registerUserRequest'
-      - description: Authorization Token
+      - description: Client authorization token
         in: header
         name: x-auth-token
+        required: true
+        type: string
+      - description: Bearer Authorization Token
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/auth.RegisterResponse'
+            $ref: '#/definitions/auth.registerResponse'
       summary: Complete User Registration
       tags:
       - Authentication
