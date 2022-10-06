@@ -59,6 +59,7 @@ type initialiseRegisterResponse struct {
 // @Success     201          {object} initialiseRegisterResponse
 // @Router      /register/initialise [post]
 func (r *registerRoute) initRegister(c *gin.Context) {
+	//TODO: Clean up
 	var request initialiseRegisterRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -75,19 +76,29 @@ func (r *registerRoute) initRegister(c *gin.Context) {
 		return
 	}
 
-	err := r.user.UserIsEnabled(c, "email", *request.Email)
-	if err != nil {
-		r.logger.Error(err, "http - v1 - initialise registration")
-		handlers.HTTPError(c, http.StatusBadRequest, "user already exists")
-
-		return
-	}
+	var err error
 
 	// Currently, we are using email for now. Phone number comes in later
 	if request.Email != nil {
+		err := r.user.UserIsEnabled(c, "email", *request.Email)
+		if err != nil {
+			r.logger.Error(err, "http - v1 - initialise registration")
+			handlers.HTTPError(c, http.StatusBadRequest, "user already exists")
+
+			return
+		}
+
 		err = r.beginRegistrationForUser(c, *request.Email, "email", request.AccountType)
 	} else {
-		err = r.beginRegistrationForUser(c, *request.PhoneNumber, "phone_number", request.AccountType)
+		err := r.user.UserIsEnabled(c, "phone", *request.PhoneNumber)
+		if err != nil {
+			r.logger.Error(err, "http - v1 - initialise registration")
+			handlers.HTTPError(c, http.StatusBadRequest, "user already exists")
+
+			return
+		}
+
+		err = r.beginRegistrationForUser(c, *request.PhoneNumber, "phone", request.AccountType)
 	}
 
 	if err != nil {
