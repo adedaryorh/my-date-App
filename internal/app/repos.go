@@ -3,16 +3,16 @@ package app
 import (
 	"celebut-api/internal/repo"
 	"celebut-api/internal/repo/postgres/accounts"
-	"celebut-api/internal/repo/postgres/celebrations"
+	"celebut-api/internal/repo/postgres/posts"
 	"celebut-api/pkg/postgres"
 )
 
 var (
-	industryRepo     repo.Industry
-	clientRepo       repo.Client
-	userRepo         repo.User
-	registerOTPRepo  repo.UserOTP
-	celebrationsRepo repo.Celebration
+	industryRepo    repo.Industry
+	clientRepo      repo.Client
+	userRepo        repo.User
+	registerOTPRepo repo.UserOTP
+	postsRepo       repo.Post
 )
 
 func initialiseRepositories(pg *postgres.Postgres) {
@@ -20,5 +20,5 @@ func initialiseRepositories(pg *postgres.Postgres) {
 	clientRepo = accounts.NewClientRepo(pg)
 	userRepo = accounts.NewUserRepo(pg)
 	registerOTPRepo = accounts.NewUserOTPRepo(pg)
-	celebrationsRepo = celebrations.NewCelebrationRepo(pg)
+	postsRepo = posts.NewPostsRepo(pg)
 }

@@ -36,11 +36,11 @@ type (
 		UseOTP(context.Context, *models.UserOTP) error
 	}
 
-	//Celebration -.
-	Celebration interface {
-		Create(context.Context, *models.Celebration) error
-		Get(context.Context, string) (*models.Celebration, error)
-		//GetAll(context.Context, string) []models.Celebration
-		Delete(context.Context, *models.Celebration) error
+	//Post -.
+	Post interface {
+		Create(context.Context, *models.Post) error
+		Get(context.Context, string) (*models.Post, error)
+		//GetAll(context.Context, string) []models.Post
+		Delete(context.Context, *models.Post) error
 	}
 )

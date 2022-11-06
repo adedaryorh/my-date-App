@@ -9,7 +9,7 @@ import (
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/middleware"
 	"celebut-api/internal/repo/postgres/accounts"
-	"celebut-api/internal/repo/postgres/celebrations"
+	"celebut-api/internal/repo/postgres/posts"
 	"celebut-api/internal/services/file"
 	"celebut-api/internal/services/mailer"
 	"celebut-api/internal/services/otp_generator"
@@ -59,7 +59,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	userRepo := accounts.NewUserRepo(pg)
 	userOTPRepo := accounts.NewUserOTPRepo(pg)
 
-	celebrationsRepo := celebrations.NewCelebrationRepo(pg)
+	postsRepo := posts.NewPostsRepo(pg)
 
 	var otpGeneratorService otp_generator.Generator
 
@@ -75,12 +75,12 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
 	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo, userOTPRepo, otpGeneratorService)
-	celebrationsUseCase := usecase.NewCelebrationUseCase(celebrationsRepo)
+	postsUseCase := usecase.NewPostUseCase(postsRepo)
 
 	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
 
 	mapper := &mappers.DtoUserMapper{}
-	celebrationMapper := &mappers.DtoCelebrationMapper{}
+	postsMapper := &mappers.DtoPostMapper{}
 	tokenService := token.NewTokenService(cfg.Token.Secret)
 
 	// Options
@@ -124,7 +124,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, mapper, mailerService, awsS3Client)
 		auth.NewLoginRoute(routes, userUseCase, l, mapper, tokenService)
 		business.NewIndustryRoutes(routes, industryUseCase, l)
-		handlers.NewCelebrationsRoute(routes, celebrationsUseCase, l, celebrationMapper)
+		handlers.NewPostsRoute(routes, postsUseCase, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
 	}
 

@@ -2,7 +2,7 @@ package dtos
 
 import "time"
 
-type Celebration struct {
+type Post struct {
 	Message   string    `json:"message"`
 	Author    User      `json:"user"`
 	CreatedAt time.Time `json:"created_at"`

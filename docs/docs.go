@@ -89,132 +89,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/celebrations": {
-            "get": {
-                "description": "Get user's celebrations",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Celebrations"
-                ],
-                "summary": "Get Celebrations",
-                "operationId": "get-celebrations",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.getCelebrationResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a celebration",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Celebrations"
-                ],
-                "summary": "Create Celebration",
-                "operationId": "create-celebration",
-                "parameters": [
-                    {
-                        "description": "create a new celebration",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createCelebrationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createCelebrationResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/celebrations/{celebrationID}": {
-            "delete": {
-                "description": "Delete a celebration",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Celebrations"
-                ],
-                "summary": "Delete Celebration",
-                "operationId": "delete-celebration",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "celebration post identifier",
-                        "name": "celebrationID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.deleteCelebrationResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/client": {
             "post": {
                 "description": "Create a new client",
@@ -364,6 +238,132 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.resendOTPResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "description": "Get user's posts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get Posts",
+                "operationId": "get-posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.getPostsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Create Post",
+                "operationId": "create-post",
+                "parameters": [
+                    {
+                        "description": "create a new post",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPostResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{postID}": {
+            "delete": {
+                "description": "Delete a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Delete Post",
+                "operationId": "delete-post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.deletePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -877,7 +877,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.Celebration": {
+        "dtos.Post": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -941,7 +941,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.createCelebrationRequest": {
+        "handlers.createPostRequest": {
             "type": "object",
             "required": [
                 "message"
@@ -970,10 +970,10 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.createCelebrationResponse": {
+        "handlers.createPostResponse": {
             "type": "object"
         },
-        "handlers.deleteCelebrationResponse": {
+        "handlers.deletePostResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -981,20 +981,20 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.getCelebrationResponse": {
+        "handlers.getPostsResponse": {
             "type": "object",
             "properties": {
-                "celebrations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dtos.Celebration"
-                    }
-                },
                 "limit": {
                     "type": "integer"
                 },
                 "page": {
                     "type": "integer"
+                },
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Post"
+                    }
                 }
             }
         },

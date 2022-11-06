@@ -175,7 +175,7 @@ definitions:
       user_id:
         type: string
     type: object
-  dtos.Celebration:
+  dtos.Post:
     properties:
       created_at:
         type: string
@@ -217,7 +217,7 @@ definitions:
         example: message
         type: string
     type: object
-  handlers.createCelebrationRequest:
+  handlers.createPostRequest:
     properties:
       media:
         items:
@@ -236,23 +236,23 @@ definitions:
     required:
     - message
     type: object
-  handlers.createCelebrationResponse:
+  handlers.createPostResponse:
     type: object
-  handlers.deleteCelebrationResponse:
+  handlers.deletePostResponse:
     properties:
       message:
         type: string
     type: object
-  handlers.getCelebrationResponse:
+  handlers.getPostsResponse:
     properties:
-      celebrations:
-        items:
-          $ref: '#/definitions/dtos.Celebration'
-        type: array
       limit:
         type: integer
       page:
         type: integer
+      posts:
+        items:
+          $ref: '#/definitions/dtos.Post'
+        type: array
     type: object
   handlers.resendOTPRequest:
     properties:
@@ -343,89 +343,6 @@ paths:
       summary: Create industry
       tags:
       - Industries
-  /celebrations:
-    get:
-      consumes:
-      - application/json
-      description: Get user's celebrations
-      operationId: get-celebrations
-      parameters:
-      - in: query
-        name: limit
-        type: integer
-      - in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.getCelebrationResponse'
-      summary: Get Celebrations
-      tags:
-      - Celebrations
-    post:
-      consumes:
-      - application/json
-      description: Create a celebration
-      operationId: create-celebration
-      parameters:
-      - description: create a new celebration
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createCelebrationRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handlers.createCelebrationResponse'
-      summary: Create Celebration
-      tags:
-      - Celebrations
-  /celebrations/{celebrationID}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a celebration
-      operationId: delete-celebration
-      parameters:
-      - description: celebration post identifier
-        in: path
-        name: celebrationID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.deleteCelebrationResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Delete Celebration
-      tags:
-      - Celebrations
   /client:
     post:
       consumes:
@@ -528,6 +445,89 @@ paths:
       summary: Resend OTP
       tags:
       - OTP
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: Get user's posts
+      operationId: get-posts
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.getPostsResponse'
+      summary: Get Posts
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Create a post
+      operationId: create-post
+      parameters:
+      - description: create a new post
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.createPostResponse'
+      summary: Create Post
+      tags:
+      - Posts
+  /posts/{postID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post
+      operationId: delete-post
+      parameters:
+      - description: post post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.deletePostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete Post
+      tags:
+      - Posts
   /register/business:
     post:
       consumes:
