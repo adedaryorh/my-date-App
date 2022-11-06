@@ -464,7 +464,7 @@ const docTemplate = `{
             "post": {
                 "description": "Complete a user's registration",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -476,13 +476,81 @@ const docTemplate = `{
                 "operationId": "register-user",
                 "parameters": [
                     {
-                        "description": "complete user registration",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/auth.registerUserRequest"
-                        }
+                        "type": "file",
+                        "description": "profile image file",
+                        "name": "profile_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "234",
+                        "name": "country_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2020-10-12",
+                        "name": "dob",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "user@email.com",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "John",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "male",
+                        "name": "gender",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "fashion,entertainment",
+                        "name": "interests",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "Doe",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "0712345678",
+                        "name": "phone_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "single",
+                        "name": "relationship_status",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "johndoe",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -727,66 +795,6 @@ const docTemplate = `{
             "properties": {
                 "user": {
                     "$ref": "#/definitions/dtos.User"
-                }
-            }
-        },
-        "auth.registerUserRequest": {
-            "type": "object",
-            "required": [
-                "dob",
-                "first_name",
-                "last_name",
-                "password",
-                "username"
-            ],
-            "properties": {
-                "country_code": {
-                    "type": "string",
-                    "example": "234"
-                },
-                "dob": {
-                    "type": "string",
-                    "example": "2020-10-12"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "user@email.com"
-                },
-                "first_name": {
-                    "type": "string",
-                    "example": "John"
-                },
-                "gender": {
-                    "type": "string",
-                    "example": "male"
-                },
-                "interests": {
-                    "type": "string",
-                    "example": "fashion,entertainment"
-                },
-                "last_name": {
-                    "type": "string",
-                    "example": "Doe"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "password"
-                },
-                "phone_number": {
-                    "type": "string",
-                    "example": "0712345678"
-                },
-                "profile_image_url": {
-                    "type": "string",
-                    "example": "https://abc.png"
-                },
-                "relationship_status": {
-                    "type": "string",
-                    "example": "single"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "johndoe"
                 }
             }
         },

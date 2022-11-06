@@ -122,51 +122,6 @@ definitions:
       user:
         $ref: '#/definitions/dtos.User'
     type: object
-  auth.registerUserRequest:
-    properties:
-      country_code:
-        example: "234"
-        type: string
-      dob:
-        example: "2020-10-12"
-        type: string
-      email:
-        example: user@email.com
-        type: string
-      first_name:
-        example: John
-        type: string
-      gender:
-        example: male
-        type: string
-      interests:
-        example: fashion,entertainment
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      password:
-        example: password
-        type: string
-      phone_number:
-        example: "0712345678"
-        type: string
-      profile_image_url:
-        example: https://abc.png
-        type: string
-      relationship_status:
-        example: single
-        type: string
-      username:
-        example: johndoe
-        type: string
-    required:
-    - dob
-    - first_name
-    - last_name
-    - password
-    - username
-    type: object
   auth.validateOTPRequest:
     properties:
       email:
@@ -637,16 +592,63 @@ paths:
   /register/user:
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Complete a user's registration
       operationId: register-user
       parameters:
-      - description: complete user registration
-        in: body
-        name: request
+      - description: profile image file
+        in: formData
+        name: profile_image
+        type: file
+      - example: "234"
+        in: formData
+        name: country_code
+        type: string
+      - example: "2020-10-12"
+        in: formData
+        name: dob
         required: true
-        schema:
-          $ref: '#/definitions/auth.registerUserRequest'
+        type: string
+      - example: user@email.com
+        in: formData
+        name: email
+        type: string
+      - example: John
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - example: male
+        in: formData
+        name: gender
+        type: string
+      - example: fashion,entertainment
+        in: formData
+        name: interests
+        type: string
+      - example: Doe
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - example: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - example: "0712345678"
+        in: formData
+        name: phone_number
+        type: string
+      - example: single
+        in: formData
+        name: relationship_status
+        type: string
+      - example: johndoe
+        in: formData
+        name: username
+        required: true
+        type: string
       - description: Client authorization token
         in: header
         name: x-auth-token

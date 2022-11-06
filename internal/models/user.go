@@ -20,6 +20,7 @@ type User struct {
 	Industry           *Industry
 	AccountType        AccountType
 	Interests          *string
+	ProfileImageURL    *string
 	Password           string
 	Status             string
 	CreatedAt          time.Time

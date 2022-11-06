@@ -13,6 +13,7 @@ type (
 		PG    `yaml:"postgres"`
 		Token `yaml:"token"`
 		OTP   `yaml:"otp"`
+		AWS   `yaml:"aws"`
 	}
 
 	// App -.
@@ -47,6 +48,12 @@ type (
 	// OTP -.
 	OTP struct {
 		Secret string `env-required:"true" yaml:"otp_secret" env:"OTP_SECRET"`
+	}
+
+	AWS struct {
+		AccessKey string `env-required:"true" yaml:"access_key_id" env:"AWS_ACCESS_KEY_ID"`
+		Secret    string `env-required:"true" yaml:"secret_id" env:"AWS_SECRET_ID"`
+		Region    string `env-required:"true" yaml:"region" env:"AWS_REGION"`
 	}
 )
 

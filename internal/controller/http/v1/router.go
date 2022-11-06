@@ -10,6 +10,7 @@ import (
 	"celebut-api/internal/middleware"
 	"celebut-api/internal/repo/postgres/accounts"
 	"celebut-api/internal/repo/postgres/celebrations"
+	"celebut-api/internal/services/file"
 	"celebut-api/internal/services/mailer"
 	"celebut-api/internal/services/otp_generator"
 	"celebut-api/internal/services/token"
@@ -18,7 +19,11 @@ import (
 	"celebut-api/internal/usecase/otp"
 	"celebut-api/pkg/logger"
 	"celebut-api/pkg/postgres"
+	"context"
+	"github.com/aws/aws-sdk-go-v2/config"
+	credentials "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/gin-gonic/gin"
+	"log"
 
 	// IMPORTANT: swagger docs
 	_ "celebut-api/docs"
@@ -98,6 +103,16 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 
 	routes := handler.Group("/v1")
 
+	creds := credentials.NewStaticCredentialsProvider(cfg.AWS.AccessKey, cfg.AWS.Secret, "")
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(cfg.AWS.Region))
+	if err != nil {
+		log.Printf("error: %v", err)
+
+		panic(err)
+	}
+
+	awsS3Client := file.NewS3Client(awsCfg, cfg.AWS.Region)
+
 	// Middleware
 	routes.Use(
 		middleware.ClientAuthorization(clientUseCase, l),
@@ -106,7 +121,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	// Routes
 	{
 		auth.NewClientAuthRoute(routes, clientUseCase, l)
-		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, mapper, mailerService)
+		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, mapper, mailerService, awsS3Client)
 		auth.NewLoginRoute(routes, userUseCase, l, mapper, tokenService)
 		business.NewIndustryRoutes(routes, industryUseCase, l)
 		handlers.NewCelebrationsRoute(routes, celebrationsUseCase, l, celebrationMapper)

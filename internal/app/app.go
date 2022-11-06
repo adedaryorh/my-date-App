@@ -29,6 +29,9 @@ func Run(cfg *configs.Config) {
 	// HTTP Server
 	handler := gin.New()
 
+	// TODO: Use config
+	handler.MaxMultipartMemory = 8 << 20
+
 	_ = v1.NewAppRouter(handler, l, pg, cfg)
 	httpServer := httpserver.New(handler)
 

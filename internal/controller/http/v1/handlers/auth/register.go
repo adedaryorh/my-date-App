@@ -6,21 +6,29 @@ import (
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/models"
+	"celebut-api/internal/services/file"
 	"celebut-api/internal/services/mailer"
 	"celebut-api/internal/services/token"
 	"celebut-api/internal/usecase"
+	"celebut-api/internal/validators"
 	"celebut-api/pkg/logger"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
 type registerRoute struct {
-	user   usecase.User
-	token  token.TokenService
-	logger logger.Interface
-	mapper mappers.UserMapper
-	mailer mailer.Mailer
+	user         usecase.User
+	token        token.TokenService
+	logger       logger.Interface
+	mapper       mappers.UserMapper
+	mailer       mailer.Mailer
+	uploadClient file.UploadFileClient
 }
 
 func NewRegisterRoutes(
@@ -29,8 +37,9 @@ func NewRegisterRoutes(
 	l logger.Interface,
 	t token.TokenService,
 	m mappers.UserMapper,
-	ma mailer.Mailer) {
-	r := &registerRoute{i, t, l, m, ma}
+	ma mailer.Mailer,
+	uc file.UploadFileClient) {
+	r := &registerRoute{i, t, l, m, ma, uc}
 
 	handler.POST("/register/initialise", r.initRegister)
 	handler.POST("/register/validate", r.validateOTP)
@@ -201,18 +210,18 @@ type registerBusinessResponse struct {
 }
 
 type registerUserRequest struct {
-	FirstName          string  `json:"first_name"  binding:"required"  example:"John"`
-	LastName           string  `json:"last_name"  binding:"required"  example:"Doe"`
-	UserName           string  `json:"username"  binding:"required"  example:"johndoe"`
-	Email              *string `json:"email"       binding:"omitempty,email"  example:"user@email.com"`
-	Password           string  `json:"password"       binding:"required"  example:"password"`
-	CountryCode        *string `json:"country_code"       binding:"omitempty"  example:"234"`
-	PhoneNumber        *string `json:"phone_number"       binding:"omitempty"  example:"0712345678"`
-	RelationshipStatus *string `json:"relationship_status" binding:"omitempty"  example:"single"`
-	DateOfBirth        string  `json:"dob" binding:"required" example:"2020-10-12"`
-	Gender             *string `json:"gender" binding:""  example:"male"`
-	ProfileImageURL    *string `json:"profile_image_url" binding:"omitempty,url"  example:"https://abc.png"`
-	Interests          *string `json:"interests" binding:""  example:"fashion,entertainment"`
+	FirstName          string                `form:"first_name" json:"first_name"  binding:"required"  example:"John"`
+	LastName           string                `form:"last_name" json:"last_name"  binding:"required"  example:"Doe"`
+	UserName           string                `form:"username" json:"username"  binding:"required"  example:"johndoe"`
+	Email              *string               `form:"email" json:"email"       binding:"omitempty,email"  example:"user@email.com"`
+	Password           string                `form:"password" json:"password"       binding:"required"  example:"password"`
+	CountryCode        *string               `form:"country_code" json:"country_code"       binding:"omitempty"  example:"234"`
+	PhoneNumber        *string               `form:"phone_number" json:"phone_number"      binding:"omitempty"  example:"0712345678"`
+	RelationshipStatus *string               `form:"relationship_status" json:"relationship_status" binding:"omitempty"  example:"single"`
+	DateOfBirth        string                `form:"dob" json:"dob" binding:"required" example:"2020-10-12"`
+	Gender             *string               `form:"gender" json:"gender" binding:""  example:"male"`
+	ProfileImage       *multipart.FileHeader `form:"profile_image" binding:"omitempty" swaggerignore:"true"`
+	Interests          *string               `form:"interests" json:"interests"  binding:""  example:"fashion,entertainment"`
 }
 
 type registerBusinessRequest struct {
@@ -228,9 +237,10 @@ type registerBusinessRequest struct {
 // @Description Complete a user's registration
 // @ID          register-user
 // @Tags        Authentication
-// @Accept      json
+// @Accept      multipart/form-data
 // @Produce     json
-// @Param       request       body     registerUserRequest true "complete user registration"
+// @Param       profile_image formData file                false "profile image file"
+// @Param       request       formData registerUserRequest true "complete user registration"
 // @Param       x-auth-token  header   string              true "Client authorization token"
 // @Param       Authorization header   string              true "Bearer Authorization Token"
 // @Success     200           {object} registerResponse
@@ -238,11 +248,47 @@ type registerBusinessRequest struct {
 func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 	var request registerUserRequest
 
-	if err := c.ShouldBindJSON(&request); err != nil {
+	if err := c.ShouldBind(&request); err != nil {
 		r.logger.Error(err, "http - v1 - register")
 		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
 		return
+	}
+
+	ctx := c.Request.Context()
+
+	var profileImageURL *string
+	if request.ProfileImage != nil {
+		imgFile, err := request.ProfileImage.Open()
+		defer imgFile.Close()
+
+		if err != nil {
+			r.logger.Error(err, "unable to open file")
+			handlers.HTTPError(c, http.StatusBadRequest, "unable to upload file")
+
+			return
+		}
+
+		// We only accept PNG, JPEG and JPG for profile images for now...
+		_, err = validators.ValidateFileExtension(imgFile, []string{"image/png", "image/jpeg", "image/jpg"})
+		if err != nil {
+			r.logger.Error(err)
+			handlers.HTTPError(c, http.StatusBadRequest, "unable to upload file")
+
+			return
+		}
+
+		fileName, err := generateRandomFileName()
+		if err != nil {
+			r.logger.Error(err, "unable to generate file name")
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to upload file")
+
+			return
+		}
+
+		ext := filepath.Ext(request.ProfileImage.Filename)
+		fileName = fmt.Sprintf("profile-images/%s.%s", fileName, ext)
+		profileImageURL, err = r.uploadClient.UploadToBucket(ctx, "celebut", fileName, imgFile)
 	}
 
 	layout := "2006-01-02"
@@ -254,8 +300,6 @@ func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 
 		return
 	}
-
-	ctx := c.Request.Context()
 
 	u, ok := c.Get(contexts.ContextUser)
 	if !ok || u == nil {
@@ -301,6 +345,10 @@ func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 		user.Interests = request.Interests
 	}
 
+	if profileImageURL != nil {
+		user.ProfileImageURL = profileImageURL
+	}
+
 	err = r.user.CompleteRegistration(ctx, user)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - completeUserRegistration")
@@ -312,6 +360,19 @@ func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 	c.JSON(http.StatusOK, registerResponse{
 		User: r.mapper.MapToUserDto(*user),
 	})
+}
+
+// TODO: Move all of this to a user service or file service
+func generateRandomFileName() (string, error) {
+	newUUID, err := uuid.DefaultGenerator.NewV4()
+
+	if err != nil {
+		return "", fmt.Errorf("unable to generate UUID: %s", err)
+	}
+
+	fileName := strings.ReplaceAll(newUUID.String(), "-", "")
+
+	return fileName, nil
 }
 
 // @Summary     Complete business registration
