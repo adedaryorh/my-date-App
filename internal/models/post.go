@@ -4,6 +4,7 @@ import "time"
 
 type Post struct {
 	ID        int
+	ParentID  *int
 	PostID    string
 	User      User
 	Message   *string
@@ -13,9 +14,10 @@ type Post struct {
 }
 
 type PostMedia struct {
-	ID        string
+	ID        int
 	Post      Post
 	Source    string
+	Extension string
 	Type      string
 	CreatedAt time.Time
 }

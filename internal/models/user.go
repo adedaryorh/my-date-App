@@ -1,6 +1,7 @@
 package models
 
 import (
+	"mime/multipart"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type User struct {
 	AccountType        AccountType
 	Interests          *string
 	ProfileImageURL    *string
+	ProfileImage       *multipart.FileHeader
 	Password           string
 	Status             string
 	CreatedAt          time.Time

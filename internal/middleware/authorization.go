@@ -5,6 +5,7 @@ import (
 	"celebut-api/internal/services/token"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
 	"net/http"
@@ -40,22 +41,26 @@ func Authorization(uc usecase.UserUseCase, t token.TokenService, l logger.Interf
 
 		bearerToken := strings.Split(authToken[0], " ")
 		if len(bearerToken) != 2 {
-			abortRequest(c)
-
+			abortRequestWithError(c, errors.New("invalid bearer token"))
 			return
 		}
 
 		claims, err := t.ValidateToken(bearerToken[1])
 		if err != nil {
-			abortRequest(c)
-
+			abortRequestWithError(c, err)
 			return
 		}
 
 		user, err := uc.UserByField(c, "user_id", claims.UserID)
 		if err != nil {
 			l.Debug(err)
-			abortRequest(c)
+			abortRequestWithError(c, err)
+
+			return
+		}
+
+		if user == nil {
+			abortRequestWithError(c, errors.New("user not found"))
 
 			return
 		}
@@ -67,8 +72,22 @@ func Authorization(uc usecase.UserUseCase, t token.TokenService, l logger.Interf
 
 func abortRequest(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusUnauthorized, struct {
-		Message string
+		Status  string `json:"status"`
+		Message string `json:"message"`
 	}{
+		Status:  "error",
 		Message: "invalid credentials: client authorisation failed",
+	})
+}
+
+func abortRequestWithError(c *gin.Context, err error) {
+	c.AbortWithStatusJSON(http.StatusUnauthorized, struct {
+		Status               string `json:"status"`
+		Message              string `json:"message"`
+		DeveloperInformation string `json:"developer_information"`
+	}{
+		Status:               "error",
+		Message:              "invalid credentials: client authorisation failed",
+		DeveloperInformation: err.Error(),
 	})
 }

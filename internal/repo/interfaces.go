@@ -40,7 +40,15 @@ type (
 	Post interface {
 		Create(context.Context, *models.Post) error
 		Get(context.Context, string) (*models.Post, error)
-		//GetAll(context.Context, string) []models.Post
-		Delete(context.Context, *models.Post) error
+		GetUserPosts(ctx context.Context, userID int, offset int, limit int) ([]models.Post, error)
+		Delete(ctx context.Context, userID int, postID string) error
+	}
+
+	//PostMedia -.
+	PostMedia interface {
+		Create(context.Context, int, []models.PostMedia) error
+		GetPostMedia(ctx context.Context, postID int) ([]models.PostMedia, error)
+		GetMedia(ctx context.Context, mediaID int) (*models.PostMedia, error)
+		Delete(context.Context, models.PostMedia) error
 	}
 )

@@ -64,8 +64,8 @@ type initialiseRegisterResponse struct {
 // @Accept      json
 // @Produce     json
 // @Param       request      body     initialiseRegisterRequest true "begin a new registration"
-// @Param       x-auth-token header   string                    true "Authorization Token"
 // @Success     201          {object} initialiseRegisterResponse
+// @Security Auth-Token
 // @Router      /register/initialise [post]
 func (r *registerRoute) initRegister(c *gin.Context) {
 	//TODO: Clean up
@@ -140,8 +140,8 @@ type validateOTPResponse struct {
 // @Accept      json
 // @Produce     json
 // @Param       request      body     validateOTPRequest true "otp validation body"
-// @Param       x-auth-token header   string             true "Authorization Token"
 // @Success     200          {object} validateOTPResponse
+// @Security Auth-Token
 // @Router      /register/validate [post]
 func (r *registerRoute) validateOTP(c *gin.Context) {
 	var request validateOTPRequest
@@ -241,9 +241,8 @@ type registerBusinessRequest struct {
 // @Produce     json
 // @Param       profile_image formData file                false "profile image file"
 // @Param       request       formData registerUserRequest true "complete user registration"
-// @Param       x-auth-token  header   string              true "Client authorization token"
-// @Param       Authorization header   string              true "Bearer Authorization Token"
 // @Success     200           {object} registerResponse
+// @Security Bearer
 // @Router      /register/user [post]
 func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 	var request registerUserRequest
@@ -382,9 +381,8 @@ func generateRandomFileName() (string, error) {
 // @Accept      json
 // @Produce     json
 // @Param       request       body     registerBusinessRequest true "Complete a new business registration"
-// @Param       x-auth-token  header   string                  true "Authorization Token"
-// @Param       Authorization header   string                  true "Bearer Authorization Token"
 // @Success     200           {object} registerBusinessResponse
+// @Security Bearer
 // @Router      /register/business [post]
 func (r *registerRoute) completeBusinessRegistration(c *gin.Context) {
 	var request registerBusinessRequest

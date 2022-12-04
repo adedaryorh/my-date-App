@@ -59,6 +59,8 @@ definitions:
     type: object
   auth.loginBusinessResponse:
     properties:
+      status:
+        type: string
       token:
         type: string
       user:
@@ -82,6 +84,8 @@ definitions:
     type: object
   auth.loginUserResponse:
     properties:
+      status:
+        type: string
       token:
         type: string
       user:
@@ -160,6 +164,15 @@ definitions:
           $ref: '#/definitions/models.Industry'
         type: array
     type: object
+  dtos.BasicUserInfo:
+    properties:
+      businesses_count:
+        type: integer
+      customers_count:
+        type: integer
+      loved_ones_count:
+        type: integer
+    type: object
   dtos.Business:
     properties:
       business_name:
@@ -175,16 +188,96 @@ definitions:
       user_id:
         type: string
     type: object
+  dtos.BusinessInfo:
+    properties:
+      customers_count:
+        type: integer
+      followers_count:
+        type: integer
+      is_followed:
+        type: boolean
+    type: object
+  dtos.Celebration:
+    type: object
+  dtos.Content:
+    properties:
+      celebration:
+        $ref: '#/definitions/dtos.Celebration'
+      celebrations:
+        items:
+          $ref: '#/definitions/dtos.Celebration'
+        type: array
+      post:
+        $ref: '#/definitions/dtos.Post'
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  dtos.PagedContent:
+    properties:
+      contnet:
+        items:
+          $ref: '#/definitions/dtos.Content'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+    type: object
+  dtos.PagedPosts:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      posts:
+        items:
+          $ref: '#/definitions/dtos.Post'
+        type: array
+    type: object
+  dtos.PagedRelationships:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      relationships:
+        items:
+          $ref: '#/definitions/dtos.UserRelationship'
+        type: array
+    type: object
   dtos.Post:
     properties:
+      author:
+        $ref: '#/definitions/dtos.UserInfo'
+      comments:
+        items:
+          $ref: '#/definitions/dtos.Post'
+        type: array
+      comments_count:
+        type: integer
       created_at:
         type: string
+      likes_count:
+        type: integer
+      media:
+        items:
+          $ref: '#/definitions/dtos.PostMedia'
+        type: array
       message:
+        type: string
+      post_id:
         type: string
       updated_at:
         type: string
-      user:
-        $ref: '#/definitions/dtos.User'
+    type: object
+  dtos.PostMedia:
+    properties:
+      alternate_text:
+        type: string
+      url:
+        type: string
     type: object
   dtos.User:
     properties:
@@ -211,48 +304,93 @@ definitions:
       username:
         type: string
     type: object
+  dtos.UserInfo:
+    properties:
+      business_name:
+        type: string
+      first_name:
+        type: string
+      is_verified:
+        type: boolean
+      last_name:
+        type: string
+      profile_image:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.UserProfile:
+    properties:
+      account_type:
+        type: integer
+      basic_user_info:
+        $ref: '#/definitions/dtos.BasicUserInfo'
+      bio:
+        type: string
+      business_info:
+        $ref: '#/definitions/dtos.BusinessInfo'
+      celebrations_count:
+        type: integer
+      contents_count:
+        type: integer
+      country_code:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      interests:
+        type: string
+      is_verified:
+        type: boolean
+      last_name:
+        type: string
+      location:
+        type: string
+      phone_number:
+        type: string
+      profile_image:
+        type: string
+      relationship_status:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.UserRelationship:
+    type: object
   handlers.ErrorResponse:
     properties:
+      developer_information:
+        example: an error occurred
+        type: string
       error:
         example: message
         type: string
-    type: object
-  handlers.createPostRequest:
-    properties:
-      media:
-        items:
-          properties:
-            alternate_text:
-              type: string
-            url:
-              type: string
-          required:
-          - url
-          type: object
-        type: array
-      message:
-        example: What is happening?
-        type: string
-    required:
-    - message
-    type: object
-  handlers.createPostResponse:
-    type: object
-  handlers.deletePostResponse:
-    properties:
-      message:
+      status:
+        example: error
         type: string
     type: object
-  handlers.getPostsResponse:
+  handlers.editUserResponse:
     properties:
-      limit:
-        type: integer
-      page:
-        type: integer
-      posts:
-        items:
-          $ref: '#/definitions/dtos.Post'
-        type: array
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/dtos.User'
+    type: object
+  handlers.getUserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.UserProfile'
+      status:
+        type: string
     type: object
   handlers.resendOTPRequest:
     properties:
@@ -285,6 +423,62 @@ definitions:
         example: entertainment
         type: string
       updated_at:
+        type: string
+    type: object
+  posts.createCommentResponse:
+    properties:
+      post:
+        $ref: '#/definitions/dtos.Post'
+      status:
+        type: string
+    type: object
+  posts.createPostResponse:
+    properties:
+      post:
+        $ref: '#/definitions/dtos.Post'
+      status:
+        type: string
+    type: object
+  posts.deletePostResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  posts.getPostsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.PagedPosts'
+      status:
+        type: string
+    type: object
+  posts.getTimelineResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.PagedContent'
+      status:
+        type: string
+    type: object
+  posts.reportPostResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  relationships.followerResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  relationships.getFollowersResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.PagedRelationships'
+      status:
         type: string
     type: object
 host: localhost:8083
@@ -389,6 +583,113 @@ paths:
       summary: Authenticate a client
       tags:
       - Authentication
+  /comments/{postID}:
+    get:
+      consumes:
+      - application/json
+      description: Get Post Comments
+      operationId: get-post-comments
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.getPostsResponse'
+      security:
+      - Bearer: []
+      summary: Get Post Comments
+      tags:
+      - Posts
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add comment to a post
+      operationId: create-comment
+      parameters:
+      - description: post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
+      - description: comments media
+        in: formData
+        items:
+          type: file
+        name: media
+        type: array
+      - example: What is happening?
+        in: formData
+        name: message
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/posts.createCommentResponse'
+      security:
+      - Bearer: []
+      summary: Create post comment
+      tags:
+      - Posts
+  /followers:
+    get:
+      consumes:
+      - application/json
+      description: Get businesses' followers
+      operationId: get-followers
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.getFollowersResponse'
+      security:
+      - Bearer: []
+      summary: Get followers
+      tags:
+      - User Relationships
+  /followers/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Follow a business
+      operationId: follow-business
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.followerResponse'
+      security:
+      - Bearer: []
+      summary: Follow business
+      tags:
+      - User Relationships
   /login:
     post:
       consumes:
@@ -396,11 +697,6 @@ paths:
       description: Login a user
       operationId: login
       parameters:
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
       - description: Login user
         in: body
         name: request
@@ -414,9 +710,99 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/auth.loginBusinessResponse'
+      security:
+      - Auth-Token: []
       summary: User login
       tags:
       - Authentication
+  /lovedones:
+    get:
+      consumes:
+      - application/json
+      description: Get user's loved ones
+      operationId: get-loved-ones
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.getFollowersResponse'
+      security:
+      - Bearer: []
+      summary: Get loved ones
+      tags:
+      - User Relationships
+  /lovedones/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove user's loved one
+      operationId: remove-loved-one
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.followerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Remove loved one
+      tags:
+      - User Relationships
+    post:
+      consumes:
+      - application/json
+      description: Become a loved one
+      operationId: become-a-loved-one
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.followerResponse'
+      security:
+      - Bearer: []
+      summary: Become a loved one
+      tags:
+      - User Relationships
   /otp/resend:
     post:
       consumes:
@@ -424,11 +810,6 @@ paths:
       description: Resend OTP code
       operationId: resend-otp
       parameters:
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
       - description: Resend OTP
         in: body
         name: request
@@ -449,7 +830,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get user's posts
+      description: Get session user's posts
       operationId: get-posts
       parameters:
       - in: query
@@ -464,29 +845,37 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.getPostsResponse'
+            $ref: '#/definitions/posts.getPostsResponse'
+      security:
+      - Bearer: []
       summary: Get Posts
       tags:
       - Posts
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Create a post
       operationId: create-post
       parameters:
-      - description: create a new post
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPostRequest'
+      - description: posts media
+        in: formData
+        items:
+          type: file
+        name: media
+        type: array
+      - example: What is happening?
+        in: formData
+        name: message
+        type: string
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.createPostResponse'
+            $ref: '#/definitions/posts.createPostResponse'
+      security:
+      - Bearer: []
       summary: Create Post
       tags:
       - Posts
@@ -497,7 +886,7 @@ paths:
       description: Delete a post
       operationId: delete-post
       parameters:
-      - description: post post identifier
+      - description: post identifier
         in: path
         name: postID
         required: true
@@ -508,7 +897,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.deletePostResponse'
+            $ref: '#/definitions/posts.deletePostResponse'
         "400":
           description: Bad Request
           schema:
@@ -525,7 +914,79 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
       summary: Delete Post
+      tags:
+      - Posts
+  /posts/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Get user's posts by user ID
+      operationId: get-user-posts
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.getPostsResponse'
+      security:
+      - Bearer: []
+      summary: Get User Posts by ID
+      tags:
+      - Posts
+  /posts/report/{postID}:
+    post:
+      consumes:
+      - application/json
+      description: Report a post
+      operationId: report-post
+      parameters:
+      - description: post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.reportPostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Report post
       tags:
       - Posts
   /register/business:
@@ -541,16 +1002,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/auth.registerBusinessRequest'
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
-      - description: Bearer Authorization Token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -558,6 +1009,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/auth.registerBusinessResponse'
+      security:
+      - Bearer: []
       summary: Complete business registration
       tags:
       - Authentication
@@ -574,11 +1027,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/auth.initialiseRegisterRequest'
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -586,6 +1034,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/auth.initialiseRegisterResponse'
+      security:
+      - Auth-Token: []
       summary: Initialise Registration
       tags:
       - Authentication
@@ -649,16 +1099,6 @@ paths:
         name: username
         required: true
         type: string
-      - description: Client authorization token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
-      - description: Bearer Authorization Token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -666,6 +1106,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/auth.registerResponse'
+      security:
+      - Bearer: []
       summary: Complete User Registration
       tags:
       - Authentication
@@ -682,9 +1124,53 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/auth.validateOTPRequest'
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.validateOTPResponse'
+      security:
+      - Auth-Token: []
+      summary: Validate Registration OTP
+      tags:
+      - Authentication
+  /timeline:
+    get:
+      consumes:
+      - application/json
+      description: Get session user's timeline
+      operationId: get-timeline
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.getTimelineResponse'
+      security:
+      - Bearer: []
+      summary: Get Timeline
+      tags:
+      - Posts
+  /unfollow/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: Unfollow a business
+      operationId: unfollow-business
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
         required: true
         type: string
       produces:
@@ -693,8 +1179,137 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.validateOTPResponse'
-      summary: Validate Registration OTP
+            $ref: '#/definitions/relationships.followerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Unfollow business
       tags:
-      - Authentication
+      - User Relationships
+  /user:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Edit user's profile
+      operationId: edit-user
+      parameters:
+      - description: profile image file
+        in: formData
+        name: profile_image
+        type: file
+      - example: "234"
+        in: formData
+        name: country_code
+        type: string
+      - example: "2020-10-12"
+        in: formData
+        name: dob
+        required: true
+        type: string
+      - example: user@email.com
+        in: formData
+        name: email
+        type: string
+      - example: John
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - example: Doe
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - example: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - example: "0712345678"
+        in: formData
+        name: phone_number
+        type: string
+      - example: johndoe
+        in: formData
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.editUserResponse'
+      security:
+      - Bearer: []
+      summary: Edit user info
+      tags:
+      - Users
+  /users/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile info
+      operationId: get-user-info
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.getUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get user
+      tags:
+      - Users
+securityDefinitions:
+  Auth-Token:
+    description: Type token for unauthenticated requests
+    in: header
+    name: x-auth-token
+    type: apiKey
+  Bearer:
+    description: '`Bearer token` for authenticated requests'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

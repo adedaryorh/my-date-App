@@ -39,7 +39,6 @@ type resendOTPRequest struct {
 // @Tags        OTP
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header   string           true "Authorization Token"
 // @Param       request      body     resendOTPRequest true "Resend OTP"
 // @Success     200          {object} resendOTPResponse
 // @Router      /otp/resend [post]

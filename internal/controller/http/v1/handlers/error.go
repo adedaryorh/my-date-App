@@ -6,9 +6,15 @@ import (
 
 // ErrorResponse -
 type ErrorResponse struct {
-	Error string `json:"error" example:"message"`
+	Status               string `json:"status" example:"error"`
+	Error                string `json:"error" example:"message"`
+	DeveloperInformation string `json:"developer_information" example:"an error occurred"`
 }
 
 func HTTPError(c *gin.Context, code int, msg string) {
-	c.AbortWithStatusJSON(code, ErrorResponse{msg})
+	c.AbortWithStatusJSON(code, ErrorResponse{"error", msg, ""})
+}
+
+func HTTPErrorWithInformation(c *gin.Context, code int, msg string, err error) {
+	c.AbortWithStatusJSON(code, ErrorResponse{"error", msg, err.Error()})
 }

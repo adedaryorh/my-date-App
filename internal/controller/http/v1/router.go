@@ -6,6 +6,8 @@ import (
 	"celebut-api/internal/controller/http/v1/handlers"
 	"celebut-api/internal/controller/http/v1/handlers/auth"
 	"celebut-api/internal/controller/http/v1/handlers/business"
+	postsroutes "celebut-api/internal/controller/http/v1/handlers/posts"
+	"celebut-api/internal/controller/http/v1/handlers/relationships"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/middleware"
 	"celebut-api/internal/repo/postgres/accounts"
@@ -13,8 +15,10 @@ import (
 	"celebut-api/internal/services/file"
 	"celebut-api/internal/services/mailer"
 	"celebut-api/internal/services/otp_generator"
+	postsservice "celebut-api/internal/services/posts"
 	"celebut-api/internal/services/token"
 	"celebut-api/internal/services/user_otp"
+	"celebut-api/internal/services/users"
 	"celebut-api/internal/usecase"
 	"celebut-api/internal/usecase/otp"
 	"celebut-api/pkg/logger"
@@ -41,25 +45,46 @@ import (
 // @version     1.0
 // @host        localhost:8083
 // @BasePath    /v1
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description `Bearer token` for authenticated requests
+// @securityDefinitions.apikey Auth-Token
+// @in header
+// @name x-auth-token
+// @description Type token for unauthenticated requests
 func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres, cfg *configs.Config) *gin.RouterGroup {
 
 	docs.SwaggerInfo.Title = "Celebut API"
 	docs.SwaggerInfo.Description = "Celebut Backend REST endpoints"
 	docs.SwaggerInfo.Version = "1.0"
 
-	docs.SwaggerInfo.Host = "localhost:8083"
+	if cfg.Env == "local" {
+		docs.SwaggerInfo.Host = "localhost:8083"
+	} else {
+		docs.SwaggerInfo.Host = "staging-api.celebut.com"
+	}
+
 	docs.SwaggerInfo.BasePath = "/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
-	// mailer
-	mailerService := mailer.NewMailerService()
+	creds := credentials.NewStaticCredentialsProvider(cfg.AWS.AccessKey, cfg.AWS.Secret, "")
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(cfg.AWS.Region))
+	if err != nil {
+		log.Printf("error: %v", err)
+
+		panic(err)
+	}
+
+	awsS3Client := file.NewS3Client(awsCfg, cfg.AWS.Region)
+
 	// repo
 	industryRepo := accounts.NewIndustryRepo(pg)
 	clientRepo := accounts.NewClientRepo(pg)
 	userRepo := accounts.NewUserRepo(pg)
 	userOTPRepo := accounts.NewUserOTPRepo(pg)
-
 	postsRepo := posts.NewPostsRepo(pg)
+	postMediaRepo := posts.NewPostMediaRepo(pg)
 
 	var otpGeneratorService otp_generator.Generator
 
@@ -69,19 +94,25 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		otpGeneratorService = otp_generator.NewLocalOTPGeneratorService()
 	}
 
+	// mailer
+	mailerService := mailer.NewMailerService()
 	userOtpService := user_otp.NewUserOTPService(userOTPRepo, otpGeneratorService)
 
 	// Use cases
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
 	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo, userOTPRepo, otpGeneratorService)
-	postsUseCase := usecase.NewPostUseCase(postsRepo)
-
+	postsUseCase := usecase.NewPostUseCase(postsRepo, postMediaRepo)
 	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
 
-	mapper := &mappers.DtoUserMapper{}
+	// Mappers
+	userMapper := &mappers.DtoUserMapper{}
 	postsMapper := &mappers.DtoPostMapper{}
+
+	// Services
+	userService := users.NewUserService(userRepo, awsS3Client, userUseCase, userMapper)
 	tokenService := token.NewTokenService(cfg.Token.Secret)
+	postsService := postsservice.NewPostService(postsUseCase, awsS3Client, postsMapper)
 
 	// Options
 	handler.Use(gin.Logger())
@@ -103,16 +134,6 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 
 	routes := handler.Group("/v1")
 
-	creds := credentials.NewStaticCredentialsProvider(cfg.AWS.AccessKey, cfg.AWS.Secret, "")
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(cfg.AWS.Region))
-	if err != nil {
-		log.Printf("error: %v", err)
-
-		panic(err)
-	}
-
-	awsS3Client := file.NewS3Client(awsCfg, cfg.AWS.Region)
-
 	// Middleware
 	routes.Use(
 		middleware.ClientAuthorization(clientUseCase, l),
@@ -121,11 +142,15 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	// Routes
 	{
 		auth.NewClientAuthRoute(routes, clientUseCase, l)
-		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, mapper, mailerService, awsS3Client)
-		auth.NewLoginRoute(routes, userUseCase, l, mapper, tokenService)
+		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, userMapper, mailerService, awsS3Client)
+		auth.NewLoginRoute(routes, userUseCase, l, userMapper, tokenService)
 		business.NewIndustryRoutes(routes, industryUseCase, l)
-		handlers.NewPostsRoute(routes, postsUseCase, l, postsMapper)
+		postsroutes.NewPostsRoute(routes, userService, postsService, l, postsMapper)
+		postsroutes.NewCommentsRoute(routes, userService, postsService, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
+		handlers.NewUserRoutes(routes, userService, l, userMapper)
+		relationships.NewFollowersRoute(routes, userService, l)
+		relationships.NewLovedOnesRoute(routes, userService, l)
 	}
 
 	return routes

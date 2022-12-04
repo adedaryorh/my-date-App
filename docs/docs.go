@@ -159,8 +159,184 @@ const docTemplate = `{
                 }
             }
         },
+        "/comments/{postID}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get Post Comments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get Post Comments",
+                "operationId": "get-post-comments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.getPostsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Add comment to a post",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Create post comment",
+                "operationId": "create-comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "description": "comments media",
+                        "name": "media",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "What is happening?",
+                        "name": "message",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/posts.createCommentResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/followers": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get businesses' followers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Get followers",
+                "operationId": "get-followers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.getFollowersResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/followers/{userID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Follow a business",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Follow business",
+                "operationId": "follow-business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.followerResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
+                "security": [
+                    {
+                        "Auth-Token": []
+                    }
+                ],
                 "description": "Login a user",
                 "consumes": [
                     "application/json"
@@ -174,13 +350,6 @@ const docTemplate = `{
                 "summary": "User login",
                 "operationId": "login",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "Login user",
                         "name": "request",
@@ -201,51 +370,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/otp/resend": {
-            "post": {
-                "description": "Resend OTP code",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OTP"
-                ],
-                "summary": "Resend OTP",
-                "operationId": "resend-otp",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Resend OTP",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.resendOTPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.resendOTPResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posts": {
+        "/lovedones": {
             "get": {
-                "description": "Get user's posts",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get user's loved ones",
                 "consumes": [
                     "application/json"
                 ],
@@ -253,10 +385,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Posts"
+                    "User Relationships"
                 ],
-                "summary": "Get Posts",
-                "operationId": "get-posts",
+                "summary": "Get loved ones",
+                "operationId": "get-loved-ones",
                 "parameters": [
                     {
                         "type": "integer",
@@ -273,48 +405,20 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.getPostsResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a post",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Posts"
-                ],
-                "summary": "Create Post",
-                "operationId": "create-post",
-                "parameters": [
-                    {
-                        "description": "create a new post",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPostRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPostResponse"
+                            "$ref": "#/definitions/relationships.getFollowersResponse"
                         }
                     }
                 }
             }
         },
-        "/posts/{postID}": {
-            "delete": {
-                "description": "Delete a post",
+        "/lovedones/{userID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Become a loved one",
                 "consumes": [
                     "application/json"
                 ],
@@ -322,15 +426,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Posts"
+                    "User Relationships"
                 ],
-                "summary": "Delete Post",
-                "operationId": "delete-post",
+                "summary": "Become a loved one",
+                "operationId": "become-a-loved-one",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "post post identifier",
-                        "name": "postID",
+                        "description": "user identifier",
+                        "name": "userID",
                         "in": "path",
                         "required": true
                     }
@@ -339,7 +443,43 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.deletePostResponse"
+                            "$ref": "#/definitions/relationships.followerResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Remove user's loved one",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Remove loved one",
+                "operationId": "remove-loved-one",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.followerResponse"
                         }
                     },
                     "400": {
@@ -369,8 +509,305 @@ const docTemplate = `{
                 }
             }
         },
+        "/otp/resend": {
+            "post": {
+                "description": "Resend OTP code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Resend OTP",
+                "operationId": "resend-otp",
+                "parameters": [
+                    {
+                        "description": "Resend OTP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.resendOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.resendOTPResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get session user's posts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get Posts",
+                "operationId": "get-posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.getPostsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a post",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Create Post",
+                "operationId": "create-post",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "description": "posts media",
+                        "name": "media",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "What is happening?",
+                        "name": "message",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/posts.createPostResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/report/{postID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Report a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Report post",
+                "operationId": "report-post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.reportPostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{postID}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Delete Post",
+                "operationId": "delete-post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.deletePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{userID}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get user's posts by user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get User Posts by ID",
+                "operationId": "get-user-posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.getPostsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/register/business": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Complete business registration",
                 "consumes": [
                     "application/json"
@@ -392,20 +829,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/auth.registerBusinessRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer Authorization Token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -420,6 +843,11 @@ const docTemplate = `{
         },
         "/register/initialise": {
             "post": {
+                "security": [
+                    {
+                        "Auth-Token": []
+                    }
+                ],
                 "description": "Begin registration process",
                 "consumes": [
                     "application/json"
@@ -441,13 +869,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/auth.initialiseRegisterRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -462,6 +883,11 @@ const docTemplate = `{
         },
         "/register/user": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Complete a user's registration",
                 "consumes": [
                     "multipart/form-data"
@@ -551,20 +977,6 @@ const docTemplate = `{
                         "name": "username",
                         "in": "formData",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Client authorization token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer Authorization Token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -579,6 +991,11 @@ const docTemplate = `{
         },
         "/register/validate": {
             "post": {
+                "security": [
+                    {
+                        "Auth-Token": []
+                    }
+                ],
                 "description": "Validate registration OTP",
                 "consumes": [
                     "application/json"
@@ -600,13 +1017,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/auth.validateOTPRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -614,6 +1024,261 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/auth.validateOTPResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/timeline": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get session user's timeline",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get Timeline",
+                "operationId": "get-timeline",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.getTimelineResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/unfollow/{userID}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Unfollow a business",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Unfollow business",
+                "operationId": "unfollow-business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.followerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Edit user's profile",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Edit user info",
+                "operationId": "edit-user",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "profile image file",
+                        "name": "profile_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "234",
+                        "name": "country_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2020-10-12",
+                        "name": "dob",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "user@email.com",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "John",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "Doe",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "0712345678",
+                        "name": "phone_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "johndoe",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.editUserResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userID}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get user profile info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user",
+                "operationId": "get-user-info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.getUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -707,6 +1372,9 @@ const docTemplate = `{
         "auth.loginBusinessResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 },
@@ -740,6 +1408,9 @@ const docTemplate = `{
         "auth.loginUserResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 },
@@ -854,6 +1525,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.BasicUserInfo": {
+            "type": "object",
+            "properties": {
+                "businesses_count": {
+                    "type": "integer"
+                },
+                "customers_count": {
+                    "type": "integer"
+                },
+                "loved_ones_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dtos.Business": {
             "type": "object",
             "properties": {
@@ -877,20 +1562,143 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.BusinessInfo": {
+            "type": "object",
+            "properties": {
+                "customers_count": {
+                    "type": "integer"
+                },
+                "followers_count": {
+                    "type": "integer"
+                },
+                "is_followed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dtos.Celebration": {
+            "type": "object"
+        },
+        "dtos.Content": {
+            "type": "object",
+            "properties": {
+                "celebration": {
+                    "$ref": "#/definitions/dtos.Celebration"
+                },
+                "celebrations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Celebration"
+                    }
+                },
+                "post": {
+                    "$ref": "#/definitions/dtos.Post"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.PagedContent": {
+            "type": "object",
+            "properties": {
+                "contnet": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Content"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dtos.PagedPosts": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Post"
+                    }
+                }
+            }
+        },
+        "dtos.PagedRelationships": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "relationships": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.UserRelationship"
+                    }
+                }
+            }
+        },
         "dtos.Post": {
             "type": "object",
             "properties": {
+                "author": {
+                    "$ref": "#/definitions/dtos.UserInfo"
+                },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Post"
+                    }
+                },
+                "comments_count": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
+                },
+                "likes_count": {
+                    "type": "integer"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.PostMedia"
+                    }
                 },
                 "message": {
                     "type": "string"
                 },
-                "updated_at": {
+                "post_id": {
                     "type": "string"
                 },
-                "user": {
-                    "$ref": "#/definitions/dtos.User"
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.PostMedia": {
+            "type": "object",
+            "properties": {
+                "alternate_text": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -932,69 +1740,136 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.ErrorResponse": {
+        "dtos.UserInfo": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "message"
-                }
-            }
-        },
-        "handlers.createPostRequest": {
-            "type": "object",
-            "required": [
-                "message"
-            ],
-            "properties": {
-                "media": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": [
-                            "url"
-                        ],
-                        "properties": {
-                            "alternate_text": {
-                                "type": "string"
-                            },
-                            "url": {
-                                "type": "string"
-                            }
-                        }
-                    }
+                "business_name": {
+                    "type": "string"
                 },
-                "message": {
-                    "type": "string",
-                    "example": "What is happening?"
-                }
-            }
-        },
-        "handlers.createPostResponse": {
-            "type": "object"
-        },
-        "handlers.deletePostResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
+                "first_name": {
+                    "type": "string"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "profile_image": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
         },
-        "handlers.getPostsResponse": {
+        "dtos.UserProfile": {
             "type": "object",
             "properties": {
-                "limit": {
+                "account_type": {
                     "type": "integer"
                 },
-                "page": {
+                "basic_user_info": {
+                    "$ref": "#/definitions/dtos.BasicUserInfo"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "business_info": {
+                    "$ref": "#/definitions/dtos.BusinessInfo"
+                },
+                "celebrations_count": {
                     "type": "integer"
                 },
-                "posts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dtos.Post"
-                    }
+                "contents_count": {
+                    "type": "integer"
+                },
+                "country_code": {
+                    "type": "string"
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "interests": {
+                    "type": "string"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "profile_image": {
+                    "type": "string"
+                },
+                "relationship_status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.UserRelationship": {
+            "type": "object"
+        },
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "developer_information": {
+                    "type": "string",
+                    "example": "an error occurred"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "message"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "error"
+                }
+            }
+        },
+        "handlers.editUserResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dtos.User"
+                }
+            }
+        },
+        "handlers.getUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.UserProfile"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -1046,6 +1921,108 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "posts.createCommentResponse": {
+            "type": "object",
+            "properties": {
+                "post": {
+                    "$ref": "#/definitions/dtos.Post"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.createPostResponse": {
+            "type": "object",
+            "properties": {
+                "post": {
+                    "$ref": "#/definitions/dtos.Post"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.deletePostResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.getPostsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.PagedPosts"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.getTimelineResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.PagedContent"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.reportPostResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "relationships.followerResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "relationships.getFollowersResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.PagedRelationships"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Auth-Token": {
+            "description": "Type token for unauthenticated requests",
+            "type": "apiKey",
+            "name": "x-auth-token",
+            "in": "header"
+        },
+        "Bearer": {
+            "description": "` + "`" + `Bearer token` + "`" + ` for authenticated requests",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

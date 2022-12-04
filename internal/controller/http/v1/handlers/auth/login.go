@@ -28,13 +28,15 @@ func NewLoginRoute(handler *gin.RouterGroup, i usecase.User, l logger.Interface,
 }
 
 type loginUserResponse struct {
-	User  dtos.User `json:"user"`
-	Token string    `json:"token"`
+	Status string    `json:"status"`
+	User   dtos.User `json:"user"`
+	Token  string    `json:"token"`
 }
 
 type loginBusinessResponse struct {
-	User  dtos.Business `json:"user"`
-	Token string        `json:"token"`
+	Status string        `json:"status"`
+	User   dtos.Business `json:"user"`
+	Token  string        `json:"token"`
 }
 
 type loginRequest struct {
@@ -49,10 +51,10 @@ type loginRequest struct {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header   string       true "Authorization Token"
 // @Param       request      body     loginRequest true "Login user"
 // @Success     200          {object} loginUserResponse
 // @Success     200          {object} loginBusinessResponse
+// @Security Auth-Token
 // @Router      /login [post]
 func (r *loginRoute) login(c *gin.Context) {
 	var request loginRequest
@@ -74,7 +76,8 @@ func (r *loginRoute) login(c *gin.Context) {
 	}
 
 	claims := token.Claims{
-		Email: user.Email,
+		Email:  user.Email,
+		UserID: user.UserID,
 	}
 
 	if request.AccountType == config.ACCOUNT_BASIC_ID {
@@ -94,16 +97,18 @@ func (r *loginRoute) login(c *gin.Context) {
 
 	if request.AccountType == config.ACCOUNT_BASIC_ID {
 		c.JSON(http.StatusOK, loginUserResponse{
-			User:  r.mapper.MapToUserDto(*user),
-			Token: token,
+			Status: "success",
+			User:   r.mapper.MapToUserDto(*user),
+			Token:  token,
 		})
 
 		return
 	}
 
 	c.JSON(http.StatusOK, loginBusinessResponse{
-		User:  r.mapper.MapToBusinessDto(*user),
-		Token: token,
+		Status: "success",
+		User:   r.mapper.MapToBusinessDto(*user),
+		Token:  token,
 	})
 
 }

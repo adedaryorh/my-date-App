@@ -16,10 +16,22 @@ var allowedPaths = []string{
 	"/swagger/index.html",
 }
 
+var requiredPaths = []string{
+	"/v1/business/industry",
+	"/v1/login",
+	"/v1/register/initialise",
+	"/v1/register/validate",
+	"/v1/otp/resend",
+}
+
 // ClientAuthorization - ensures that the request comes from an authorised client
 func ClientAuthorization(uc usecase.ClientUseCase, l logger.Interface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if slices.Contains(allowedPaths, c.Request.URL.Path) {
+			return
+		}
+
+		if !slices.Contains(requiredPaths, c.Request.URL.Path) {
 			return
 		}
 
