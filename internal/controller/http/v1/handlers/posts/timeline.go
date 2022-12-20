@@ -25,8 +25,8 @@ func NewTimelineRoute(handler *gin.RouterGroup, u userservice.User, p posts.Post
 }
 
 type getTimelineRequest struct {
-	Page  int `form:"page" json:"page"`
-	Limit int `form:"limit" json:"limit"`
+	Page  *int `form:"page" json:"page"`
+	Limit *int `form:"limit" json:"limit"`
 }
 
 type getTimelineResponse struct {

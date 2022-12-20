@@ -40,7 +40,9 @@ type (
 	Post interface {
 		Create(context.Context, *models.Post) error
 		Get(context.Context, string) (*models.Post, error)
-		GetUserPosts(ctx context.Context, userID int, offset int, limit int) ([]models.Post, error)
+		Update(context.Context, *models.Post) error
+		GetUserPosts(ctx context.Context, userID int, offset *int, limit *int) ([]models.Post, error)
+		GetPostComments(ctx context.Context, postID int, offset *int, limit *int) ([]models.Post, error)
 		Delete(ctx context.Context, userID int, postID string) error
 	}
 
@@ -50,5 +52,13 @@ type (
 		GetPostMedia(ctx context.Context, postID int) ([]models.PostMedia, error)
 		GetMedia(ctx context.Context, mediaID int) (*models.PostMedia, error)
 		Delete(context.Context, models.PostMedia) error
+	}
+
+	//UserRelationship -.
+	UserRelationship interface {
+		Create(context.Context, *models.Relationship) error
+		GetUserRelationships(ctx context.Context, userID int) ([]models.Relationship, error)
+		GetRelationship(ctx context.Context, senderUserID int, receiverUserID int) (*models.Relationship, error)
+		Delete(context.Context, int) error
 	}
 )

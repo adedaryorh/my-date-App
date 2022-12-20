@@ -48,6 +48,10 @@ migrate-up:
 	migrate -path migrations -database '$(POSTGRES_DB)' up
 .PHONY: migrate-up
 
+migrate-force:
+	migrate -path migrations -database '$(POSTGRES_DB)' force $(migration)
+.PHONY: migrate-up
+
 migrate-down:
 	migrate -path migrations -database '$(POSTGRES_DB)' down $(MIGRATION_STEPS)
 .PHONY: migrate-down

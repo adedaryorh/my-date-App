@@ -2,6 +2,7 @@ package posts
 
 import (
 	"celebut-api/internal/controller/http/v1/handlers"
+	"celebut-api/internal/controller/response"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/services/posts"
@@ -40,8 +41,8 @@ type createPostRequest struct {
 }
 
 type getPostsRequest struct {
-	Page  int `form:"page" json:"page"`
-	Limit int `form:"limit" json:"limit"`
+	Page  *int `form:"page" json:"page"`
+	Limit *int `form:"limit" json:"limit"`
 }
 
 type getPostsResponse struct {
@@ -201,22 +202,29 @@ func (r *postsRoute) delete(c *gin.Context) {
 // @Security    Bearer
 // @Router      /posts/report/{postID} [post]
 func (r *postsRoute) report(c *gin.Context) {
-	_ = c.Param("postID")
+	postID := c.Param("postID")
 
-	_, err := handlers.GetSessionUser(c)
+	sessionUser, err := handlers.GetSessionUser(c)
 	if err != nil {
-		r.logger.Error(err, "http - v1 - posts - create")
+		r.logger.Error(err, "http - v1 - posts - report")
 		handlers.HTTPError(c, http.StatusBadRequest, "unable to create a post")
+
+		return
 	}
 
-	// TODO: Report posts
-	//err = r.postsService.Delete(c.Request.Context(), sessionUser.ID, postID)
-	//if err != nil {
-	//	r.logger.Error(err, "http - v1 - posts - create")
-	//	handlers.HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to delete post", err)
-	//
-	//	return
-	//}
+	err = r.postsService.Report(c.Request.Context(), sessionUser.ID, postID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - posts - report")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to report post", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to report post")
+		}
+
+		return
+	}
 
 	c.JSON(http.StatusOK, reportPostResponse{
 		Status:  "success",

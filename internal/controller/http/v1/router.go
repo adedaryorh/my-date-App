@@ -12,10 +12,12 @@ import (
 	"celebut-api/internal/middleware"
 	"celebut-api/internal/repo/postgres/accounts"
 	"celebut-api/internal/repo/postgres/posts"
+	relationships3 "celebut-api/internal/repo/postgres/relationships"
 	"celebut-api/internal/services/file"
 	"celebut-api/internal/services/mailer"
 	"celebut-api/internal/services/otp_generator"
 	postsservice "celebut-api/internal/services/posts"
+	relationships2 "celebut-api/internal/services/relationships"
 	"celebut-api/internal/services/token"
 	"celebut-api/internal/services/user_otp"
 	"celebut-api/internal/services/users"
@@ -85,6 +87,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	userOTPRepo := accounts.NewUserOTPRepo(pg)
 	postsRepo := posts.NewPostsRepo(pg)
 	postMediaRepo := posts.NewPostMediaRepo(pg)
+	relationshipsRepo := relationships3.NewRelationshipsRepo(pg)
 
 	var otpGeneratorService otp_generator.Generator
 
@@ -104,6 +107,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	userUseCase := usecase.NewUserUseCase(userRepo, userOTPRepo, otpGeneratorService)
 	postsUseCase := usecase.NewPostUseCase(postsRepo, postMediaRepo)
 	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
+	relationshipUseCase := usecase.NewRelationshipUseCase(relationshipsRepo)
 
 	// Mappers
 	userMapper := &mappers.DtoUserMapper{}
@@ -113,6 +117,8 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	userService := users.NewUserService(userRepo, awsS3Client, userUseCase, userMapper)
 	tokenService := token.NewTokenService(cfg.Token.Secret)
 	postsService := postsservice.NewPostService(postsUseCase, awsS3Client, postsMapper)
+	followerService := relationships2.NewFollowerService(relationshipUseCase, userUseCase, userMapper)
+	lovedOneService := relationships2.NewLovedOneService(relationshipUseCase, userUseCase, userMapper)
 
 	// Options
 	handler.Use(gin.Logger())
@@ -149,8 +155,8 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		postsroutes.NewCommentsRoute(routes, userService, postsService, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
 		handlers.NewUserRoutes(routes, userService, l, userMapper)
-		relationships.NewFollowersRoute(routes, userService, l)
-		relationships.NewLovedOnesRoute(routes, userService, l)
+		relationships.NewFollowersRoute(routes, followerService, l)
+		relationships.NewLovedOnesRoute(routes, lovedOneService, l)
 	}
 
 	return routes

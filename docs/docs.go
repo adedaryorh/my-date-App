@@ -188,13 +188,20 @@ const docTemplate = `{
                         "type": "integer",
                         "name": "page",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/posts.getPostsResponse"
+                            "$ref": "#/definitions/posts.getCommentsResponse"
                         }
                     }
                 }
@@ -251,6 +258,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/follow/{businessID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Follow a business",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Follow business",
+                "operationId": "follow-business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "business user identifier",
+                        "name": "businessID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.followerResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/followers": {
             "get": {
                 "security": [
@@ -287,44 +332,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/relationships.getFollowersResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/followers/{userID}": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Follow a business",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User Relationships"
-                ],
-                "summary": "Follow business",
-                "operationId": "follow-business",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user identifier",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/relationships.followerResponse"
                         }
                     }
                 }
@@ -1070,7 +1077,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/unfollow/{userID}": {
+        "/unfollow/{businessID}": {
             "delete": {
                 "security": [
                     {
@@ -1092,8 +1099,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "user identifier",
-                        "name": "userID",
+                        "description": "business user identifier",
+                        "name": "businessID",
                         "in": "path",
                         "required": true
                     }
@@ -1645,10 +1652,10 @@ const docTemplate = `{
                 "page": {
                     "type": "integer"
                 },
-                "relationships": {
+                "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dtos.UserRelationship"
+                        "$ref": "#/definitions/dtos.UserInfo"
                     }
                 }
             }
@@ -1831,9 +1838,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.UserRelationship": {
-            "type": "object"
-        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1949,6 +1953,28 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.getCommentData": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "$ref": "#/definitions/dtos.PagedPosts"
+                },
+                "post": {
+                    "$ref": "#/definitions/dtos.Post"
+                }
+            }
+        },
+        "posts.getCommentsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/posts.getCommentData"
                 },
                 "status": {
                     "type": "string"

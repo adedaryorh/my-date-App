@@ -1,23 +1,26 @@
 package relationships
 
 import (
+	"celebut-api/internal/controller/http/v1/handlers"
+	"celebut-api/internal/controller/response"
 	"celebut-api/internal/dtos"
-	userservice "celebut-api/internal/services/users"
+	"celebut-api/internal/services/relationships"
+
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type followersRoute struct {
-	usersService userservice.User
-	logger       logger.Interface
+	followerService relationships.Follower
+	logger          logger.Interface
 }
 
-func NewFollowersRoute(handler *gin.RouterGroup, u userservice.User, l logger.Interface) {
-	c := &followersRoute{u, l}
+func NewFollowersRoute(handler *gin.RouterGroup, f relationships.Follower, l logger.Interface) {
+	c := &followersRoute{f, l}
 
-	handler.POST("/follow/:userID", c.follow)
-	handler.DELETE("/unfollow/:userID", c.unfollow)
+	handler.POST("/follow/:businessID", c.follow)
+	handler.DELETE("/unfollow/:businessID", c.unfollow)
 	handler.GET("/followers", c.get)
 	//handler.POST("/followers/report/:userID", c.report)
 }
@@ -43,12 +46,40 @@ type followerResponse struct {
 // @Tags        User Relationships
 // @Accept      json
 // @Produce     json
-// @Param       userID path     string true "user identifier"
+// @Param       businessID path     string true "business user identifier"
 // @Success     200     {object} followerResponse
 // @Security Bearer
-// @Router      /followers/{userID} [post]
+// @Router      /follow/{businessID} [post]
 func (r *followersRoute) follow(c *gin.Context) {
-	// TODO: Do followers logic
+	businessID := c.Param("businessID")
+
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - follow")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
+
+		return
+	}
+
+	err = r.followerService.FollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - follow")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			errorMessage := "unable to follow user"
+			if len(serviceErr.Message) > 0 {
+				errorMessage = serviceErr.Message
+			}
+			
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, errorMessage, serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to follow user")
+		}
+
+		return
+	}
+
 	c.JSON(http.StatusOK, followerResponse{
 		Status:  "success",
 		Message: "success",
@@ -66,10 +97,31 @@ func (r *followersRoute) follow(c *gin.Context) {
 // @Security    Bearer
 // @Router      /followers [get]
 func (r *followersRoute) get(c *gin.Context) {
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - get")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
 
-	// TODO: Do followers logic
+		return
+	}
+
+	data, err := r.followerService.GetFollowers(c.Request.Context(), sessionUser.ID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - get")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to get followers", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to get followers")
+		}
+
+		return
+	}
+
 	c.JSON(http.StatusOK, getFollowersResponse{
 		Status: "success",
+		Data:   *data,
 	})
 }
 
@@ -79,16 +131,38 @@ func (r *followersRoute) get(c *gin.Context) {
 // @Tags        User Relationships
 // @Accept      json
 // @Produce     json
-// @Param       userID path     string true "user identifier"
+// @Param       businessID path     string true "business user identifier"
 // @Success     200           {object} followerResponse
 // @Failure     400           {object} handlers.ErrorResponse
 // @Failure     401           {object} handlers.ErrorResponse
 // @Failure     404           {object} handlers.ErrorResponse
 // @Failure     500           {object} handlers.ErrorResponse
 // @Security    Bearer
-// @Router      /unfollow/{userID} [delete]
+// @Router      /unfollow/{businessID} [delete]
 func (r *followersRoute) unfollow(c *gin.Context) {
-	// TODO: Do unfollowers logic
+	businessID := c.Param("businessID")
+
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - unfollow")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
+
+		return
+	}
+
+	err = r.followerService.UnfollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - unfollow")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to follow user", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to follow user")
+		}
+
+		return
+	}
 
 	c.JSON(http.StatusOK, followerResponse{
 		Status:  "success",

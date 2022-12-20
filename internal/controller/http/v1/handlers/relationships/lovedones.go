@@ -1,20 +1,22 @@
 package relationships
 
 import (
+	"celebut-api/internal/controller/http/v1/handlers"
+	"celebut-api/internal/controller/response"
 	"celebut-api/internal/dtos"
-	userservice "celebut-api/internal/services/users"
+	"celebut-api/internal/services/relationships"
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type lovedOnesRoute struct {
-	usersService userservice.User
-	logger       logger.Interface
+	lovedOneService relationships.LovedOne
+	logger          logger.Interface
 }
 
-func NewLovedOnesRoute(handler *gin.RouterGroup, u userservice.User, l logger.Interface) {
-	c := &lovedOnesRoute{u, l}
+func NewLovedOnesRoute(handler *gin.RouterGroup, r relationships.LovedOne, l logger.Interface) {
+	c := &lovedOnesRoute{r, l}
 
 	handler.POST("/lovedones/:userID", c.becomeLovedOne)
 	handler.DELETE("/lovedones/:userID", c.removeLovedOne)
@@ -48,7 +50,35 @@ type lovedOnesResponse struct {
 // @Security Bearer
 // @Router      /lovedones/{userID} [post]
 func (r *lovedOnesRoute) becomeLovedOne(c *gin.Context) {
-	// TODO: Do followers logic
+	businessID := c.Param("userID")
+
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - add")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
+
+		return
+	}
+
+	err = r.lovedOneService.AddLovedOne(c.Request.Context(), sessionUser.ID, businessID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - add")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			errorMessage := "unable to add loved one"
+			if len(serviceErr.Message) > 0 {
+				errorMessage = serviceErr.Message
+			}
+
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, errorMessage, serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to add loved one")
+		}
+
+		return
+	}
+
 	c.JSON(http.StatusOK, followerResponse{
 		Status:  "success",
 		Message: "success",
@@ -66,10 +96,31 @@ func (r *lovedOnesRoute) becomeLovedOne(c *gin.Context) {
 // @Security    Bearer
 // @Router      /lovedones [get]
 func (r *lovedOnesRoute) getLovedOnes(c *gin.Context) {
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - get")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
 
-	// TODO: Do followers logic
+		return
+	}
+
+	data, err := r.lovedOneService.GetLovedOnes(c.Request.Context(), sessionUser.ID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - followers - get")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to get loved ones", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to get loved ones")
+		}
+
+		return
+	}
+
 	c.JSON(http.StatusOK, getFollowersResponse{
 		Status: "success",
+		Data:   *data,
 	})
 }
 
@@ -88,7 +139,29 @@ func (r *lovedOnesRoute) getLovedOnes(c *gin.Context) {
 // @Security    Bearer
 // @Router      /lovedones/{userID} [delete]
 func (r *lovedOnesRoute) removeLovedOne(c *gin.Context) {
-	// TODO: Do unfollowers logic
+	businessID := c.Param("userID")
+
+	sessionUser, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - remove")
+		handlers.HTTPError(c, http.StatusUnauthorized, "unable to get session user")
+
+		return
+	}
+
+	err = r.lovedOneService.RemoveLovedOne(c.Request.Context(), sessionUser.ID, businessID)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - remove")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to remove loved one", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to remove loved one")
+		}
+
+		return
+	}
 
 	c.JSON(http.StatusOK, followerResponse{
 		Status:  "success",

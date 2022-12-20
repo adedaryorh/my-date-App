@@ -9,6 +9,7 @@ type UserMapper interface {
 	MapToUserDto(user models.User) dtos.User
 	MapToBusinessDto(user models.User) dtos.Business
 	MapToUserProfileDto(user models.User) dtos.UserProfile
+	MapToUserInfoDto(user models.User) dtos.UserInfo
 }
 
 type DtoUserMapper struct {
@@ -56,5 +57,15 @@ func (um *DtoUserMapper) MapToUserProfileDto(user models.User) dtos.UserProfile 
 		Interests:          user.Interests,
 		ProfileImage:       user.ProfileImageURL,
 		AccountType:        user.AccountType.ID,
+	}
+}
+
+func (um *DtoUserMapper) MapToUserInfoDto(user models.User) dtos.UserInfo {
+	return dtos.UserInfo{
+		UserID:       user.UserID,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Username:     user.Username,
+		ProfileImage: user.ProfileImageURL,
 	}
 }

@@ -242,9 +242,9 @@ definitions:
         type: integer
       page:
         type: integer
-      relationships:
+      users:
         items:
-          $ref: '#/definitions/dtos.UserRelationship'
+          $ref: '#/definitions/dtos.UserInfo'
         type: array
     type: object
   dtos.Post:
@@ -364,8 +364,6 @@ definitions:
       username:
         type: string
     type: object
-  dtos.UserRelationship:
-    type: object
   handlers.ErrorResponse:
     properties:
       developer_information:
@@ -443,6 +441,20 @@ definitions:
     properties:
       message:
         type: string
+      status:
+        type: string
+    type: object
+  posts.getCommentData:
+    properties:
+      comments:
+        $ref: '#/definitions/dtos.PagedPosts'
+      post:
+        $ref: '#/definitions/dtos.Post'
+    type: object
+  posts.getCommentsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/posts.getCommentData'
       status:
         type: string
     type: object
@@ -596,13 +608,18 @@ paths:
       - in: query
         name: page
         type: integer
+      - description: post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/posts.getPostsResponse'
+            $ref: '#/definitions/posts.getCommentsResponse'
       security:
       - Bearer: []
       summary: Get Post Comments
@@ -641,6 +658,30 @@ paths:
       summary: Create post comment
       tags:
       - Posts
+  /follow/{businessID}:
+    post:
+      consumes:
+      - application/json
+      description: Follow a business
+      operationId: follow-business
+      parameters:
+      - description: business user identifier
+        in: path
+        name: businessID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.followerResponse'
+      security:
+      - Bearer: []
+      summary: Follow business
+      tags:
+      - User Relationships
   /followers:
     get:
       consumes:
@@ -664,30 +705,6 @@ paths:
       security:
       - Bearer: []
       summary: Get followers
-      tags:
-      - User Relationships
-  /followers/{userID}:
-    post:
-      consumes:
-      - application/json
-      description: Follow a business
-      operationId: follow-business
-      parameters:
-      - description: user identifier
-        in: path
-        name: userID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/relationships.followerResponse'
-      security:
-      - Bearer: []
-      summary: Follow business
       tags:
       - User Relationships
   /login:
@@ -1161,16 +1178,16 @@ paths:
       summary: Get Timeline
       tags:
       - Posts
-  /unfollow/{userID}:
+  /unfollow/{businessID}:
     delete:
       consumes:
       - application/json
       description: Unfollow a business
       operationId: unfollow-business
       parameters:
-      - description: user identifier
+      - description: business user identifier
         in: path
-        name: userID
+        name: businessID
         required: true
         type: string
       produces:

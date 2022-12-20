@@ -9,9 +9,11 @@ import (
 
 type Post interface {
 	Create(context.Context, *models.Post) error
-	GetUserPosts(ctx context.Context, userID int, page int, limit int) ([]models.Post, error)
+	GetUserPosts(ctx context.Context, userID int, page *int, limit *int) ([]models.Post, error)
 	Get(context.Context, string) (*models.Post, error)
+	GetPostComments(ctx context.Context, postID int, page *int, limit *int) ([]models.Post, error)
 	Delete(ctx context.Context, userID int, postID string) error
+	FlagPost(ctx context.Context, post *models.Post) error
 }
 
 // PostUseCase -.
@@ -60,9 +62,13 @@ func (uc *PostUseCase) Get(ctx context.Context, celebrationID string) (*models.P
 }
 
 //GetUserPosts -.
-func (uc *PostUseCase) GetUserPosts(ctx context.Context, userID int, page int, limit int) ([]models.Post, error) {
-	offset := (limit * page) - limit
-	posts, err := uc.postsRepo.GetUserPosts(ctx, userID, offset, limit)
+func (uc *PostUseCase) GetUserPosts(ctx context.Context, userID int, page *int, limit *int) ([]models.Post, error) {
+	var offset int
+	if limit != nil && page != nil {
+		offset = (*limit * *page) - *limit
+	}
+
+	posts, err := uc.postsRepo.GetUserPosts(ctx, userID, &offset, limit)
 	if err != nil {
 		return nil, fmt.Errorf("PostUseCase - Posts - unable to get posts: %w", err)
 	}
@@ -74,7 +80,47 @@ func (uc *PostUseCase) GetUserPosts(ctx context.Context, userID int, page int, l
 			return nil, fmt.Errorf("PostUseCase - Posts - unable to get post media: %w", err)
 		}
 
+		comments, err := uc.postsRepo.GetPostComments(ctx, post.ID, nil, nil)
+		if err != nil {
+			return nil, fmt.Errorf("PostUseCase - Posts - unable to get post comments: %w", err)
+		}
+
+		post.Comments = comments
 		post.Media = media
+
+		postsWithMedia = append(postsWithMedia, post)
+	}
+
+	return postsWithMedia, nil
+}
+
+//GetPostComments -.
+func (uc *PostUseCase) GetPostComments(ctx context.Context, postID int, page *int, limit *int) ([]models.Post, error) {
+	var offset int
+	if limit != nil && page != nil {
+		offset = (*limit * *page) - *limit
+	}
+
+	posts, err := uc.postsRepo.GetPostComments(ctx, postID, &offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("PostUseCase - Posts - unable to get posts: %w", err)
+	}
+
+	postsWithMedia := make([]models.Post, 0)
+	for _, post := range posts {
+		media, err := uc.mediaRepo.GetPostMedia(ctx, post.ID)
+		if err != nil {
+			return nil, fmt.Errorf("PostUseCase - Posts - unable to get post media: %w", err)
+		}
+
+		comments, err := uc.postsRepo.GetPostComments(ctx, post.ID, nil, nil)
+		if err != nil {
+			return nil, fmt.Errorf("PostUseCase - Posts - unable to get post comments: %w", err)
+		}
+
+		post.Comments = comments
+		post.Media = media
+
 		postsWithMedia = append(postsWithMedia, post)
 	}
 
@@ -92,12 +138,23 @@ func (uc *PostUseCase) Delete(ctx context.Context, userID int, postID string) er
 
 	for _, postMedia := range media {
 		err = uc.mediaRepo.Delete(ctx, postMedia)
-
 	}
 
 	err = uc.postsRepo.Delete(ctx, userID, postID)
 	if err != nil {
 		return fmt.Errorf("PostUseCase - Posts - unable to delete celebration: %w", err)
+	}
+
+	return nil
+}
+
+// FlagPost - .
+func (uc *PostUseCase) FlagPost(ctx context.Context, post *models.Post) error {
+	post.FlaggedCounter = post.FlaggedCounter + 1
+
+	err := uc.postsRepo.Update(ctx, post)
+	if err != nil {
+		return fmt.Errorf("PostUseCase - Posts - FlagPost - unable to update: %w", err)
 	}
 
 	return nil

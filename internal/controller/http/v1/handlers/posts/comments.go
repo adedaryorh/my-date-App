@@ -2,6 +2,7 @@ package posts
 
 import (
 	"celebut-api/internal/controller/http/v1/handlers"
+	"celebut-api/internal/controller/response"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/services/posts"
@@ -37,16 +38,18 @@ type createCommentRequest struct {
 }
 
 type getCommentsRequest struct {
-	Page  int `form:"page" json:"page"`
-	Limit int `form:"limit" json:"limit"`
+	Page  *int `form:"page" json:"page"`
+	Limit *int `form:"limit" json:"limit"`
 }
 
 type getCommentsResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		Post     dtos.Post       `json:"post"`
-		Comments dtos.PagedPosts `json:"comments"`
-	} `json:"data"`
+	Status string         `json:"status"`
+	Data   getCommentData `json:"data"`
+}
+
+type getCommentData struct {
+	Post     dtos.Post       `json:"post"`
+	Comments dtos.PagedPosts `json:"comments"`
 }
 
 // @Summary     Create post comment
@@ -117,7 +120,8 @@ func (r *commentsRoute) comment(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       request query    getCommentsRequest true "get post comments"
-// @Success     200     {object} getPostsResponse
+// @Param       postID path     string true "post identifier"
+// @Success     200     {object} getCommentsResponse
 // @Security    Bearer
 // @Router      /comments/{postID} [get]
 func (r *commentsRoute) get(c *gin.Context) {
@@ -130,26 +134,23 @@ func (r *commentsRoute) get(c *gin.Context) {
 		return
 	}
 
-	sessionUser, err := handlers.GetSessionUser(c)
-	if err != nil {
-		r.logger.Error(err, "http - v1 - posts - create")
-		handlers.HTTPError(c, http.StatusBadRequest, "unable to create a post")
-	}
-
 	ctx := c.Request.Context()
-	p, err := r.postsService.GetAll(ctx, sessionUser.ID, request.Page, request.Limit)
+	post, comments, err := r.postsService.GetComments(ctx, c.Param("postID"), request.Page, request.Limit)
 	if err != nil {
 		r.logger.Error(err, "http - v1 -  posts - get")
-		handlers.HTTPError(c, http.StatusInternalServerError, "unable to get posts")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, "unable to get comments", serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "unable to get posts")
+		}
 
 		return
 	}
 
 	c.JSON(http.StatusOK, getCommentsResponse{
 		Status: "success",
-		Data: struct {
-			Post     dtos.Post       `json:"post"`
-			Comments dtos.PagedPosts `json:"comments"`
-		}{Post: dtos.Post{}, Comments: *p},
+		Data:   getCommentData{Post: *post, Comments: *comments},
 	})
 }

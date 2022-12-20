@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"strings"
 )
@@ -21,7 +22,9 @@ type Post interface {
 	Create(ctx context.Context, post dtos.NewPost) (*dtos.Post, error)
 	Comment(ctx context.Context, postID int, comment dtos.NewPost) (*dtos.Post, error)
 	Delete(ctx context.Context, userID int, postId string) error
-	GetAll(ctx context.Context, userID int, page int, limit int) (*dtos.PagedPosts, error)
+	Report(ctx context.Context, userID int, postID string) error
+	GetAll(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error)
+	GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error)
 	Get(ctx context.Context, postId string) (*dtos.Post, error)
 	ValidatePost(ctx context.Context, postId string) (*models.Post, error)
 }
@@ -91,7 +94,30 @@ func (ps *PostService) Delete(ctx context.Context, userID int, postID string) er
 	return nil
 }
 
-func (ps *PostService) GetAll(ctx context.Context, userID int, page int, limit int) (*dtos.PagedPosts, error) {
+// Report .
+func (ps *PostService) Report(ctx context.Context, userID int, postID string) error {
+	post, err := ps.usecase.Get(ctx, postID)
+	if err != nil {
+		return &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to get post: %w", err),
+			StatusCode: http.StatusNotFound,
+		}
+	}
+
+	//TODO: Check that user ID cannot flag their post
+
+	err = ps.usecase.FlagPost(ctx, post)
+	if err != nil {
+		return &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to flag post: %w", err),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	return nil
+}
+
+func (ps *PostService) GetAll(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error) {
 	posts, err := ps.usecase.GetUserPosts(ctx, userID, page, limit)
 
 	if err != nil {
@@ -108,6 +134,34 @@ func (ps *PostService) GetAll(ctx context.Context, userID int, page int, limit i
 	}
 
 	return pagedPosts, nil
+}
+
+func (ps *PostService) GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error) {
+	post, err := ps.usecase.Get(ctx, postID)
+	if err != nil {
+		return nil, nil, &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to get post: %w", err),
+			StatusCode: http.StatusNotFound,
+		}
+	}
+
+	postDto := ps.mapper.MapToPostDto(*post)
+
+	posts, err := ps.usecase.GetPostComments(ctx, post.ID, page, limit)
+	if err != nil {
+		return nil, nil, &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to get user's posts: %w", err),
+			StatusCode: http.StatusBadRequest,
+		}
+	}
+
+	pagedPosts := &dtos.PagedPosts{
+		Page:  page,
+		Limit: limit,
+		Posts: ps.mapper.MapToPostListDto(posts),
+	}
+
+	return &postDto, pagedPosts, nil
 }
 
 func (ps *PostService) Get(ctx context.Context, postID string) (*dtos.Post, error) {

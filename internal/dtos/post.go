@@ -19,8 +19,8 @@ type Post struct {
 }
 
 type PagedPosts struct {
-	Page  int    `json:"page"`
-	Limit int    `json:"limit"`
+	Page  *int   `json:"page"`
+	Limit *int   `json:"limit"`
 	Posts []Post `json:"posts"`
 }
 
