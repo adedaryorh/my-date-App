@@ -423,6 +423,19 @@ definitions:
       updated_at:
         type: string
     type: object
+  posts.addReactionRequest:
+    properties:
+      reaction:
+        example: emoji
+        type: string
+    type: object
+  posts.addReactionResponse:
+    properties:
+      post:
+        $ref: '#/definitions/dtos.Post'
+      status:
+        type: string
+    type: object
   posts.createCommentResponse:
     properties:
       post:
@@ -964,6 +977,59 @@ paths:
       security:
       - Bearer: []
       summary: Get User Posts by ID
+      tags:
+      - Posts
+  /posts/reactions/{postID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove reaction from a post
+      operationId: delete-post-reaction
+      parameters:
+      - description: post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.addReactionResponse'
+      security:
+      - Bearer: []
+      summary: Remove reaction
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Add reaction to a post
+      operationId: add-post-reaction
+      parameters:
+      - description: post identifier
+        in: path
+        name: postID
+        required: true
+        type: string
+      - description: add a new reaction
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/posts.addReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.addReactionResponse'
+      security:
+      - Bearer: []
+      summary: Add reaction to a post
       tags:
       - Posts
   /posts/report/{postID}:

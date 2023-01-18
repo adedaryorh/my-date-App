@@ -12,6 +12,7 @@ import (
 	"celebut-api/internal/usecase"
 	"celebut-api/internal/validators"
 	"celebut-api/pkg/logger"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -124,8 +125,8 @@ func (r *registerRoute) initRegister(c *gin.Context) {
 }
 
 type validateOTPRequest struct {
-	Email       *string `json:"email"              binding:"email"  example:"user@email.com"`
-	PhoneNumber *string `json:"phone_number"       example:"0712345678"`
+	Email       *string `json:"email"         binding:"email,omitempty"  example:"user@email.com"`
+	PhoneNumber *string `json:"phone_number"  binding:"omitempty" example:"0712345678"`
 	OTP         string  `json:"otp"       binding:"required"  example:"123456"`
 }
 
@@ -148,14 +149,14 @@ func (r *registerRoute) validateOTP(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		r.logger.Error(err, "http - v1 - validate OTP")
-		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "invalid request body", err)
 
 		return
 	}
 
 	if request.Email == nil && request.PhoneNumber == nil {
 		r.logger.Error("client failed to send in user's email or phone number")
-		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "invalid request body", errors.New("email/phone number is required"))
 
 		return
 	}

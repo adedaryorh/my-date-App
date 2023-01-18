@@ -153,6 +153,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		business.NewIndustryRoutes(routes, industryUseCase, l)
 		postsroutes.NewPostsRoute(routes, userService, postsService, l, postsMapper)
 		postsroutes.NewCommentsRoute(routes, userService, postsService, l, postsMapper)
+		postsroutes.NewReactionsRoute(routes, userService, postsService, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
 		handlers.NewUserRoutes(routes, userService, l, userMapper)
 		relationships.NewFollowersRoute(routes, followerService, l)

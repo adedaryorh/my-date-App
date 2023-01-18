@@ -27,6 +27,7 @@ type Post interface {
 	GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error)
 	Get(ctx context.Context, postId string) (*dtos.Post, error)
 	ValidatePost(ctx context.Context, postId string) (*models.Post, error)
+	AddReaction(ctx context.Context, postID int, comment dtos.NewReaction) (*dtos.Post, error)
 }
 
 type PostService struct {
@@ -259,6 +260,10 @@ func (ps *PostService) UploadPostMedia(ctx context.Context, image multipart.File
 	}
 
 	return *profileImageURL, nil
+}
+
+func (ps *PostService) AddReaction(ctx context.Context, postID int, comment dtos.NewReaction) (*dtos.Post, error) {
+	return nil, nil
 }
 
 func generateRandomID() (string, error) {

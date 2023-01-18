@@ -636,6 +636,89 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts/reactions/{postID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Add reaction to a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Add reaction to a post",
+                "operationId": "add-post-reaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "add a new reaction",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/posts.addReactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.addReactionResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Remove reaction from a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Remove reaction",
+                "operationId": "delete-post-reaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "post identifier",
+                        "name": "postID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.addReactionResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/posts/report/{postID}": {
             "post": {
                 "security": [
@@ -1922,6 +2005,26 @@ const docTemplate = `{
                     "example": "entertainment"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "posts.addReactionRequest": {
+            "type": "object",
+            "properties": {
+                "reaction": {
+                    "type": "string",
+                    "example": "emoji"
+                }
+            }
+        },
+        "posts.addReactionResponse": {
+            "type": "object",
+            "properties": {
+                "post": {
+                    "$ref": "#/definitions/dtos.Post"
+                },
+                "status": {
                     "type": "string"
                 }
             }
