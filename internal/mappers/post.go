@@ -34,9 +34,11 @@ func (um *DtoPostMapper) MapToPostDto(p models.Post) dtos.Post {
 			Username:     p.User.Username,
 			BusinessName: p.User.BusinessName,
 		},
-		Media:     um.MapToPostMediaListDto(p.Media),
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
+		ReactionsCount: len(p.UserReactions),
+		CommentsCount:  len(p.Comments),
+		Media:          um.MapToPostMediaListDto(p.Media),
+		CreatedAt:      p.CreatedAt,
+		UpdatedAt:      p.UpdatedAt,
 	}
 }
 

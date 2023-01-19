@@ -9,6 +9,7 @@ type Post struct {
 	PostID         string
 	User           User
 	Message        *string
+	UserReactions  []UserReaction
 	Comments       []Post
 	Media          []PostMedia
 	CreatedAt      time.Time
