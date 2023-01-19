@@ -55,8 +55,9 @@ func (r *UserPostgresRepo) CreateUser(ctx context.Context, c *models.User) error
 // GetUserByField -.
 func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, value string) (*models.User, error) {
 	sql, _, err := r.Builder.
-		Select("id, user_id, first_name, last_name, username, country_code, phone, email, dob, gender, relationship_status, business_name, industry_id, account_type_id, password_hash, status").
-		From("users").
+		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+		From("users u").
+		InnerJoin("industries i ON i.id = industry_id").
 		Where(squirrel.Eq{field: value}).
 		ToSql()
 
@@ -75,6 +76,7 @@ func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, val
 	}
 
 	var industryID *int
+	var industryName *string
 	err = row.Scan(
 		&u.ID,
 		&u.UserID,
@@ -91,10 +93,12 @@ func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, val
 		&industryID,
 		&u.AccountType.ID,
 		&u.Password,
-		&u.Status)
+		&u.Status,
+		&industryName)
 
 	if industryID != nil {
 		u.Industry.ID = *industryID
+		u.Industry.Name = *industryName
 	}
 
 	if err != nil {

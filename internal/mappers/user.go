@@ -29,17 +29,22 @@ func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
 		RelationshipStatus: user.RelationshipStatus,
 		Interests:          user.Interests,
 		BusinessName:       user.BusinessName,
-		AccountTypeID:      user.AccountType.ID,
+		AccountType: dtos.AccountType{
+			ID: user.AccountType.ID,
+		},
 	}
 
 	if user.AccountType.ID == config.ACCOUNT_BASIC_ID {
-		dto.AccountType = config.ACCOUNT_BASIC
+		dto.AccountType.Name = config.ACCOUNT_BASIC
 	} else {
-		dto.AccountType = config.ACCOUNT_BUSINESS
+		dto.AccountType.Name = config.ACCOUNT_BUSINESS
 	}
 
 	if user.Industry != nil {
-		dto.IndustryTypeID = &user.Industry.ID
+		dto.IndustryType = &dtos.IndustryType{
+			ID:   user.Industry.ID,
+			Name: user.Industry.Name,
+		}
 	}
 
 	return dto
@@ -59,7 +64,9 @@ func (um *DtoUserMapper) MapToUserProfileDto(user models.User) dtos.UserProfile 
 		RelationshipStatus: user.RelationshipStatus,
 		Interests:          user.Interests,
 		ProfileImage:       user.ProfileImageURL,
-		AccountType:        user.AccountType.ID,
+		AccountType: dtos.AccountType{
+			ID: user.AccountType.ID,
+		},
 	}
 }
 

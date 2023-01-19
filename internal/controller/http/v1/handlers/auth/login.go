@@ -53,7 +53,6 @@ type loginRequest struct {
 // @Produce     json
 // @Param       request      body     loginRequest true "Login user"
 // @Success     200          {object} loginUserResponse
-// @Success     200          {object} loginBusinessResponse
 // @Security Auth-Token
 // @Router      /login [post]
 func (r *loginRoute) login(c *gin.Context) {
