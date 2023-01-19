@@ -112,6 +112,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	// Mappers
 	userMapper := &mappers.DtoUserMapper{}
 	postsMapper := &mappers.DtoPostMapper{}
+	industriesMapper := &mappers.DtoIndustryMapper{}
 
 	// Services
 	userService := users.NewUserService(userRepo, awsS3Client, userUseCase, userMapper)
@@ -150,7 +151,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		auth.NewClientAuthRoute(routes, clientUseCase, l)
 		auth.NewRegisterRoutes(routes, userUseCase, l, tokenService, userMapper, mailerService, awsS3Client)
 		auth.NewLoginRoute(routes, userUseCase, l, userMapper, tokenService)
-		business.NewIndustryRoutes(routes, industryUseCase, l)
+		business.NewIndustryRoutes(routes, industryUseCase, l, industriesMapper)
 		postsroutes.NewPostsRoute(routes, userService, postsService, l, postsMapper)
 		postsroutes.NewCommentsRoute(routes, userService, postsService, l, postsMapper)
 		postsroutes.NewReactionsRoute(routes, userService, postsService, l, postsMapper)

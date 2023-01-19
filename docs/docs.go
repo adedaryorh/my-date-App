@@ -18,6 +18,11 @@ const docTemplate = `{
     "paths": {
         "/business/industry": {
             "get": {
+                "security": [
+                    {
+                        "Auth-Token": []
+                    }
+                ],
                 "description": "Get list of business industries",
                 "consumes": [
                     "application/json"
@@ -30,15 +35,6 @@ const docTemplate = `{
                 ],
                 "summary": "Get industries",
                 "operationId": "industries-list",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -49,6 +45,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "Auth-Token": []
+                    }
+                ],
                 "description": "Create a new business industry",
                 "consumes": [
                     "application/json"
@@ -62,13 +63,6 @@ const docTemplate = `{
                 "summary": "Create industry",
                 "operationId": "create-industry",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization Token",
-                        "name": "x-auth-token",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "Create new industry",
                         "name": "request",

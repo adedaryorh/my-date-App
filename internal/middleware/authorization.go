@@ -22,6 +22,8 @@ var skipAuthPaths = []string{
 	"/v1/register/validate",
 	"/v1/otp/resend",
 	"/v1/login",
+	"/v1/business/industry/",
+	"/v1/business/industry",
 }
 
 // Authorization - ensures user has been authenticated.

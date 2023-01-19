@@ -519,12 +519,6 @@ paths:
       - application/json
       description: Get list of business industries
       operationId: industries-list
-      parameters:
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -532,6 +526,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/business.getIndustryResponse'
+      security:
+      - Auth-Token: []
       summary: Get industries
       tags:
       - Industries
@@ -541,11 +537,6 @@ paths:
       description: Create a new business industry
       operationId: create-industry
       parameters:
-      - description: Authorization Token
-        in: header
-        name: x-auth-token
-        required: true
-        type: string
       - description: Create new industry
         in: body
         name: request
@@ -559,6 +550,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Industry'
+      security:
+      - Auth-Token: []
       summary: Create industry
       tags:
       - Industries

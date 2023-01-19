@@ -23,13 +23,15 @@ func (r *IndustryPostgresRepo) CreateIndustry(ctx context.Context, i *models.Ind
 		Insert("industries").
 		Columns("name, description").
 		Values(i.Name, i.Description).
+		Suffix("RETURNING \"id\"").
 		ToSql()
 
 	if err != nil {
 		return fmt.Errorf("IndustryPostgresRepo - CreateIndustry - r.Builder: %w", err)
 	}
 
-	_, err = r.Pool.Exec(ctx, sql, args...)
+	row := r.Pool.QueryRow(ctx, sql, args...)
+	err = row.Scan(&i.ID)
 	if err != nil {
 		return fmt.Errorf("IndustryPostgresRepo - CreateIndustry - r.Pool.Exec: %w", err)
 	}

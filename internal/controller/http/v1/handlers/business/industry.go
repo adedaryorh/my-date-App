@@ -2,6 +2,8 @@ package business
 
 import (
 	"celebut-api/internal/controller/http/v1/handlers"
+	"celebut-api/internal/dtos"
+	"celebut-api/internal/mappers"
 	"celebut-api/internal/models"
 	"celebut-api/internal/usecase"
 	"celebut-api/pkg/logger"
@@ -13,20 +15,27 @@ import (
 type industryRoutes struct {
 	i usecase.Industry
 	l logger.Interface
+	m mappers.IndustryMapper
 }
 
-func NewIndustryRoutes(handler *gin.RouterGroup, i usecase.Industry, l logger.Interface) {
-	r := &industryRoutes{i, l}
+func NewIndustryRoutes(handler *gin.RouterGroup, i usecase.Industry, l logger.Interface, m mappers.IndustryMapper) {
+	r := &industryRoutes{i, l, m}
 
 	h := handler.Group("/business/industry")
 	{
-		h.GET("/", r.industries)
-		h.POST("/", r.createIndustry)
+		h.GET("", r.industries)
+		h.POST("", r.createIndustry)
 	}
 }
 
 type getIndustryResponse struct {
-	Industries []models.Industry `json:"industries"`
+	Status string          `json:"status"`
+	Data   []dtos.Industry `json:"industries"`
+}
+
+type createIndustryResponse struct {
+	Status string        `json:"status"`
+	Data   dtos.Industry `json:"industry"`
 }
 
 // @Summary     Get industries
@@ -35,8 +44,8 @@ type getIndustryResponse struct {
 // @Tags        Industries
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header   string true "Authorization Token"
 // @Success     200          {object} getIndustryResponse
+// @Security Auth-Token
 // @Router      /business/industry [get]
 func (r *industryRoutes) industries(c *gin.Context) {
 	industries, err := r.i.Industries(c.Request.Context())
@@ -48,12 +57,15 @@ func (r *industryRoutes) industries(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getIndustryResponse{industries})
+	c.JSON(http.StatusOK, getIndustryResponse{
+		Status: "success",
+		Data:   r.m.MapToIndustryListDto(industries),
+	})
 }
 
 type createIndustryRequest struct {
-	Name        string `json:"name"       binding:"required"  example:"auto"`
-	Description string `json:"description"  binding:"required"  example:"en"`
+	Name        string `json:"name"       binding:"required"  example:"Engineering"`
+	Description string `json:"description"  binding:"required"  example:"description"`
 }
 
 // @Summary     Create industry
@@ -62,9 +74,9 @@ type createIndustryRequest struct {
 // @Tags        Industries
 // @Accept      json
 // @Produce     json
-// @Param       x-auth-token header   string                true "Authorization Token"
 // @Param       request      body     createIndustryRequest true "Create new industry"
 // @Success     200          {object} models.Industry
+// @Security Auth-Token
 // @Router      /business/industry [post]
 func (r *industryRoutes) createIndustry(c *gin.Context) {
 	var request createIndustryRequest
@@ -88,5 +100,8 @@ func (r *industryRoutes) createIndustry(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, industry)
+	c.JSON(http.StatusCreated, createIndustryResponse{
+		Status: "success",
+		Data:   r.m.MapToIndustryDto(*industry),
+	})
 }
