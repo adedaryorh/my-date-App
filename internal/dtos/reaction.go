@@ -5,6 +5,10 @@ import (
 )
 
 type NewReaction struct {
-	Reaction *string
-	Author   models.User
+	Reaction string
+	User     models.User
+}
+
+type UserReaction struct {
+	Reaction string
 }

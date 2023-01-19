@@ -65,26 +65,18 @@ func (r *reactionsRoute) addReaction(c *gin.Context) {
 	sessionUser, err := handlers.GetSessionUser(c)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - reactions - add")
-		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "unable to add a comment", err)
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "unable to add a reaction", err)
 
 		return
 	}
 
 	ctx := c.Request.Context()
-	post, err := r.postsService.ValidatePost(ctx, postID)
-	if err != nil {
-		r.logger.Error(err, "http - v1 - reactions - add")
-		handlers.HTTPError(c, http.StatusBadRequest, "post not found")
-
-		return
-	}
-
 	reaction := dtos.NewReaction{
-		Reaction: &request.Reaction,
-		Author:   *sessionUser,
+		Reaction: request.Reaction,
+		User:     *sessionUser,
 	}
 
-	dto, err := r.postsService.AddReaction(ctx, post.ID, reaction)
+	dto, err := r.postsService.AddReaction(ctx, postID, reaction)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - reactions - add")
 		handlers.HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to add a reaction", err)
@@ -113,30 +105,28 @@ func (r *reactionsRoute) deleteReaction(c *gin.Context) {
 	var request addReactionRequest
 
 	if err := c.ShouldBind(&request); err != nil {
-		r.logger.Error(err, "http - v1 - reactions - add")
+		r.logger.Error(err, "http - v1 - reactions - delete")
 		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "invalid request body", err)
 
 		return
 	}
 
-	_, err := handlers.GetSessionUser(c)
+	user, err := handlers.GetSessionUser(c)
 	if err != nil {
-		r.logger.Error(err, "http - v1 - reactions - add")
-		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "unable to add a comment", err)
+		r.logger.Error(err, "http - v1 - reactions - delete")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "unable to add reaction", err)
 
 		return
 	}
 
 	ctx := c.Request.Context()
-	_, err = r.postsService.ValidatePost(ctx, postID)
+	err = r.postsService.DeleteReaction(ctx, user.ID, postID)
 	if err != nil {
-		r.logger.Error(err, "http - v1 - reactions - add")
-		handlers.HTTPError(c, http.StatusBadRequest, "post not found")
+		r.logger.Error(err, "http - v1 - reactions - delete")
+		handlers.HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to remove reaction", err)
 
 		return
 	}
-
-	// TODO: Delete reaction
 
 	c.JSON(http.StatusOK, deleteReactionResponse{
 		Status: "success",

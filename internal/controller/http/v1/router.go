@@ -88,6 +88,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	postsRepo := posts.NewPostsRepo(pg)
 	postMediaRepo := posts.NewPostMediaRepo(pg)
 	relationshipsRepo := relationships3.NewRelationshipsRepo(pg)
+	reactionsRepo := posts.NewUserReactionRepo(pg)
 
 	var otpGeneratorService otp_generator.Generator
 
@@ -108,6 +109,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	postsUseCase := usecase.NewPostUseCase(postsRepo, postMediaRepo)
 	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
 	relationshipUseCase := usecase.NewRelationshipUseCase(relationshipsRepo)
+	reactionsUseCase := usecase.NewUserReactionUseCase(reactionsRepo)
 
 	// Mappers
 	userMapper := &mappers.DtoUserMapper{}
@@ -117,7 +119,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	// Services
 	userService := users.NewUserService(userRepo, awsS3Client, userUseCase, userMapper)
 	tokenService := token.NewTokenService(cfg.Token.Secret)
-	postsService := postsservice.NewPostService(postsUseCase, awsS3Client, postsMapper)
+	postsService := postsservice.NewPostService(postsUseCase, reactionsUseCase, awsS3Client, postsMapper)
 	followerService := relationships2.NewFollowerService(relationshipUseCase, userUseCase, userMapper)
 	lovedOneService := relationships2.NewLovedOneService(relationshipUseCase, userUseCase, userMapper)
 

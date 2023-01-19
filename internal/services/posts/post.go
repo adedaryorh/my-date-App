@@ -27,17 +27,19 @@ type Post interface {
 	GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error)
 	Get(ctx context.Context, postId string) (*dtos.Post, error)
 	ValidatePost(ctx context.Context, postId string) (*models.Post, error)
-	AddReaction(ctx context.Context, postID int, comment dtos.NewReaction) (*dtos.Post, error)
+	AddReaction(ctx context.Context, postID string, reaction dtos.NewReaction) (*dtos.Post, error)
+	DeleteReaction(ctx context.Context, userID int, postID string) error
 }
 
 type PostService struct {
 	usecase      usecase.Post
+	reactions    usecase.UserReaction
 	uploadClient file.UploadFileClient
 	mapper       mappers.PostMapper
 }
 
-func NewPostService(pc usecase.Post, uploadClient file.UploadFileClient, mapper mappers.PostMapper) *PostService {
-	return &PostService{usecase: pc, uploadClient: uploadClient, mapper: mapper}
+func NewPostService(pc usecase.Post, r usecase.UserReaction, uploadClient file.UploadFileClient, mapper mappers.PostMapper) *PostService {
+	return &PostService{usecase: pc, reactions: r, uploadClient: uploadClient, mapper: mapper}
 }
 
 func (ps *PostService) Create(ctx context.Context, p dtos.NewPost) (*dtos.Post, error) {
@@ -262,10 +264,52 @@ func (ps *PostService) UploadPostMedia(ctx context.Context, image multipart.File
 	return *profileImageURL, nil
 }
 
-func (ps *PostService) AddReaction(ctx context.Context, postID int, comment dtos.NewReaction) (*dtos.Post, error) {
+func (ps *PostService) AddReaction(ctx context.Context, postID string, r dtos.NewReaction) (*dtos.Post, error) {
+	post, err := ps.ValidatePost(ctx, postID)
+	if err != nil {
+		return nil, &response.ServiceErrorResponse{
+			Err:        err,
+			StatusCode: 404,
+		}
+	}
+
+	// TODO: Validate user has never created a reaction
+
+	reaction := &models.UserReaction{
+		UserID:   r.User.ID,
+		PostID:   post.ID,
+		Reaction: r.Reaction,
+	}
+
+	err = ps.reactions.Create(ctx, reaction)
+	if err != nil {
+		return nil, &response.ServiceErrorResponse{
+			Err:        err,
+			StatusCode: 500,
+		}
+	}
 	return nil, nil
 }
 
+func (ps *PostService) DeleteReaction(ctx context.Context, userID int, postID string) error {
+	post, err := ps.ValidatePost(ctx, postID)
+	if err != nil {
+		return &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to validate post: %w", err),
+			StatusCode: 404,
+		}
+	}
+
+	err = ps.reactions.DeleteUserReaction(ctx, userID, post.ID)
+	if err != nil {
+		return &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to delete reaction: %w", err),
+			StatusCode: 404,
+		}
+	}
+
+	return nil
+}
 func generateRandomID() (string, error) {
 	newUUID, err := uuid.DefaultGenerator.NewV4()
 

@@ -61,4 +61,12 @@ type (
 		GetRelationship(ctx context.Context, senderUserID int, receiverUserID int) (*models.Relationship, error)
 		Delete(context.Context, int) error
 	}
+
+	//UserReaction -.
+	UserReaction interface {
+		Create(context.Context, *models.UserReaction) error
+		GetPostReactions(ctx context.Context, postID int) ([]models.UserReaction, error)
+		GetReaction(ctx context.Context, userID int, postID int) (*models.UserReaction, error)
+		Delete(context.Context, int) error
+	}
 )

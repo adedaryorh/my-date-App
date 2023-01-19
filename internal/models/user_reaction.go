@@ -5,7 +5,7 @@ import "time"
 type UserReaction struct {
 	ID        int
 	UserID    int
-	PostID    string
+	PostID    int
 	Reaction  string
 	CreatedAt time.Time
 	UpdatedAt time.Time

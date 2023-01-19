@@ -7,15 +7,16 @@ import (
 )
 
 type Post struct {
-	PostID        string      `json:"post_id"`
-	Message       string      `json:"message"`
-	Author        UserInfo    `json:"author"`
-	Media         []PostMedia `json:"media"`
-	Comments      []Post      `json:"comments"`
-	CommentsCount int         `json:"comments_count"`
-	LikesCount    int         `json:"likes_count"`
-	CreatedAt     time.Time   `json:"created_at"`
-	UpdatedAt     time.Time   `json:"updated_at"`
+	PostID         string         `json:"post_id"`
+	Message        string         `json:"message"`
+	Author         UserInfo       `json:"author"`
+	Media          []PostMedia    `json:"media"`
+	Comments       []Post         `json:"comments"`
+	UserReaction   []UserReaction `json:"reactions"`
+	CommentsCount  int            `json:"comments_count"`
+	ReactionsCount int            `json:"reactions_count"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 type PagedPosts struct {
