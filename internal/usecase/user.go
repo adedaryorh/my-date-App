@@ -57,6 +57,8 @@ func (uc *UserUseCase) CompleteRegistration(ctx context.Context, user *models.Us
 
 	user.Password = string(hashedPassword)
 
+	user.Status = statusEnabled
+
 	err = uc.userRepo.UpdateUser(ctx, user, true)
 	if err != nil {
 		return fmt.Errorf("unable to create user: %w", err)

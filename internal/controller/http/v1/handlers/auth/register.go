@@ -125,7 +125,7 @@ func (r *registerRoute) initRegister(c *gin.Context) {
 }
 
 type validateOTPRequest struct {
-	Email       *string `json:"email"         binding:"email,omitempty"  example:"user@email.com"`
+	Email       *string `json:"email"         binding:"omitempty,email"  example:"user@email.com"`
 	PhoneNumber *string `json:"phone_number"  binding:"omitempty" example:"0712345678"`
 	OTP         string  `json:"otp"       binding:"required"  example:"123456"`
 }
@@ -161,10 +161,18 @@ func (r *registerRoute) validateOTP(c *gin.Context) {
 		return
 	}
 
-	user, err := r.user.UserByEmail(c, *request.Email)
+	var user *models.User
+	var err error
+
+	if request.Email != nil {
+		user, err = r.user.UserByEmail(c, *request.Email)
+	} else {
+		user, err = r.user.UserByField(c, "phone", *request.PhoneNumber)
+	}
+
 	if err != nil {
 		r.logger.Error(err, "http - v1 - validate OTP")
-		handlers.HTTPError(c, http.StatusBadRequest, "user already exists")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "error retrieving session user", err)
 
 		return
 	}
@@ -203,11 +211,13 @@ func (r *registerRoute) validateOTP(c *gin.Context) {
 }
 
 type registerResponse struct {
-	User dtos.User `json:"user"`
+	Status string    `json:"status"`
+	User   dtos.User `json:"user"`
 }
 
 type registerBusinessResponse struct {
-	User dtos.Business `json:"user"`
+	Status string        `json:"status"`
+	User   dtos.Business `json:"user"`
 }
 
 type registerUserRequest struct {
@@ -227,7 +237,7 @@ type registerUserRequest struct {
 
 type registerBusinessRequest struct {
 	BusinessName string  `json:"business_name"  binding:"required"  example:"John XYZ Plc"`
-	Email        *string `json:"email"       binding:"email"  example:"user@email.com"`
+	Email        *string `json:"email"       binding:"omitempty,email"  example:"business@email.com"`
 	Password     string  `json:"password"       binding:"required"  example:"password"`
 	CountryCode  *string `json:"country_code"       binding:""  example:"234"`
 	PhoneNumber  *string `json:"phone_number"        example:"0712345678"`
@@ -395,16 +405,11 @@ func (r *registerRoute) completeBusinessRegistration(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	u, ok := c.Get(contexts.ContextUser)
-	if !ok || u == nil {
-		handlers.HTTPError(c, http.StatusBadRequest, "unable to get user information")
 
-		return
-	}
-
-	user, ok := u.(models.User)
-	if !ok || u == nil {
-		handlers.HTTPError(c, http.StatusBadRequest, "unable to get user information")
+	user, err := handlers.GetSessionUser(c)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - register - business")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "unable to get session user", err)
 
 		return
 	}
@@ -427,16 +432,17 @@ func (r *registerRoute) completeBusinessRegistration(c *gin.Context) {
 		user.PhoneNumber = request.PhoneNumber
 	}
 
-	err := r.user.CompleteRegistration(ctx, &user)
+	err = r.user.CompleteRegistration(ctx, user)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - completeBusinessRegistration")
-		handlers.HTTPError(c, http.StatusInternalServerError, "unable to register business")
+		handlers.HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to register business", err)
 
 		return
 	}
 
-	c.JSON(http.StatusOK, registerBusinessResponse{
-		User: r.mapper.MapToBusinessDto(user),
+	c.JSON(http.StatusOK, registerResponse{
+		Status: "success",
+		User:   r.mapper.MapToUserDto(*user),
 	})
 }
 

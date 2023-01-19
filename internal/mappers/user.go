@@ -1,13 +1,13 @@
 package mappers
 
 import (
+	"celebut-api/internal/config"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/models"
 )
 
 type UserMapper interface {
 	MapToUserDto(user models.User) dtos.User
-	MapToBusinessDto(user models.User) dtos.Business
 	MapToUserProfileDto(user models.User) dtos.UserProfile
 	MapToUserInfoDto(user models.User) dtos.UserInfo
 }
@@ -16,30 +16,33 @@ type DtoUserMapper struct {
 }
 
 func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
-	return dtos.User{
+	dto := dtos.User{
 		UserID:             user.UserID,
-		FirstName:          *user.FirstName,
-		LastName:           *user.LastName,
-		Username:           *user.Username,
+		FirstName:          user.FirstName,
+		LastName:           user.LastName,
+		Username:           user.Username,
 		CountryCode:        user.CountryCode,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
-		DateOfBirth:        *user.DateOfBirth,
+		DateOfBirth:        user.DateOfBirth,
 		Gender:             user.Gender,
 		RelationshipStatus: user.RelationshipStatus,
 		Interests:          user.Interests,
+		BusinessName:       user.BusinessName,
+		AccountTypeID:      user.AccountType.ID,
 	}
-}
 
-func (um *DtoUserMapper) MapToBusinessDto(user models.User) dtos.Business {
-	return dtos.Business{
-		UserID:       user.UserID,
-		BusinessName: *user.BusinessName,
-		//IndustryType: user.IndustryId,
-		CountryCode: user.CountryCode,
-		PhoneNumber: user.PhoneNumber,
-		Email:       user.Email,
+	if user.AccountType.ID == config.ACCOUNT_BASIC_ID {
+		dto.AccountType = config.ACCOUNT_BASIC
+	} else {
+		dto.AccountType = config.ACCOUNT_BUSINESS
 	}
+
+	if user.Industry != nil {
+		dto.IndustryTypeID = &user.Industry.ID
+	}
+
+	return dto
 }
 
 func (um *DtoUserMapper) MapToUserProfileDto(user models.User) dtos.UserProfile {

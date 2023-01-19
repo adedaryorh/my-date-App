@@ -86,7 +86,7 @@ func (r *loginRoute) login(c *gin.Context) {
 		claims.Name = *user.BusinessName
 	}
 
-	token, err := r.tokenService.GenerateToken(claims)
+	t, err := r.tokenService.GenerateToken(claims)
 
 	if err != nil {
 		r.logger.Error(err, "http - v1 - login")
@@ -95,20 +95,9 @@ func (r *loginRoute) login(c *gin.Context) {
 		return
 	}
 
-	if request.AccountType == config.ACCOUNT_BASIC_ID {
-		c.JSON(http.StatusOK, loginUserResponse{
-			Status: "success",
-			User:   r.mapper.MapToUserDto(*user),
-			Token:  token,
-		})
-
-		return
-	}
-
-	c.JSON(http.StatusOK, loginBusinessResponse{
+	c.JSON(http.StatusOK, loginUserResponse{
 		Status: "success",
-		User:   r.mapper.MapToBusinessDto(*user),
-		Token:  token,
+		User:   r.mapper.MapToUserDto(*user),
+		Token:  t,
 	})
-
 }

@@ -5,17 +5,22 @@ import (
 )
 
 type User struct {
-	UserID             string    `json:"user_id"`
-	FirstName          string    `json:"first_name"`
-	LastName           string    `json:"last_name"`
-	Username           string    `json:"username"`
-	CountryCode        *string   `json:"country_code"`
-	PhoneNumber        *string   `json:"phone_number"`
-	Email              string    `json:"email"`
-	DateOfBirth        time.Time `json:"dob"`
-	Gender             *string   `json:"gender"`
-	RelationshipStatus *string   `json:"relationship_status"`
-	Interests          *string   `json:"interests"`
+	UserID             string     `json:"user_id"`
+	FirstName          *string    `json:"first_name"`
+	LastName           *string    `json:"last_name"`
+	Username           *string    `json:"username"`
+	CountryCode        *string    `json:"country_code"`
+	PhoneNumber        *string    `json:"phone_number"`
+	Email              string     `json:"email"`
+	DateOfBirth        *time.Time `json:"dob"`
+	Gender             *string    `json:"gender"`
+	RelationshipStatus *string    `json:"relationship_status"`
+	Interests          *string    `json:"interests"`
+	BusinessName       *string    `json:"business_name"`
+	IndustryTypeID     *int       `json:"industry_type_id"`
+	IndustryType       *string    `json:"industry_type"`
+	AccountTypeID      int        `json:"account_type_id"`
+	AccountType        string     `json:"account_type"`
 }
 
 type UserInfo struct {
