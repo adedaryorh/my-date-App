@@ -365,7 +365,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.loginBusinessResponse"
+                            "$ref": "#/definitions/auth.loginUserResponse"
                         }
                     }
                 }
@@ -625,6 +625,47 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/posts.createPostResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/feed": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get session user's feed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get Posts Feed",
+                "operationId": "get-posts-feed",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/posts.getFeedResponse"
                         }
                     }
                 }
@@ -1113,47 +1154,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/timeline": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Get session user's timeline",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Posts"
-                ],
-                "summary": "Get Timeline",
-                "operationId": "get-timeline",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/posts.getTimelineResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/unfollow/{businessID}": {
             "delete": {
                 "security": [
@@ -1453,20 +1453,6 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.loginBusinessResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/dtos.Business"
-                }
-            }
-        },
         "auth.loginRequest": {
             "type": "object",
             "required": [
@@ -1521,7 +1507,7 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string",
-                    "example": "user@email.com"
+                    "example": "business@email.com"
                 },
                 "industry_type": {
                     "type": "integer",
@@ -1540,6 +1526,9 @@ const docTemplate = `{
         "auth.registerBusinessResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "user": {
                     "$ref": "#/definitions/dtos.Business"
                 }
@@ -1548,6 +1537,9 @@ const docTemplate = `{
         "auth.registerResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "user": {
                     "$ref": "#/definitions/dtos.User"
                 }
@@ -1590,11 +1582,11 @@ const docTemplate = `{
             "properties": {
                 "description": {
                     "type": "string",
-                    "example": "en"
+                    "example": "description"
                 },
                 "name": {
                     "type": "string",
-                    "example": "auto"
+                    "example": "Engineering"
                 }
             }
         },
@@ -1604,22 +1596,22 @@ const docTemplate = `{
                 "industries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Industry"
+                        "$ref": "#/definitions/dtos.Industry"
                     }
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
-        "dtos.BasicUserInfo": {
+        "dtos.AccountType": {
             "type": "object",
             "properties": {
-                "businesses_count": {
+                "id": {
                     "type": "integer"
                 },
-                "customers_count": {
-                    "type": "integer"
-                },
-                "loved_ones_count": {
-                    "type": "integer"
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1646,39 +1638,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.BusinessInfo": {
+        "dtos.Industry": {
             "type": "object",
             "properties": {
-                "customers_count": {
+                "id": {
                     "type": "integer"
                 },
-                "followers_count": {
-                    "type": "integer"
-                },
-                "is_followed": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "dtos.Celebration": {
-            "type": "object"
-        },
-        "dtos.Content": {
-            "type": "object",
-            "properties": {
-                "celebration": {
-                    "$ref": "#/definitions/dtos.Celebration"
-                },
-                "celebrations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dtos.Celebration"
-                    }
-                },
-                "post": {
-                    "$ref": "#/definitions/dtos.Post"
-                },
-                "title": {
+                "name": {
                     "type": "string"
                 },
                 "type": {
@@ -1686,20 +1652,14 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.PagedContent": {
+        "dtos.IndustryType": {
             "type": "object",
             "properties": {
-                "contnet": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dtos.Content"
-                    }
-                },
-                "limit": {
+                "id": {
                     "type": "integer"
                 },
-                "page": {
-                    "type": "integer"
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1755,9 +1715,6 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "likes_count": {
-                    "type": "integer"
-                },
                 "media": {
                     "type": "array",
                     "items": {
@@ -1769,6 +1726,15 @@ const docTemplate = `{
                 },
                 "post_id": {
                     "type": "string"
+                },
+                "reactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.UserReaction"
+                    }
+                },
+                "reactions_count": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1789,6 +1755,12 @@ const docTemplate = `{
         "dtos.User": {
             "type": "object",
             "properties": {
+                "account_type": {
+                    "$ref": "#/definitions/dtos.AccountType"
+                },
+                "business_name": {
+                    "type": "string"
+                },
                 "country_code": {
                     "type": "string"
                 },
@@ -1803,6 +1775,9 @@ const docTemplate = `{
                 },
                 "gender": {
                     "type": "string"
+                },
+                "industry_type": {
+                    "$ref": "#/definitions/dtos.IndustryType"
                 },
                 "interests": {
                     "type": "string"
@@ -1854,16 +1829,13 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "account_type": {
-                    "type": "integer"
-                },
-                "basic_user_info": {
-                    "$ref": "#/definitions/dtos.BasicUserInfo"
+                    "$ref": "#/definitions/dtos.AccountType"
                 },
                 "bio": {
                     "type": "string"
                 },
-                "business_info": {
-                    "$ref": "#/definitions/dtos.BusinessInfo"
+                "businesses_count": {
+                    "type": "integer"
                 },
                 "celebrations_count": {
                     "type": "integer"
@@ -1873,6 +1845,9 @@ const docTemplate = `{
                 },
                 "country_code": {
                     "type": "string"
+                },
+                "customers_count": {
+                    "type": "integer"
                 },
                 "dob": {
                     "type": "string"
@@ -1898,6 +1873,9 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "loved_ones_count": {
+                    "type": "integer"
+                },
                 "phone_number": {
                     "type": "string"
                 },
@@ -1911,6 +1889,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.UserReaction": {
+            "type": "object",
+            "properties": {
+                "reaction": {
                     "type": "string"
                 }
             }
@@ -2078,7 +2064,7 @@ const docTemplate = `{
                 }
             }
         },
-        "posts.getPostsResponse": {
+        "posts.getFeedResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -2089,11 +2075,11 @@ const docTemplate = `{
                 }
             }
         },
-        "posts.getTimelineResponse": {
+        "posts.getPostsResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/dtos.PagedContent"
+                    "$ref": "#/definitions/dtos.PagedPosts"
                 },
                 "status": {
                     "type": "string"

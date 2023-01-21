@@ -11,13 +11,13 @@ import (
 	"net/http"
 )
 
-type followersRoute struct {
-	followerService relationships.Follower
-	logger          logger.Interface
+type customersRoute struct {
+	customersService relationships.Customer
+	logger           logger.Interface
 }
 
-func NewFollowersRoute(handler *gin.RouterGroup, f relationships.Follower, l logger.Interface) {
-	c := &followersRoute{f, l}
+func NewFollowersRoute(handler *gin.RouterGroup, f relationships.Customer, l logger.Interface) {
+	c := &customersRoute{f, l}
 
 	handler.POST("/follow/:businessID", c.follow)
 	handler.DELETE("/unfollow/:businessID", c.unfollow)
@@ -50,7 +50,7 @@ type followerResponse struct {
 // @Success     200     {object} followerResponse
 // @Security Bearer
 // @Router      /follow/{businessID} [post]
-func (r *followersRoute) follow(c *gin.Context) {
+func (r *customersRoute) follow(c *gin.Context) {
 	businessID := c.Param("businessID")
 
 	sessionUser, err := handlers.GetSessionUser(c)
@@ -61,7 +61,7 @@ func (r *followersRoute) follow(c *gin.Context) {
 		return
 	}
 
-	err = r.followerService.FollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
+	err = r.customersService.FollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - followers - follow")
 
@@ -71,7 +71,7 @@ func (r *followersRoute) follow(c *gin.Context) {
 			if len(serviceErr.Message) > 0 {
 				errorMessage = serviceErr.Message
 			}
-			
+
 			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, errorMessage, serviceErr.Err)
 		} else {
 			handlers.HTTPError(c, http.StatusInternalServerError, "unable to follow user")
@@ -96,7 +96,7 @@ func (r *followersRoute) follow(c *gin.Context) {
 // @Success     200     {object} getFollowersResponse
 // @Security    Bearer
 // @Router      /followers [get]
-func (r *followersRoute) get(c *gin.Context) {
+func (r *customersRoute) get(c *gin.Context) {
 	sessionUser, err := handlers.GetSessionUser(c)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - followers - get")
@@ -105,7 +105,7 @@ func (r *followersRoute) get(c *gin.Context) {
 		return
 	}
 
-	data, err := r.followerService.GetFollowers(c.Request.Context(), sessionUser.ID)
+	data, err := r.customersService.GetFollowers(c.Request.Context(), sessionUser.ID)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - followers - get")
 
@@ -139,7 +139,7 @@ func (r *followersRoute) get(c *gin.Context) {
 // @Failure     500           {object} handlers.ErrorResponse
 // @Security    Bearer
 // @Router      /unfollow/{businessID} [delete]
-func (r *followersRoute) unfollow(c *gin.Context) {
+func (r *customersRoute) unfollow(c *gin.Context) {
 	businessID := c.Param("businessID")
 
 	sessionUser, err := handlers.GetSessionUser(c)
@@ -150,7 +150,7 @@ func (r *followersRoute) unfollow(c *gin.Context) {
 		return
 	}
 
-	err = r.followerService.UnfollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
+	err = r.customersService.UnfollowBusiness(c.Request.Context(), sessionUser.ID, businessID)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - followers - unfollow")
 

@@ -11,6 +11,13 @@ type PostMapper interface {
 }
 
 type DtoPostMapper struct {
+	reactionsMapper UserReactionMapper
+}
+
+func NewDtoPostMapper(r UserReactionMapper) *DtoPostMapper {
+	return &DtoPostMapper{
+		reactionsMapper: r,
+	}
 }
 
 func (um *DtoPostMapper) MapToPostListDto(posts []models.Post) []dtos.Post {
@@ -34,6 +41,7 @@ func (um *DtoPostMapper) MapToPostDto(p models.Post) dtos.Post {
 			Username:     p.User.Username,
 			BusinessName: p.User.BusinessName,
 		},
+		UserReaction:   um.reactionsMapper.MapToUserReactionListDto(p.UserReactions),
 		ReactionsCount: len(p.UserReactions),
 		CommentsCount:  len(p.Comments),
 		Media:          um.MapToPostMediaListDto(p.Media),

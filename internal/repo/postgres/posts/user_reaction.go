@@ -5,6 +5,9 @@ import (
 	"celebut-api/pkg/postgres"
 	"context"
 	"fmt"
+	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v4"
+	"time"
 )
 
 // UserReactionPostgresRepo -.
@@ -40,10 +43,33 @@ func (r *UserReactionPostgresRepo) Create(ctx context.Context, ur *models.UserRe
 	return nil
 }
 
+// Update -.
+func (r *UserReactionPostgresRepo) Update(ctx context.Context, ur *models.UserReaction) error {
+	sql, args, err := r.Builder.
+		Update("user_reactions").
+		SetMap(squirrel.Eq{
+			"reaction":   ur.Reaction,
+			"updated_at": time.Now().UTC(),
+		}).
+		Where(squirrel.Eq{"user_id": ur.UserID, "post_id": ur.PostID}).
+		ToSql()
+
+	if err != nil {
+		return fmt.Errorf("UserReactionPostgresRepo - Update - r.Builder: %w", err)
+	}
+
+	_, err = r.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("UserReactionPostgresRepo - Update - r.Pool.Exec: %w", err)
+	}
+
+	return nil
+}
+
 // GetPostReactions -.
 func (r *UserReactionPostgresRepo) GetPostReactions(ctx context.Context, postID int) ([]models.UserReaction, error) {
 	builder := r.Builder.
-		Select("id, user_id, post_id, reaction").
+		Select("id, user_id, post_id, reaction, created_at, updated_at").
 		From("user_reactions").
 		Where("post_id = ?", postID).
 		OrderBy("created_at DESC")
@@ -72,6 +98,7 @@ func (r *UserReactionPostgresRepo) GetPostReactions(ctx context.Context, postID 
 			&p.PostID,
 			&p.Reaction,
 			&p.CreatedAt,
+			&p.UpdatedAt,
 		)
 
 		if err != nil {
@@ -86,7 +113,7 @@ func (r *UserReactionPostgresRepo) GetPostReactions(ctx context.Context, postID 
 
 func (r *UserReactionPostgresRepo) GetReaction(ctx context.Context, userID int, postID int) (*models.UserReaction, error) {
 	builder := r.Builder.
-		Select("id, user_id, post_id, reaction").
+		Select("id, user_id, post_id, reaction, created_at, updated_at").
 		From("user_reactions").
 		Where("post_id = ? AND user_id = ?", postID, userID)
 
@@ -111,9 +138,14 @@ func (r *UserReactionPostgresRepo) GetReaction(ctx context.Context, userID int, 
 		&reaction.PostID,
 		&reaction.Reaction,
 		&reaction.CreatedAt,
+		&reaction.UpdatedAt,
 	)
 
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+
 		return nil, fmt.Errorf("UserReactionPostgresRepo - GetReaction - rows.Scan: %w", err)
 	}
 
@@ -124,7 +156,7 @@ func (r *UserReactionPostgresRepo) GetReaction(ctx context.Context, userID int, 
 func (r *UserReactionPostgresRepo) Delete(ctx context.Context, reactionID int) error {
 	sql, args, err := r.Builder.
 		Delete("user_reactions").
-		Where("id = ? AND post_id = ?", reactionID).
+		Where("id = ?", reactionID).
 		ToSql()
 
 	if err != nil {

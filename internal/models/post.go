@@ -6,6 +6,7 @@ type Post struct {
 	ID             int
 	ParentID       *int
 	FlaggedCounter int
+	UserID         int
 	PostID         string
 	User           User
 	Message        *string

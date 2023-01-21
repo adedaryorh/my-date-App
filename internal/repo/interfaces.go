@@ -24,7 +24,8 @@ type (
 
 	//User -.
 	User interface {
-		GetUserByField(ctx context.Context, field string, value string) (*models.User, error)
+		GetUserByField(ctx context.Context, field string, value any) (*models.User, error)
+		GetUserByID(ctx context.Context, userID int) (*models.User, error)
 		CreateUser(context.Context, *models.User) error
 		UpdateUser(context.Context, *models.User, bool) error
 	}
@@ -42,6 +43,7 @@ type (
 		Get(context.Context, string) (*models.Post, error)
 		Update(context.Context, *models.Post) error
 		GetUserPosts(ctx context.Context, userID int, offset *int, limit *int) ([]models.Post, error)
+		GetMultiUsersPosts(ctx context.Context, userIDs []int, offset *int, limit *int) ([]models.Post, error)
 		GetPostComments(ctx context.Context, postID int, offset *int, limit *int) ([]models.Post, error)
 		Delete(ctx context.Context, userID int, postID string) error
 	}
@@ -65,6 +67,7 @@ type (
 	//UserReaction -.
 	UserReaction interface {
 		Create(context.Context, *models.UserReaction) error
+		Update(context.Context, *models.UserReaction) error
 		GetPostReactions(ctx context.Context, postID int) ([]models.UserReaction, error)
 		GetReaction(ctx context.Context, userID int, postID int) (*models.UserReaction, error)
 		Delete(context.Context, int) error

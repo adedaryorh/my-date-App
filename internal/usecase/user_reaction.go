@@ -4,11 +4,13 @@ import (
 	"celebut-api/internal/models"
 	"celebut-api/internal/repo"
 	"context"
+	"errors"
 	"fmt"
 )
 
 type UserReaction interface {
 	Create(context.Context, *models.UserReaction) error
+	Update(context.Context, *models.UserReaction) error
 	GetPostReactions(ctx context.Context, postID int) ([]models.UserReaction, error)
 	GetUserReaction(ctx context.Context, userID int, postID int) (*models.UserReaction, error)
 	DeleteUserReaction(ctx context.Context, userID int, postID int) error
@@ -37,6 +39,17 @@ func (uc *UserReactionUseCase) Create(ctx context.Context, r *models.UserReactio
 	return nil
 }
 
+// Update -.
+func (uc *UserReactionUseCase) Update(ctx context.Context, r *models.UserReaction) error {
+	err := uc.reactionsRepo.Update(ctx, r)
+
+	if err != nil {
+		return fmt.Errorf("UserReactionUseCase - UserReactions - s.reactionsRepo.Update: %w", err)
+	}
+
+	return nil
+}
+
 // GetPostReactions -.
 func (uc *UserReactionUseCase) GetPostReactions(ctx context.Context, postID int) ([]models.UserReaction, error) {
 	reactions, err := uc.reactionsRepo.GetPostReactions(ctx, postID)
@@ -60,9 +73,13 @@ func (uc *UserReactionUseCase) GetUserReaction(ctx context.Context, userID int, 
 
 // DeleteUserReaction -.
 func (uc *UserReactionUseCase) DeleteUserReaction(ctx context.Context, userID int, postID int) error {
-	reaction, err := uc.GetUserReaction(ctx, userID, postID)
+	reaction, err := uc.reactionsRepo.GetReaction(ctx, userID, postID)
 	if err != nil {
 		return fmt.Errorf("UserReactionUseCase - UserReactions - unable to delete: %w", err)
+	}
+
+	if reaction == nil {
+		return errors.New("UserReactionUseCase - UserReactions - unable to delete: reaction not found")
 	}
 
 	err = uc.reactionsRepo.Delete(ctx, reaction.ID)

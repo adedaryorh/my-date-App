@@ -10,5 +10,5 @@ type NewReaction struct {
 }
 
 type UserReaction struct {
-	Reaction string
+	Reaction string `json:"reaction"`
 }

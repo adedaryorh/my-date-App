@@ -57,15 +57,6 @@ definitions:
       message:
         type: string
     type: object
-  auth.loginBusinessResponse:
-    properties:
-      status:
-        type: string
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/dtos.Business'
-    type: object
   auth.loginRequest:
     properties:
       account_type:
@@ -100,7 +91,7 @@ definitions:
         example: "234"
         type: string
       email:
-        example: user@email.com
+        example: business@email.com
         type: string
       industry_type:
         example: 1
@@ -118,11 +109,15 @@ definitions:
     type: object
   auth.registerBusinessResponse:
     properties:
+      status:
+        type: string
       user:
         $ref: '#/definitions/dtos.Business'
     type: object
   auth.registerResponse:
     properties:
+      status:
+        type: string
       user:
         $ref: '#/definitions/dtos.User'
     type: object
@@ -148,10 +143,10 @@ definitions:
   business.createIndustryRequest:
     properties:
       description:
-        example: en
+        example: description
         type: string
       name:
-        example: auto
+        example: Engineering
         type: string
     required:
     - description
@@ -161,17 +156,17 @@ definitions:
     properties:
       industries:
         items:
-          $ref: '#/definitions/models.Industry'
+          $ref: '#/definitions/dtos.Industry'
         type: array
+      status:
+        type: string
     type: object
-  dtos.BasicUserInfo:
+  dtos.AccountType:
     properties:
-      businesses_count:
+      id:
         type: integer
-      customers_count:
-        type: integer
-      loved_ones_count:
-        type: integer
+      name:
+        type: string
     type: object
   dtos.Business:
     properties:
@@ -188,42 +183,21 @@ definitions:
       user_id:
         type: string
     type: object
-  dtos.BusinessInfo:
+  dtos.Industry:
     properties:
-      customers_count:
+      id:
         type: integer
-      followers_count:
-        type: integer
-      is_followed:
-        type: boolean
-    type: object
-  dtos.Celebration:
-    type: object
-  dtos.Content:
-    properties:
-      celebration:
-        $ref: '#/definitions/dtos.Celebration'
-      celebrations:
-        items:
-          $ref: '#/definitions/dtos.Celebration'
-        type: array
-      post:
-        $ref: '#/definitions/dtos.Post'
-      title:
+      name:
         type: string
       type:
         type: string
     type: object
-  dtos.PagedContent:
+  dtos.IndustryType:
     properties:
-      contnet:
-        items:
-          $ref: '#/definitions/dtos.Content'
-        type: array
-      limit:
+      id:
         type: integer
-      page:
-        type: integer
+      name:
+        type: string
     type: object
   dtos.PagedPosts:
     properties:
@@ -259,8 +233,6 @@ definitions:
         type: integer
       created_at:
         type: string
-      likes_count:
-        type: integer
       media:
         items:
           $ref: '#/definitions/dtos.PostMedia'
@@ -269,6 +241,12 @@ definitions:
         type: string
       post_id:
         type: string
+      reactions:
+        items:
+          $ref: '#/definitions/dtos.UserReaction'
+        type: array
+      reactions_count:
+        type: integer
       updated_at:
         type: string
     type: object
@@ -281,6 +259,10 @@ definitions:
     type: object
   dtos.User:
     properties:
+      account_type:
+        $ref: '#/definitions/dtos.AccountType'
+      business_name:
+        type: string
       country_code:
         type: string
       dob:
@@ -291,6 +273,8 @@ definitions:
         type: string
       gender:
         type: string
+      industry_type:
+        $ref: '#/definitions/dtos.IndustryType'
       interests:
         type: string
       last_name:
@@ -324,19 +308,19 @@ definitions:
   dtos.UserProfile:
     properties:
       account_type:
-        type: integer
-      basic_user_info:
-        $ref: '#/definitions/dtos.BasicUserInfo'
+        $ref: '#/definitions/dtos.AccountType'
       bio:
         type: string
-      business_info:
-        $ref: '#/definitions/dtos.BusinessInfo'
+      businesses_count:
+        type: integer
       celebrations_count:
         type: integer
       contents_count:
         type: integer
       country_code:
         type: string
+      customers_count:
+        type: integer
       dob:
         type: string
       email:
@@ -353,6 +337,8 @@ definitions:
         type: string
       location:
         type: string
+      loved_ones_count:
+        type: integer
       phone_number:
         type: string
       profile_image:
@@ -362,6 +348,11 @@ definitions:
       user_id:
         type: string
       username:
+        type: string
+    type: object
+  dtos.UserReaction:
+    properties:
+      reaction:
         type: string
     type: object
   handlers.ErrorResponse:
@@ -471,17 +462,17 @@ definitions:
       status:
         type: string
     type: object
-  posts.getPostsResponse:
+  posts.getFeedResponse:
     properties:
       data:
         $ref: '#/definitions/dtos.PagedPosts'
       status:
         type: string
     type: object
-  posts.getTimelineResponse:
+  posts.getPostsResponse:
     properties:
       data:
-        $ref: '#/definitions/dtos.PagedContent'
+        $ref: '#/definitions/dtos.PagedPosts'
       status:
         type: string
     type: object
@@ -732,7 +723,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.loginBusinessResponse'
+            $ref: '#/definitions/auth.loginUserResponse'
       security:
       - Auth-Token: []
       summary: User login
@@ -970,6 +961,31 @@ paths:
       security:
       - Bearer: []
       summary: Get User Posts by ID
+      tags:
+      - Posts
+  /posts/feed:
+    get:
+      consumes:
+      - application/json
+      description: Get session user's feed
+      operationId: get-posts-feed
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/posts.getFeedResponse'
+      security:
+      - Bearer: []
+      summary: Get Posts Feed
       tags:
       - Posts
   /posts/reactions/{postID}:
@@ -1212,31 +1228,6 @@ paths:
       summary: Validate Registration OTP
       tags:
       - Authentication
-  /timeline:
-    get:
-      consumes:
-      - application/json
-      description: Get session user's timeline
-      operationId: get-timeline
-      parameters:
-      - in: query
-        name: limit
-        type: integer
-      - in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/posts.getTimelineResponse'
-      security:
-      - Bearer: []
-      summary: Get Timeline
-      tags:
-      - Posts
   /unfollow/{businessID}:
     delete:
       consumes:

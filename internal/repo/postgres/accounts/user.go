@@ -53,11 +53,11 @@ func (r *UserPostgresRepo) CreateUser(ctx context.Context, c *models.User) error
 }
 
 // GetUserByField -.
-func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, value string) (*models.User, error) {
+func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, value any) (*models.User, error) {
 	sql, _, err := r.Builder.
 		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
 		From("users u").
-		InnerJoin("industries i ON i.id = industry_id").
+		LeftJoin("industries i ON i.id = industry_id").
 		Where(squirrel.Eq{field: value}).
 		ToSql()
 
@@ -96,10 +96,65 @@ func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, val
 		&u.Status,
 		&industryName)
 
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("row.Scan: %w", err)
+	}
+
 	if industryID != nil {
 		u.Industry.ID = *industryID
 		u.Industry.Name = *industryName
 	}
+
+	return &u, nil
+}
+
+// GetUserByID -.
+func (r *UserPostgresRepo) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
+	sql, _, err := r.Builder.
+		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+		From("users u").
+		LeftJoin("industries i ON i.id = industry_id").
+		Where(squirrel.Eq{"u.id": userID}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to build query: %w", err)
+	}
+
+	row := r.Pool.QueryRow(ctx, sql, userID)
+	if err != nil {
+		return nil, fmt.Errorf("r.Pool.Query: %w", err)
+	}
+
+	u := models.User{
+		Industry:    &models.Industry{},
+		AccountType: models.AccountType{},
+	}
+
+	var industryID *int
+	var industryName *string
+	err = row.Scan(
+		&u.ID,
+		&u.UserID,
+		&u.FirstName,
+		&u.LastName,
+		&u.Username,
+		&u.CountryCode,
+		&u.PhoneNumber,
+		&u.Email,
+		&u.DateOfBirth,
+		&u.Gender,
+		&u.RelationshipStatus,
+		&u.BusinessName,
+		&industryID,
+		&u.AccountType.ID,
+		&u.Password,
+		&u.Status,
+		&industryName)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -107,6 +162,11 @@ func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, val
 		}
 
 		return nil, fmt.Errorf("row.Scan: %w", err)
+	}
+
+	if industryID != nil {
+		u.Industry.ID = *industryID
+		u.Industry.Name = *industryName
 	}
 
 	return &u, nil

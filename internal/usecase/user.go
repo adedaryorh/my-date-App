@@ -69,11 +69,13 @@ func (uc *UserUseCase) CompleteRegistration(ctx context.Context, user *models.Us
 
 // Login -.
 func (uc *UserUseCase) Login(ctx context.Context, email string, password string, accountTypeId int) (*models.User, error) {
-
 	user, err := uc.userRepo.GetUserByField(ctx, "email", email)
-
 	if err != nil {
 		return nil, fmt.Errorf("user - login - s.userRepo.GetUserByEmail: %w", err)
+	}
+
+	if user == nil {
+		return nil, errors.New("user - login - s.userRepo.GetUserByEmail: user is nil")
 	}
 
 	if user.AccountType.ID != accountTypeId {

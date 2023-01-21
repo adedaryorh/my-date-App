@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-type Follower interface {
+type Customer interface {
 	FollowBusiness(ctx context.Context, sessionUserID int, userID string) error
 	UnfollowBusiness(ctx context.Context, sessionUserID int, userID string) error
 	GetFollowers(ctx context.Context, sessionUserID int) (*dtos.PagedRelationships, error)

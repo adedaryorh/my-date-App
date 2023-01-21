@@ -24,6 +24,7 @@ type Post interface {
 	Delete(ctx context.Context, userID int, postId string) error
 	Report(ctx context.Context, userID int, postID string) error
 	GetAll(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error)
+	GetFeed(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error)
 	GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error)
 	Get(ctx context.Context, postId string) (*dtos.Post, error)
 	ValidatePost(ctx context.Context, postId string) (*models.Post, error)
@@ -32,14 +33,15 @@ type Post interface {
 }
 
 type PostService struct {
-	usecase      usecase.Post
-	reactions    usecase.UserReaction
-	uploadClient file.UploadFileClient
-	mapper       mappers.PostMapper
+	postsUc         usecase.Post
+	reactions       usecase.UserReaction
+	relationshipsUc usecase.Relationship
+	uploadClient    file.UploadFileClient
+	mapper          mappers.PostMapper
 }
 
-func NewPostService(pc usecase.Post, r usecase.UserReaction, uploadClient file.UploadFileClient, mapper mappers.PostMapper) *PostService {
-	return &PostService{usecase: pc, reactions: r, uploadClient: uploadClient, mapper: mapper}
+func NewPostService(pc usecase.Post, r usecase.UserReaction, rel usecase.Relationship, uploadClient file.UploadFileClient, mapper mappers.PostMapper) *PostService {
+	return &PostService{postsUc: pc, reactions: r, relationshipsUc: rel, uploadClient: uploadClient, mapper: mapper}
 }
 
 func (ps *PostService) Create(ctx context.Context, p dtos.NewPost) (*dtos.Post, error) {
@@ -63,7 +65,7 @@ func (ps *PostService) Create(ctx context.Context, p dtos.NewPost) (*dtos.Post, 
 
 	postsMedia := make([]models.PostMedia, 0)
 	for _, media := range p.Media {
-		url, err := ps.UploadPostMedia(ctx, media)
+		url, err := ps.uploadPostMedia(ctx, media)
 
 		postsMedia = append(postsMedia, models.PostMedia{
 			Source: url,
@@ -76,7 +78,7 @@ func (ps *PostService) Create(ctx context.Context, p dtos.NewPost) (*dtos.Post, 
 
 	post.Media = postsMedia
 
-	err = ps.usecase.Create(ctx, post)
+	err = ps.postsUc.Create(ctx, post)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create a post: %w", err)
 	}
@@ -88,7 +90,7 @@ func (ps *PostService) Create(ctx context.Context, p dtos.NewPost) (*dtos.Post, 
 
 // Delete .
 func (ps *PostService) Delete(ctx context.Context, userID int, postID string) error {
-	err := ps.usecase.Delete(ctx, userID, postID)
+	err := ps.postsUc.Delete(ctx, userID, postID)
 
 	if err != nil {
 		return err
@@ -99,7 +101,7 @@ func (ps *PostService) Delete(ctx context.Context, userID int, postID string) er
 
 // Report .
 func (ps *PostService) Report(ctx context.Context, userID int, postID string) error {
-	post, err := ps.usecase.Get(ctx, postID)
+	post, err := ps.postsUc.Get(ctx, postID)
 	if err != nil {
 		return &response.ServiceErrorResponse{
 			Err:        fmt.Errorf("unable to get post: %w", err),
@@ -109,7 +111,7 @@ func (ps *PostService) Report(ctx context.Context, userID int, postID string) er
 
 	//TODO: Check that user ID cannot flag their post
 
-	err = ps.usecase.FlagPost(ctx, post)
+	err = ps.postsUc.FlagPost(ctx, post)
 	if err != nil {
 		return &response.ServiceErrorResponse{
 			Err:        fmt.Errorf("unable to flag post: %w", err),
@@ -121,7 +123,7 @@ func (ps *PostService) Report(ctx context.Context, userID int, postID string) er
 }
 
 func (ps *PostService) GetAll(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error) {
-	posts, err := ps.usecase.GetUserPosts(ctx, userID, page, limit)
+	posts, err := ps.postsUc.GetUserPosts(ctx, userID, page, limit)
 
 	if err != nil {
 		return nil, &response.ServiceErrorResponse{
@@ -140,7 +142,7 @@ func (ps *PostService) GetAll(ctx context.Context, userID int, page *int, limit 
 }
 
 func (ps *PostService) GetComments(ctx context.Context, postID string, page *int, limit *int) (*dtos.Post, *dtos.PagedPosts, error) {
-	post, err := ps.usecase.Get(ctx, postID)
+	post, err := ps.postsUc.Get(ctx, postID)
 	if err != nil {
 		return nil, nil, &response.ServiceErrorResponse{
 			Err:        fmt.Errorf("unable to get post: %w", err),
@@ -150,7 +152,7 @@ func (ps *PostService) GetComments(ctx context.Context, postID string, page *int
 
 	postDto := ps.mapper.MapToPostDto(*post)
 
-	posts, err := ps.usecase.GetPostComments(ctx, post.ID, page, limit)
+	posts, err := ps.postsUc.GetPostComments(ctx, post.ID, page, limit)
 	if err != nil {
 		return nil, nil, &response.ServiceErrorResponse{
 			Err:        fmt.Errorf("unable to get user's posts: %w", err),
@@ -168,7 +170,7 @@ func (ps *PostService) GetComments(ctx context.Context, postID string, page *int
 }
 
 func (ps *PostService) Get(ctx context.Context, postID string) (*dtos.Post, error) {
-	post, err := ps.usecase.Get(ctx, postID)
+	post, err := ps.postsUc.Get(ctx, postID)
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to get post: %w", err)
@@ -180,7 +182,7 @@ func (ps *PostService) Get(ctx context.Context, postID string) (*dtos.Post, erro
 }
 
 func (ps *PostService) ValidatePost(ctx context.Context, postID string) (*models.Post, error) {
-	post, err := ps.usecase.Get(ctx, postID)
+	post, err := ps.postsUc.Get(ctx, postID)
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to get post: %w", err)
@@ -211,7 +213,7 @@ func (ps *PostService) Comment(ctx context.Context, parentID int, comment dtos.N
 
 	postsMedia := make([]models.PostMedia, 0)
 	for _, media := range comment.Media {
-		url, err := ps.UploadPostMedia(ctx, media)
+		url, err := ps.uploadPostMedia(ctx, media)
 
 		postsMedia = append(postsMedia, models.PostMedia{
 			Source: url,
@@ -224,7 +226,7 @@ func (ps *PostService) Comment(ctx context.Context, parentID int, comment dtos.N
 
 	post.Media = postsMedia
 
-	err = ps.usecase.Create(ctx, post)
+	err = ps.postsUc.Create(ctx, post)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create a post: %w", err)
 	}
@@ -234,7 +236,7 @@ func (ps *PostService) Comment(ctx context.Context, parentID int, comment dtos.N
 	return &postDto, nil
 }
 
-func (ps *PostService) UploadPostMedia(ctx context.Context, image multipart.FileHeader) (string, error) {
+func (ps *PostService) uploadPostMedia(ctx context.Context, image multipart.FileHeader) (string, error) {
 	imgFile, err := image.Open()
 	defer imgFile.Close()
 
@@ -273,8 +275,33 @@ func (ps *PostService) AddReaction(ctx context.Context, postID string, r dtos.Ne
 		}
 	}
 
-	// TODO: Validate user has never created a reaction
+	postDto := ps.mapper.MapToPostDto(*post)
 
+	// Validate user has never created a reaction
+	existingReaction, err := ps.reactions.GetUserReaction(ctx, r.User.ID, post.ID)
+	if err != nil {
+		return nil, &response.ServiceErrorResponse{
+			Err:        err,
+			StatusCode: 500,
+		}
+	}
+
+	// Update if reactions exist instead
+	if existingReaction != nil {
+		existingReaction.Reaction = r.Reaction
+
+		err = ps.reactions.Update(ctx, existingReaction)
+		if err != nil {
+			return nil, &response.ServiceErrorResponse{
+				Err:        err,
+				StatusCode: 500,
+			}
+		}
+
+		return &postDto, nil
+	}
+
+	// Create reactions if not
 	reaction := &models.UserReaction{
 		UserID:   r.User.ID,
 		PostID:   post.ID,
@@ -288,7 +315,8 @@ func (ps *PostService) AddReaction(ctx context.Context, postID string, r dtos.Ne
 			StatusCode: 500,
 		}
 	}
-	return nil, nil
+
+	return &postDto, nil
 }
 
 func (ps *PostService) DeleteReaction(ctx context.Context, userID int, postID string) error {
@@ -310,6 +338,47 @@ func (ps *PostService) DeleteReaction(ctx context.Context, userID int, postID st
 
 	return nil
 }
+
+func (ps *PostService) GetFeed(ctx context.Context, userID int, page *int, limit *int) (*dtos.PagedPosts, error) {
+	// Get user's posts + friend's posts
+	relationships, err := ps.relationshipsUc.GetUserRelationships(ctx, userID)
+	if err != nil {
+		return nil, &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to get user's feed: %w", err),
+			StatusCode: 400,
+		}
+	}
+
+	friendIDs := make([]int, 0)
+	for _, relationship := range relationships {
+		if relationship.SenderUserID != userID {
+			friendIDs = append(friendIDs, relationship.SenderUserID)
+		} else {
+			friendIDs = append(friendIDs, relationship.ReceiverUserID)
+		}
+	}
+
+	friendIDs = append(friendIDs, userID)
+	// Get user's relationships
+	// TODO: Leverage Redis
+	posts, err := ps.postsUc.GetMultiUserPosts(ctx, friendIDs, page, limit)
+
+	if err != nil {
+		return nil, &response.ServiceErrorResponse{
+			Err:        fmt.Errorf("unable to get user's feed: %w", err),
+			StatusCode: 400,
+		}
+	}
+
+	pagedPosts := &dtos.PagedPosts{
+		Page:  page,
+		Limit: limit,
+		Posts: ps.mapper.MapToPostListDto(posts),
+	}
+
+	return pagedPosts, nil
+}
+
 func generateRandomID() (string, error) {
 	newUUID, err := uuid.DefaultGenerator.NewV4()
 

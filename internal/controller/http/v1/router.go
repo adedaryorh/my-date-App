@@ -106,20 +106,21 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 	clientUseCase := usecase.NewClientUseCase(clientRepo)
 	industryUseCase := usecase.NewIndustryUseCase(industryRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo, userOTPRepo, otpGeneratorService)
-	postsUseCase := usecase.NewPostUseCase(postsRepo, postMediaRepo)
+	postsUseCase := usecase.NewPostUseCase(postsRepo, postMediaRepo, reactionsRepo, userRepo)
 	otpUseCase := otp.NewUserOTPUseCase(userOtpService, mailerService)
 	relationshipUseCase := usecase.NewRelationshipUseCase(relationshipsRepo)
 	reactionsUseCase := usecase.NewUserReactionUseCase(reactionsRepo)
 
 	// Mappers
 	userMapper := &mappers.DtoUserMapper{}
-	postsMapper := &mappers.DtoPostMapper{}
+	userReactionMapper := &mappers.DtoUserReactionMapper{}
+	postsMapper := mappers.NewDtoPostMapper(userReactionMapper)
 	industriesMapper := &mappers.DtoIndustryMapper{}
 
 	// Services
 	userService := users.NewUserService(userRepo, awsS3Client, userUseCase, userMapper)
 	tokenService := token.NewTokenService(cfg.Token.Secret)
-	postsService := postsservice.NewPostService(postsUseCase, reactionsUseCase, awsS3Client, postsMapper)
+	postsService := postsservice.NewPostService(postsUseCase, reactionsUseCase, relationshipUseCase, awsS3Client, postsMapper)
 	followerService := relationships2.NewFollowerService(relationshipUseCase, userUseCase, userMapper)
 	lovedOneService := relationships2.NewLovedOneService(relationshipUseCase, userUseCase, userMapper)
 
@@ -155,6 +156,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		auth.NewLoginRoute(routes, userUseCase, l, userMapper, tokenService)
 		business.NewIndustryRoutes(routes, industryUseCase, l, industriesMapper)
 		postsroutes.NewPostsRoute(routes, userService, postsService, l, postsMapper)
+		postsroutes.NewFeedRoute(routes, userService, postsService, l, postsMapper)
 		postsroutes.NewCommentsRoute(routes, userService, postsService, l, postsMapper)
 		postsroutes.NewReactionsRoute(routes, userService, postsService, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
