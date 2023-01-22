@@ -92,7 +92,7 @@ func (r *lovedOnesRoute) becomeLovedOne(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       request query    getFollowersRequest true "get user's loved ones"
-// @Success     200     {object} getFollowersResponse
+// @Success     200     {object} getCustomersResponse
 // @Security    Bearer
 // @Router      /lovedones [get]
 func (r *lovedOnesRoute) getLovedOnes(c *gin.Context) {
@@ -118,7 +118,7 @@ func (r *lovedOnesRoute) getLovedOnes(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getFollowersResponse{
+	c.JSON(http.StatusOK, getCustomersResponse{
 		Status: "success",
 		Data:   *data,
 	})

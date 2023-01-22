@@ -24,19 +24,12 @@ func NewLoginRoute(handler *gin.RouterGroup, i usecase.User, l logger.Interface,
 	r := &loginRoute{i, l, m, t}
 
 	handler.POST("/login", r.login)
-
 }
 
 type loginUserResponse struct {
 	Status string    `json:"status"`
 	User   dtos.User `json:"user"`
 	Token  string    `json:"token"`
-}
-
-type loginBusinessResponse struct {
-	Status string        `json:"status"`
-	User   dtos.Business `json:"user"`
-	Token  string        `json:"token"`
 }
 
 type loginRequest struct {
@@ -69,7 +62,7 @@ func (r *loginRoute) login(c *gin.Context) {
 
 	if err != nil {
 		r.logger.Error(err, "http - v1 - login")
-		handlers.HTTPError(c, http.StatusInternalServerError, "unable to login user")
+		handlers.HandleServiceErrorResponse(c, err, "unable to login user", http.StatusInternalServerError)
 
 		return
 	}

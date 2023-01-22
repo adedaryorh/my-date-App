@@ -16,7 +16,7 @@ type customersRoute struct {
 	logger           logger.Interface
 }
 
-func NewFollowersRoute(handler *gin.RouterGroup, f relationships.Customer, l logger.Interface) {
+func NewCustomersRoute(handler *gin.RouterGroup, f relationships.Customer, l logger.Interface) {
 	c := &customersRoute{f, l}
 
 	handler.POST("/follow/:businessID", c.follow)
@@ -30,7 +30,7 @@ type getFollowersRequest struct {
 	Limit int `form:"limit" json:"limit"`
 }
 
-type getFollowersResponse struct {
+type getCustomersResponse struct {
 	Status string                  `json:"status"`
 	Data   dtos.PagedRelationships `json:"data"`
 }
@@ -93,7 +93,7 @@ func (r *customersRoute) follow(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       request query    getFollowersRequest true "get businesses' followers"
-// @Success     200     {object} getFollowersResponse
+// @Success     200     {object} getCustomersResponse
 // @Security    Bearer
 // @Router      /followers [get]
 func (r *customersRoute) get(c *gin.Context) {
@@ -119,7 +119,7 @@ func (r *customersRoute) get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getFollowersResponse{
+	c.JSON(http.StatusOK, getCustomersResponse{
 		Status: "success",
 		Data:   *data,
 	})

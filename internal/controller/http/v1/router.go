@@ -161,7 +161,7 @@ func NewAppRouter(handler *gin.Engine, l logger.Interface, pg *postgres.Postgres
 		postsroutes.NewReactionsRoute(routes, userService, postsService, l, postsMapper)
 		handlers.NewOTPRoute(routes, userUseCase, otpUseCase, l)
 		handlers.NewUserRoutes(routes, userService, l, userMapper)
-		relationships.NewFollowersRoute(routes, followerService, l)
+		relationships.NewCustomersRoute(routes, followerService, l)
 		relationships.NewLovedOnesRoute(routes, lovedOneService, l)
 	}
 

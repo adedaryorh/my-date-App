@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"celebut-api/internal/controller/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,4 +18,13 @@ func HTTPError(c *gin.Context, code int, msg string) {
 
 func HTTPErrorWithInformation(c *gin.Context, code int, msg string, err error) {
 	c.AbortWithStatusJSON(code, ErrorResponse{"error", msg, err.Error()})
+}
+
+func HandleServiceErrorResponse(c *gin.Context, err error, msg string, statusCode int) {
+	sErr, ok := err.(*response.ServiceErrorResponse)
+	if !ok {
+		HTTPErrorWithInformation(c, statusCode, msg, err)
+	}
+
+	HTTPErrorWithInformation(c, sErr.StatusCode, msg, sErr.Err)
 }
