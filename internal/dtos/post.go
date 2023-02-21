@@ -2,7 +2,6 @@ package dtos
 
 import (
 	"celebut-api/internal/models"
-	"mime/multipart"
 	"time"
 )
 
@@ -33,5 +32,5 @@ type PostMedia struct {
 type NewPost struct {
 	Message *string
 	Author  models.User
-	Media   []multipart.FileHeader
+	Media   []string
 }

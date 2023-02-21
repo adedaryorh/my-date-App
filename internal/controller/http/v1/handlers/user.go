@@ -6,7 +6,6 @@ import (
 	userservice "celebut-api/internal/services/users"
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"mime/multipart"
 	"net/http"
 	"time"
 )
@@ -35,32 +34,31 @@ type editUserResponse struct {
 }
 
 type editUserRequest struct {
-	FirstName    string                `form:"first_name" json:"first_name"  binding:"required"  example:"John"`
-	LastName     string                `form:"last_name" json:"last_name"  binding:"required"  example:"Doe"`
-	UserName     string                `form:"username" json:"username"  binding:"required"  example:"johndoe"`
-	Email        *string               `form:"email" json:"email"       binding:"omitempty,email"  example:"user@email.com"`
-	Password     string                `form:"password" json:"password"       binding:"required"  example:"password"`
-	CountryCode  *string               `form:"country_code" json:"country_code"       binding:"omitempty"  example:"234"`
-	PhoneNumber  *string               `form:"phone_number" json:"phone_number"      binding:"omitempty"  example:"0712345678"`
-	DateOfBirth  string                `form:"dob" json:"dob" binding:"required" example:"2020-10-12"`
-	ProfileImage *multipart.FileHeader `form:"profile_image" binding:"omitempty" swaggerignore:"true"`
+	FirstName    string  `json:"first_name"  binding:"required"  example:"John"`
+	LastName     string  `json:"last_name"  binding:"required"  example:"Doe"`
+	UserName     string  `json:"username"  binding:"required"  example:"johndoe"`
+	Email        *string `json:"email"       binding:"omitempty,email"  example:"user@email.com"`
+	Password     string  `json:"password"       binding:"required"  example:"password"`
+	CountryCode  *string `json:"country_code"       binding:"omitempty"  example:"234"`
+	PhoneNumber  *string `json:"phone_number"      binding:"omitempty"  example:"0712345678"`
+	DateOfBirth  string  `json:"dob" binding:"required" example:"2020-10-12"`
+	ProfileImage *string `json:"profile_image" binding:"omitempty"`
 }
 
 // @Summary     Edit user info
 // @Description Edit user's profile
 // @ID          edit-user
 // @Tags        Users
-// @Accept      multipart/form-data
+// @Accept      json
 // @Produce     json
-// @Param       profile_image formData file                false "profile image file"
-// @Param       request       formData editUserRequest true "edit user information"
+// @Param       request       body editUserRequest true "edit user information"
 // @Success     200           {object} editUserResponse
 // @Security Bearer
 // @Router      /user [put]
 func (ur *usersRoute) editUser(c *gin.Context) {
 	var request editUserRequest
 
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		ur.logger.Error(err, "http - v1 - user edit")
 		HTTPError(c, http.StatusBadRequest, "invalid request body")
 
@@ -104,7 +102,7 @@ func (ur *usersRoute) editUser(c *gin.Context) {
 		user.PhoneNumber = request.PhoneNumber
 	}
 
-	user.ProfileImage = request.ProfileImage
+	user.ProfileImageBase64 = request.ProfileImage
 
 	err = ur.user.EditUser(ctx, user)
 	if err != nil {

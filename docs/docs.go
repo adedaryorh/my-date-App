@@ -208,7 +208,7 @@ const docTemplate = `{
                 ],
                 "description": "Add comment to a post",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -227,19 +227,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "file"
-                        },
-                        "description": "comments media",
-                        "name": "media",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "What is happening?",
-                        "name": "message",
-                        "in": "formData"
+                        "description": "create a new comment",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/posts.createCommentRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -593,7 +587,7 @@ const docTemplate = `{
                 ],
                 "description": "Create a post",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -605,19 +599,13 @@ const docTemplate = `{
                 "operationId": "create-post",
                 "parameters": [
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "file"
-                        },
-                        "description": "posts media",
-                        "name": "media",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "What is happening?",
-                        "name": "message",
-                        "in": "formData"
+                        "description": "create a new post",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/posts.createPostRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1157,7 +1145,7 @@ const docTemplate = `{
                 ],
                 "description": "Edit user's profile",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1169,63 +1157,13 @@ const docTemplate = `{
                 "operationId": "edit-user",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "profile image file",
-                        "name": "profile_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "234",
-                        "name": "country_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "2020-10-12",
-                        "name": "dob",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "user@email.com",
-                        "name": "email",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "John",
-                        "name": "first_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "Doe",
-                        "name": "last_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "0712345678",
-                        "name": "phone_number",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "johndoe",
-                        "name": "username",
-                        "in": "formData",
-                        "required": true
+                        "description": "edit user information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.editUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1746,6 +1684,9 @@ const docTemplate = `{
                 "phone_number": {
                     "type": "string"
                 },
+                "profile_image": {
+                    "type": "string"
+                },
                 "relationship_status": {
                     "type": "string"
                 },
@@ -1876,6 +1817,53 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.editUserRequest": {
+            "type": "object",
+            "required": [
+                "dob",
+                "first_name",
+                "last_name",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "country_code": {
+                    "type": "string",
+                    "example": "234"
+                },
+                "dob": {
+                    "type": "string",
+                    "example": "2020-10-12"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                },
+                "profile_image": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "johndoe"
+                }
+            }
+        },
         "handlers.editUserResponse": {
             "type": "object",
             "properties": {
@@ -1967,6 +1955,21 @@ const docTemplate = `{
                 }
             }
         },
+        "posts.createCommentRequest": {
+            "type": "object",
+            "properties": {
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "What is happening?"
+                }
+            }
+        },
         "posts.createCommentResponse": {
             "type": "object",
             "properties": {
@@ -1975,6 +1978,21 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "posts.createPostRequest": {
+            "type": "object",
+            "properties": {
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "What is happening?"
                 }
             }
         },

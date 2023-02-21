@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bytes"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/models"
@@ -9,11 +10,10 @@ import (
 	"celebut-api/internal/usecase"
 	"celebut-api/internal/validators"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"mime/multipart"
-	"path/filepath"
 	"strings"
 )
 
@@ -21,7 +21,7 @@ type User interface {
 	ValidateUser(ctx context.Context, userID string) (*models.User, error)
 	GetUser(ctx context.Context, userID string) (*dtos.UserProfile, error)
 	EditUser(ctx context.Context, user *models.User) error
-	UploadProfileImage(ctx context.Context, image multipart.FileHeader) (string, error)
+	UploadProfileImage(ctx context.Context, base64Image string) (string, error)
 }
 
 type UserService struct {
@@ -40,8 +40,8 @@ func (us *UserService) EditUser(ctx context.Context, user *models.User) error {
 		return errors.New("user service - user/user ID not defined")
 	}
 
-	if user.ProfileImage != nil {
-		url, err := us.UploadProfileImage(ctx, *user.ProfileImage)
+	if user.ProfileImageBase64 != nil {
+		url, err := us.UploadProfileImage(ctx, *user.ProfileImageBase64)
 		if err != nil {
 			return fmt.Errorf("user service - error updating user: %w", err)
 		}
@@ -77,16 +77,13 @@ func (us *UserService) ValidateUser(ctx context.Context, userID string) (*models
 	return user, nil
 }
 
-func (us *UserService) UploadProfileImage(ctx context.Context, image multipart.FileHeader) (string, error) {
-	imgFile, err := image.Open()
-	defer imgFile.Close()
-
-	if err != nil {
-		return "", fmt.Errorf("unable to open file: %w", err)
-	}
+func (us *UserService) UploadProfileImage(ctx context.Context, image string) (string, error) {
+	profileImgB64 := image[strings.IndexByte(image, ',')+1:]
+	imgBytes, _ := base64.StdEncoding.DecodeString(profileImgB64)
+	imgFile := bytes.NewReader(imgBytes)
 
 	// We only accept PNG, JPEG and JPG for profile images for now...
-	_, err = validators.ValidateFileExtension(imgFile, []string{"image/png", "image/jpeg", "image/jpg"})
+	contentType, err := validators.ValidateBase64Extension(image, []string{"image/png", "image/jpeg", "image/jpg"})
 	if err != nil {
 		return "", fmt.Errorf("unable to upload file: %w", err)
 	}
@@ -96,8 +93,14 @@ func (us *UserService) UploadProfileImage(ctx context.Context, image multipart.F
 		return "", fmt.Errorf("unable to upload file: %w", err)
 	}
 
-	ext := filepath.Ext(image.Filename)
-	fileName = fmt.Sprintf("profile-images/%s.%s", fileName, ext)
+	ext := "png"
+	if contentType == "image/jpeg" {
+		ext = "jpeg"
+	} else if contentType == "image/jpg" {
+		ext = "jpg"
+	}
+
+	fileName = fmt.Sprintf("images/profile/%s.%s", fileName, ext)
 	profileImageURL, err := us.uploadClient.UploadToBucket(ctx, "celebut", fileName, imgFile)
 
 	if err != nil {

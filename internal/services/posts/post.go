@@ -1,6 +1,7 @@
 package posts
 
 import (
+	"bytes"
 	"celebut-api/internal/controller/response"
 	"celebut-api/internal/dtos"
 	"celebut-api/internal/mappers"
@@ -9,12 +10,11 @@ import (
 	"celebut-api/internal/usecase"
 	"celebut-api/internal/validators"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"mime/multipart"
 	"net/http"
-	"path/filepath"
 	"strings"
 )
 
@@ -236,34 +236,38 @@ func (ps *PostService) Comment(ctx context.Context, parentID int, comment dtos.N
 	return &postDto, nil
 }
 
-func (ps *PostService) uploadPostMedia(ctx context.Context, image multipart.FileHeader) (string, error) {
-	imgFile, err := image.Open()
-	defer imgFile.Close()
-
-	if err != nil {
-		return "", fmt.Errorf("unable to open file: %w", err)
-	}
+func (ps *PostService) uploadPostMedia(ctx context.Context, imageStr string) (string, error) {
 
 	// We only accept PNG, JPEG and JPG for profile images for now...
-	_, err = validators.ValidateFileExtension(imgFile, []string{"image/png", "image/jpeg", "image/jpg"})
+	contentType, err := validators.ValidateBase64Extension(imageStr, []string{"image/png", "image/jpeg", "image/jpg"})
 	if err != nil {
 		return "", fmt.Errorf("unable to upload file: %w", err)
 	}
+
+	profileImgB64 := imageStr[strings.IndexByte(imageStr, ',')+1:]
+	imgBytes, _ := base64.StdEncoding.DecodeString(profileImgB64)
+	imgFile := bytes.NewReader(imgBytes)
 
 	fileName, err := generateRandomID()
 	if err != nil {
 		return "", fmt.Errorf("unable to upload file: %w", err)
 	}
 
-	ext := filepath.Ext(image.Filename)
-	fileName = fmt.Sprintf("profile-images/%s.%s", fileName, ext)
-	profileImageURL, err := ps.uploadClient.UploadToBucket(ctx, "celebut", fileName, imgFile)
+	ext := "png"
+	if contentType == "image/jpeg" {
+		ext = "jpeg"
+	} else if contentType == "image/jpg" {
+		ext = "jpg"
+	}
+
+	fileName = fmt.Sprintf("images/posts/%s.%s", fileName, ext)
+	postImageURL, err := ps.uploadClient.UploadToBucket(ctx, "celebut", fileName, imgFile)
 
 	if err != nil {
 		return "", fmt.Errorf("unable to upload file: %w", err)
 	}
 
-	return *profileImageURL, nil
+	return *postImageURL, nil
 }
 
 func (ps *PostService) AddReaction(ctx context.Context, postID string, r dtos.NewReaction) (*dtos.Post, error) {

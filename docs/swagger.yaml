@@ -304,6 +304,8 @@ definitions:
         type: string
       phone_number:
         type: string
+      profile_image:
+        type: string
       relationship_status:
         type: string
       user_id:
@@ -390,6 +392,41 @@ definitions:
         example: error
         type: string
     type: object
+  handlers.editUserRequest:
+    properties:
+      country_code:
+        example: "234"
+        type: string
+      dob:
+        example: "2020-10-12"
+        type: string
+      email:
+        example: user@email.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      password:
+        example: password
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+      profile_image:
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - dob
+    - first_name
+    - last_name
+    - password
+    - username
+    type: object
   handlers.editUserResponse:
     properties:
       status:
@@ -450,11 +487,31 @@ definitions:
       status:
         type: string
     type: object
+  posts.createCommentRequest:
+    properties:
+      media:
+        items:
+          type: string
+        type: array
+      message:
+        example: What is happening?
+        type: string
+    type: object
   posts.createCommentResponse:
     properties:
       post:
         $ref: '#/definitions/dtos.Post'
       status:
+        type: string
+    type: object
+  posts.createPostRequest:
+    properties:
+      media:
+        items:
+          type: string
+        type: array
+      message:
+        example: What is happening?
         type: string
     type: object
   posts.createPostResponse:
@@ -647,7 +704,7 @@ paths:
       - Posts
     post:
       consumes:
-      - multipart/form-data
+      - application/json
       description: Add comment to a post
       operationId: create-comment
       parameters:
@@ -656,16 +713,12 @@ paths:
         name: postID
         required: true
         type: string
-      - description: comments media
-        in: formData
-        items:
-          type: file
-        name: media
-        type: array
-      - example: What is happening?
-        in: formData
-        name: message
-        type: string
+      - description: create a new comment
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/posts.createCommentRequest'
       produces:
       - application/json
       responses:
@@ -890,20 +943,16 @@ paths:
       - Posts
     post:
       consumes:
-      - multipart/form-data
+      - application/json
       description: Create a post
       operationId: create-post
       parameters:
-      - description: posts media
-        in: formData
-        items:
-          type: file
-        name: media
-        type: array
-      - example: What is happening?
-        in: formData
-        name: message
-        type: string
+      - description: create a new post
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/posts.createPostRequest'
       produces:
       - application/json
       responses:
@@ -1247,51 +1296,16 @@ paths:
   /user:
     put:
       consumes:
-      - multipart/form-data
+      - application/json
       description: Edit user's profile
       operationId: edit-user
       parameters:
-      - description: profile image file
-        in: formData
-        name: profile_image
-        type: file
-      - example: "234"
-        in: formData
-        name: country_code
-        type: string
-      - example: "2020-10-12"
-        in: formData
-        name: dob
+      - description: edit user information
+        in: body
+        name: request
         required: true
-        type: string
-      - example: user@email.com
-        in: formData
-        name: email
-        type: string
-      - example: John
-        in: formData
-        name: first_name
-        required: true
-        type: string
-      - example: Doe
-        in: formData
-        name: last_name
-        required: true
-        type: string
-      - example: password
-        in: formData
-        name: password
-        required: true
-        type: string
-      - example: "0712345678"
-        in: formData
-        name: phone_number
-        type: string
-      - example: johndoe
-        in: formData
-        name: username
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/handlers.editUserRequest'
       produces:
       - application/json
       responses:

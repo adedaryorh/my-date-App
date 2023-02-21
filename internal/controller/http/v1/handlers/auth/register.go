@@ -294,7 +294,7 @@ func (r *registerRoute) completeUserRegistration(c *gin.Context) {
 			ext = "jpg"
 		}
 
-		fileName = fmt.Sprintf("profile-images/%s.%s", fileName, ext)
+		fileName = fmt.Sprintf("images/profile/%s.%s", fileName, ext)
 		profileImageURL, err = r.uploadClient.UploadToBucket(ctx, "celebut", fileName, imgFile)
 	}
 

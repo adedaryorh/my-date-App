@@ -9,7 +9,6 @@ import (
 	userservice "celebut-api/internal/services/users"
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"mime/multipart"
 	"net/http"
 )
 
@@ -36,8 +35,8 @@ type createPostResponse struct {
 }
 
 type createPostRequest struct {
-	Message string                 `form:"message" json:"message" example:"What is happening?"`
-	Media   []multipart.FileHeader `form:"media" json:"media" swaggerignore:"true"`
+	Message string   `json:"message" example:"What is happening?"`
+	Media   []string `form:"media" json:"media" `
 }
 
 type getPostsRequest struct {
@@ -59,17 +58,16 @@ type reportPostResponse struct {
 // @Description Create a post
 // @ID          create-post
 // @Tags        Posts
-// @Accept      multipart/form-data
+// @Accept      json
 // @Produce     json
-// @Param       media   formData []file            false "posts media"
-// @Param       request formData createPostRequest true "create a new post"
+// @Param       request body createPostRequest true "create a new post"
 // @Success     201     {object} createPostResponse
 // @Security Bearer
 // @Router      /posts [post]
 func (r *postsRoute) create(c *gin.Context) {
 	var request createPostRequest
 
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		r.logger.Error(err, "http - v1 - posts - create")
 		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 

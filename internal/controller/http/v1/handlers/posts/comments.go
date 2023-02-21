@@ -9,7 +9,6 @@ import (
 	userservice "celebut-api/internal/services/users"
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"mime/multipart"
 	"net/http"
 )
 
@@ -33,8 +32,8 @@ type createCommentResponse struct {
 }
 
 type createCommentRequest struct {
-	Message string                 `form:"message" json:"message" example:"What is happening?"`
-	Media   []multipart.FileHeader `form:"media" json:"media" swaggerignore:"true"`
+	Message string   `json:"message" example:"What is happening?"`
+	Media   []string `json:"media"`
 }
 
 type getCommentsRequest struct {
@@ -56,11 +55,10 @@ type getCommentData struct {
 // @Description Add comment to a post
 // @ID          create-comment
 // @Tags        Posts
-// @Accept      multipart/form-data
+// @Accept      json
 // @Produce     json
 // @Param       postID path     string true "post identifier"
-// @Param       media   formData []file            false "comments media"
-// @Param       request formData createCommentRequest true "create a new comment"
+// @Param       request body createCommentRequest true "create a new comment"
 // @Success     201     {object} createCommentResponse
 // @Security Bearer
 // @Router      /comments/{postID} [post]
@@ -68,7 +66,7 @@ func (r *commentsRoute) comment(c *gin.Context) {
 	postID := c.Param("postID")
 	var request createCommentRequest
 
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		r.logger.Error(err, "http - v1 - comments - create")
 		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
 
