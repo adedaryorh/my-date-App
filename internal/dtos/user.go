@@ -17,6 +17,7 @@ type User struct {
 	RelationshipStatus *string       `json:"relationship_status"`
 	Interests          *string       `json:"interests"`
 	BusinessName       *string       `json:"business_name"`
+	ProfileImage       *string       `json:"profile_image"`
 	IndustryType       *IndustryType `json:"industry_type"`
 	AccountType        AccountType   `json:"account_type"`
 }

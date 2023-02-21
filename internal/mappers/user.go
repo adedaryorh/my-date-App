@@ -29,6 +29,7 @@ func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
 		RelationshipStatus: user.RelationshipStatus,
 		Interests:          user.Interests,
 		BusinessName:       user.BusinessName,
+		ProfileImage:       user.ProfileImageURL,
 		AccountType: dtos.AccountType{
 			ID: user.AccountType.ID,
 		},

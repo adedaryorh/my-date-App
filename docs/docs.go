@@ -325,7 +325,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/relationships.getFollowersResponse"
+                            "$ref": "#/definitions/relationships.getCustomersResponse"
                         }
                     }
                 }
@@ -406,7 +406,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/relationships.getFollowersResponse"
+                            "$ref": "#/definitions/relationships.getCustomersResponse"
                         }
                     }
                 }
@@ -960,7 +960,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.registerBusinessResponse"
+                            "$ref": "#/definitions/auth.registerResponse"
                         }
                     }
                 }
@@ -1015,7 +1015,7 @@ const docTemplate = `{
                 ],
                 "description": "Complete a user's registration",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1027,81 +1027,13 @@ const docTemplate = `{
                 "operationId": "register-user",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "profile image file",
-                        "name": "profile_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "234",
-                        "name": "country_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "2020-10-12",
-                        "name": "dob",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "user@email.com",
-                        "name": "email",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "John",
-                        "name": "first_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "male",
-                        "name": "gender",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "fashion,entertainment",
-                        "name": "interests",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "Doe",
-                        "name": "last_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "0712345678",
-                        "name": "phone_number",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "single",
-                        "name": "relationship_status",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "johndoe",
-                        "name": "username",
-                        "in": "formData",
-                        "required": true
+                        "description": "complete user registration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.registerUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1523,17 +1455,6 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.registerBusinessResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/dtos.Business"
-                }
-            }
-        },
         "auth.registerResponse": {
             "type": "object",
             "properties": {
@@ -1542,6 +1463,66 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/dtos.User"
+                }
+            }
+        },
+        "auth.registerUserRequest": {
+            "type": "object",
+            "required": [
+                "dob",
+                "first_name",
+                "last_name",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "country_code": {
+                    "type": "string",
+                    "example": "234"
+                },
+                "dob": {
+                    "type": "string",
+                    "example": "2020-10-12"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@email.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "gender": {
+                    "type": "string",
+                    "example": "male"
+                },
+                "interests": {
+                    "type": "string",
+                    "example": "fashion,entertainment"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "0712345678"
+                },
+                "profile_image": {
+                    "type": "string",
+                    "format": "base64"
+                },
+                "relationship_status": {
+                    "type": "string",
+                    "example": "single"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "johndoe"
                 }
             }
         },
@@ -1611,29 +1592,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dtos.Business": {
-            "type": "object",
-            "properties": {
-                "business_name": {
-                    "type": "string"
-                },
-                "country_code": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "industry_type": {
-                    "type": "string"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }
@@ -2108,7 +2066,7 @@ const docTemplate = `{
                 }
             }
         },
-        "relationships.getFollowersResponse": {
+        "relationships.getCustomersResponse": {
             "type": "object",
             "properties": {
                 "data": {

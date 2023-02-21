@@ -107,19 +107,57 @@ definitions:
     - industry_type
     - password
     type: object
-  auth.registerBusinessResponse:
-    properties:
-      status:
-        type: string
-      user:
-        $ref: '#/definitions/dtos.Business'
-    type: object
   auth.registerResponse:
     properties:
       status:
         type: string
       user:
         $ref: '#/definitions/dtos.User'
+    type: object
+  auth.registerUserRequest:
+    properties:
+      country_code:
+        example: "234"
+        type: string
+      dob:
+        example: "2020-10-12"
+        type: string
+      email:
+        example: user@email.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      gender:
+        example: male
+        type: string
+      interests:
+        example: fashion,entertainment
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      password:
+        example: password
+        type: string
+      phone_number:
+        example: "0712345678"
+        type: string
+      profile_image:
+        format: base64
+        type: string
+      relationship_status:
+        example: single
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - dob
+    - first_name
+    - last_name
+    - password
+    - username
     type: object
   auth.validateOTPRequest:
     properties:
@@ -166,21 +204,6 @@ definitions:
       id:
         type: integer
       name:
-        type: string
-    type: object
-  dtos.Business:
-    properties:
-      business_name:
-        type: string
-      country_code:
-        type: string
-      email:
-        type: string
-      industry_type:
-        type: string
-      phone_number:
-        type: string
-      user_id:
         type: string
     type: object
   dtos.Industry:
@@ -490,7 +513,7 @@ definitions:
       status:
         type: string
     type: object
-  relationships.getFollowersResponse:
+  relationships.getCustomersResponse:
     properties:
       data:
         $ref: '#/definitions/dtos.PagedRelationships'
@@ -698,7 +721,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/relationships.getFollowersResponse'
+            $ref: '#/definitions/relationships.getCustomersResponse'
       security:
       - Bearer: []
       summary: Get followers
@@ -748,7 +771,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/relationships.getFollowersResponse'
+            $ref: '#/definitions/relationships.getCustomersResponse'
       security:
       - Bearer: []
       summary: Get loved ones
@@ -1100,7 +1123,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.registerBusinessResponse'
+            $ref: '#/definitions/auth.registerResponse'
       security:
       - Bearer: []
       summary: Complete business registration
@@ -1134,63 +1157,16 @@ paths:
   /register/user:
     post:
       consumes:
-      - multipart/form-data
+      - application/json
       description: Complete a user's registration
       operationId: register-user
       parameters:
-      - description: profile image file
-        in: formData
-        name: profile_image
-        type: file
-      - example: "234"
-        in: formData
-        name: country_code
-        type: string
-      - example: "2020-10-12"
-        in: formData
-        name: dob
+      - description: complete user registration
+        in: body
+        name: request
         required: true
-        type: string
-      - example: user@email.com
-        in: formData
-        name: email
-        type: string
-      - example: John
-        in: formData
-        name: first_name
-        required: true
-        type: string
-      - example: male
-        in: formData
-        name: gender
-        type: string
-      - example: fashion,entertainment
-        in: formData
-        name: interests
-        type: string
-      - example: Doe
-        in: formData
-        name: last_name
-        required: true
-        type: string
-      - example: password
-        in: formData
-        name: password
-        required: true
-        type: string
-      - example: "0712345678"
-        in: formData
-        name: phone_number
-        type: string
-      - example: single
-        in: formData
-        name: relationship_status
-        type: string
-      - example: johndoe
-        in: formData
-        name: username
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/auth.registerUserRequest'
       produces:
       - application/json
       responses:

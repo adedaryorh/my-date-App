@@ -19,6 +19,7 @@ require (
 	github.com/swaggo/gin-swagger v1.4.3
 	github.com/swaggo/swag v1.8.1
 	github.com/uaraven/gotp v0.1.0
+	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136
 )
