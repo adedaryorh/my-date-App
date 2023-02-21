@@ -23,6 +23,7 @@ type User interface {
 	UserByEmail(ctx context.Context, email string) (*models.User, error)
 	RegisterUserWithOTP(context.Context, string, string, int) (*models.UserOTP, error)
 	ValidateOTP(ctx context.Context, userID int, otp string, mode string) error
+	UsersByField(ctx context.Context, field string, values []string) ([]models.User, error)
 }
 
 var (
@@ -235,6 +236,15 @@ func (uc *UserUseCase) ValidateOTP(ctx context.Context, userID int, otp string, 
 	}
 
 	return nil
+}
+
+func (uc *UserUseCase) UsersByField(ctx context.Context, field string, values []string) ([]models.User, error) {
+	users, err := uc.userRepo.UsersByField(ctx, field, values)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (uc *UserUseCase) generateUserID(size int) (string, error) {

@@ -112,6 +112,68 @@ func (r *UserPostgresRepo) GetUserByField(ctx context.Context, field string, val
 	return &u, nil
 }
 
+// UsersByField -.
+func (r *UserPostgresRepo) UsersByField(ctx context.Context, field string, values []string) ([]models.User, error) {
+	builder := r.Builder.
+		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+		From("users u").
+		LeftJoin("industries i ON i.id = industry_id").
+		Where(
+			squirrel.Eq{
+				field: values,
+			},
+		)
+
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("unable to build query: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	users := make([]models.User, 0)
+
+	for rows.Next() {
+		var industryID *int
+		var industryName *string
+
+		u := models.User{
+			Industry: &models.Industry{},
+		}
+
+		err = rows.Scan(
+			&u.ID,
+			&u.UserID,
+			&u.FirstName,
+			&u.LastName,
+			&u.Username,
+			&u.CountryCode,
+			&u.PhoneNumber,
+			&u.Email,
+			&u.DateOfBirth,
+			&u.Gender,
+			&u.RelationshipStatus,
+			&u.BusinessName,
+			&industryID,
+			&u.AccountType.ID,
+			&u.Password,
+			&u.Status,
+			&industryName)
+
+		if err != nil {
+			return nil, fmt.Errorf("rows.Scan: %w", err)
+		}
+
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 // GetUserByID -.
 func (r *UserPostgresRepo) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	sql, _, err := r.Builder.

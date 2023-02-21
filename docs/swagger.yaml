@@ -563,6 +563,22 @@ definitions:
       status:
         type: string
     type: object
+  relationships.discoverLovedOnesRequest:
+    properties:
+      contacts:
+        items:
+          type: string
+        type: array
+    type: object
+  relationships.discoverLovedOnesResponse:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/dtos.UserInfo'
+        type: array
+      status:
+        type: string
+    type: object
   relationships.followerResponse:
     properties:
       message:
@@ -891,6 +907,31 @@ paths:
       security:
       - Bearer: []
       summary: Become a loved one
+      tags:
+      - User Relationships
+  /lovedones/discover:
+    post:
+      consumes:
+      - application/json
+      description: Discover loved ones
+      operationId: discover-loved-ones
+      parameters:
+      - description: contacts
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/relationships.discoverLovedOnesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relationships.discoverLovedOnesResponse'
+      security:
+      - Bearer: []
+      summary: Discover loved ones
       tags:
       - User Relationships
   /otp/resend:

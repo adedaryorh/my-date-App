@@ -406,6 +406,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/lovedones/discover": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Discover loved ones",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Relationships"
+                ],
+                "summary": "Discover loved ones",
+                "operationId": "discover-loved-ones",
+                "parameters": [
+                    {
+                        "description": "contacts",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/relationships.discoverLovedOnesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/relationships.discoverLovedOnesResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/lovedones/{userID}": {
             "post": {
                 "security": [
@@ -2067,6 +2107,31 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "relationships.discoverLovedOnesRequest": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "relationships.discoverLovedOnesResponse": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.UserInfo"
+                    }
                 },
                 "status": {
                     "type": "string"

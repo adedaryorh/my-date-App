@@ -18,10 +18,20 @@ type lovedOnesRoute struct {
 func NewLovedOnesRoute(handler *gin.RouterGroup, r relationships.LovedOne, l logger.Interface) {
 	c := &lovedOnesRoute{r, l}
 
+	handler.POST("/lovedones/discover", c.discover)
 	handler.POST("/lovedones/:userID", c.becomeLovedOne)
 	handler.DELETE("/lovedones/:userID", c.removeLovedOne)
 	handler.GET("/lovedones", c.getLovedOnes)
 	//handler.POST("/followers/report/:userID", c.report)
+}
+
+type discoverLovedOnesRequest struct {
+	Contacts []string `json:"contacts"`
+}
+
+type discoverLovedOnesResponse struct {
+	Status   string          `json:"status"`
+	Contacts []dtos.UserInfo `json:"contacts"`
 }
 
 type getLovedOnesRequest struct {
@@ -82,6 +92,51 @@ func (r *lovedOnesRoute) becomeLovedOne(c *gin.Context) {
 	c.JSON(http.StatusOK, followerResponse{
 		Status:  "success",
 		Message: "success",
+	})
+}
+
+// @Summary     Discover loved ones
+// @Description Discover loved ones
+// @ID          discover-loved-ones
+// @Tags        User Relationships
+// @Accept      json
+// @Produce     json
+// @Param       request body   discoverLovedOnesRequest   true "contacts"
+// @Success     200     {object} discoverLovedOnesResponse
+// @Security Bearer
+// @Router      /lovedones/discover [post]
+func (r *lovedOnesRoute) discover(c *gin.Context) {
+	var request discoverLovedOnesRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - discover")
+		handlers.HTTPError(c, http.StatusBadRequest, "invalid request body")
+
+		return
+	}
+
+	lo, err := r.lovedOneService.DiscoverLovedOnes(c.Request.Context(), request.Contacts)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - loved ones - discover")
+
+		serviceErr, ok := err.(*response.ServiceErrorResponse)
+		if ok {
+			errorMessage := "error discovering loved one"
+			if len(serviceErr.Message) > 0 {
+				errorMessage = serviceErr.Message
+			}
+
+			handlers.HTTPErrorWithInformation(c, serviceErr.StatusCode, errorMessage, serviceErr.Err)
+		} else {
+			handlers.HTTPError(c, http.StatusInternalServerError, "error discovering loved one")
+		}
+
+		return
+	}
+
+	c.JSON(http.StatusOK, discoverLovedOnesResponse{
+		Status:   "success",
+		Contacts: lo,
 	})
 }
 

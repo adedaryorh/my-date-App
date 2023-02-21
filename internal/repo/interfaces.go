@@ -28,6 +28,7 @@ type (
 		GetUserByID(ctx context.Context, userID int) (*models.User, error)
 		CreateUser(context.Context, *models.User) error
 		UpdateUser(context.Context, *models.User, bool) error
+		UsersByField(ctx context.Context, field string, values []string) ([]models.User, error)
 	}
 
 	//UserOTP -.
