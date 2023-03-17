@@ -26,6 +26,7 @@ func NewUserRoutes(
 
 	handler.PUT("/users", r.editUser)
 	handler.GET("/users/:userID", r.getUser)
+	handler.PATCH("/users/notification/token", r.notificationToken)
 }
 
 type editUserResponse struct {
@@ -43,6 +44,11 @@ type editUserRequest struct {
 	PhoneNumber  *string `json:"phone_number"      binding:"omitempty"  example:"0712345678"`
 	DateOfBirth  string  `json:"dob" binding:"required" example:"2020-10-12"`
 	ProfileImage *string `json:"profile_image" binding:"omitempty"`
+}
+
+type getUserResponse struct {
+	Status string
+	Data   dtos.UserProfile
 }
 
 // @Summary     Edit user info
@@ -118,11 +124,6 @@ func (ur *usersRoute) editUser(c *gin.Context) {
 	})
 }
 
-type getUserResponse struct {
-	Status string
-	Data   dtos.UserProfile
-}
-
 // @Summary     Get user
 // @Description Get user profile info
 // @ID          get-user-info
@@ -138,6 +139,38 @@ type getUserResponse struct {
 // @Security    Bearer
 // @Router      /users/{userID} [get]
 func (ur *usersRoute) getUser(c *gin.Context) {
+	userID := c.Param("userID")
+
+	ctx := c.Request.Context()
+	user, err := ur.user.GetUser(ctx, userID)
+	if err != nil {
+		ur.logger.Error(err, "http - v1 - users - getUser")
+		HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to get user info", err)
+
+		return
+	}
+
+	c.JSON(http.StatusOK, getUserResponse{
+		Status: "success",
+		Data:   *user,
+	})
+}
+
+// @Summary     Update user device token
+// @Description update user notification token
+// @ID          update-device-token
+// @Tags        Users
+// @Accept      json
+// @Produce     json
+// @Param       userID path     string true "user identifier"
+// @Success     200           {object} getUserResponse
+// @Failure     400           {object} handlers.ErrorResponse
+// @Failure     401           {object} handlers.ErrorResponse
+// @Failure     404           {object} handlers.ErrorResponse
+// @Failure     500           {object} handlers.ErrorResponse
+// @Security    Bearer
+// @Router      /users/notification/token [patch]
+func (ur *usersRoute) notificationToken(c *gin.Context) {
 	userID := c.Param("userID")
 
 	ctx := c.Request.Context()

@@ -76,6 +76,219 @@
                 }
             }
         },
+        "/celebrations": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get celebrations based on request type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Get Celebrations",
+                "operationId": "get-celebrations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/celebrations.getCelebrationsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create a celebration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Create Celebration",
+                "operationId": "create-celebration",
+                "parameters": [
+                    {
+                        "description": "create a new celebration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/celebrations.createCelebrationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/celebrations.createCelebrationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/celebrations/report/{celebrationID}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Report a celebration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Report celebration",
+                "operationId": "report-celebration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "celebration identifier",
+                        "name": "celebrationID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/celebrations.reportCelebrationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/celebrations/{celebrationID}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Delete a celebration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Celebrations"
+                ],
+                "summary": "Delete Celebration",
+                "operationId": "delete-celebration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "celebration identifier",
+                        "name": "celebrationID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/celebrations.deleteCelebrationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/client": {
             "post": {
                 "description": "Create a new client",
@@ -1209,6 +1422,68 @@
                 }
             }
         },
+        "/users/notification/token": {
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "update user notification token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user device token",
+                "operationId": "update-device-token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user identifier",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.getUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{userID}": {
             "get": {
                 "security": [
@@ -1556,6 +1831,78 @@
                 }
             }
         },
+        "celebrations.GetCelebrationsType": {
+            "type": "string",
+            "enum": [
+                "recent",
+                "around-you",
+                "loved-ones"
+            ],
+            "x-enum-varnames": [
+                "Recent",
+                "AroundYou",
+                "LovedOnes"
+            ]
+        },
+        "celebrations.createCelebrationRequest": {
+            "type": "object",
+            "properties": {
+                "caption": {
+                    "type": "string",
+                    "example": "celebration caption"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "celebrations.createCelebrationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.Celebration"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "celebrations.deleteCelebrationResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "celebrations.getCelebrationsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dtos.PagedCelebrations"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "celebrations.reportCelebrationResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.AccountType": {
             "type": "object",
             "properties": {
@@ -1566,6 +1913,53 @@
                     "type": "string"
                 }
             }
+        },
+        "dtos.Celebration": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dtos.UserInfo"
+                },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.CelebrationComment"
+                    }
+                },
+                "comments_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.PostMedia"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "post_id": {
+                    "type": "string"
+                },
+                "reactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.UserReaction"
+                    }
+                },
+                "reactions_count": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.CelebrationComment": {
+            "type": "object"
         },
         "dtos.Industry": {
             "type": "object",
@@ -1589,6 +1983,23 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "dtos.PagedCelebrations": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.Celebration"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
                 }
             }
         },

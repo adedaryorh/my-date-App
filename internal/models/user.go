@@ -17,6 +17,7 @@ type User struct {
 	Gender             *string
 	RelationshipStatus *string
 	BusinessName       *string
+	NotificationToken  *string
 	Industry           *Industry
 	AccountType        AccountType
 	Interests          *string

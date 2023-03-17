@@ -199,12 +199,91 @@ definitions:
       status:
         type: string
     type: object
+  celebrations.GetCelebrationsType:
+    enum:
+    - recent
+    - around-you
+    - loved-ones
+    type: string
+    x-enum-varnames:
+    - Recent
+    - AroundYou
+    - LovedOnes
+  celebrations.createCelebrationRequest:
+    properties:
+      caption:
+        example: celebration caption
+        type: string
+      media:
+        items:
+          type: string
+        type: array
+    type: object
+  celebrations.createCelebrationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.Celebration'
+      status:
+        type: string
+    type: object
+  celebrations.deleteCelebrationResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  celebrations.getCelebrationsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dtos.PagedCelebrations'
+      status:
+        type: string
+    type: object
+  celebrations.reportCelebrationResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   dtos.AccountType:
     properties:
       id:
         type: integer
       name:
         type: string
+    type: object
+  dtos.Celebration:
+    properties:
+      author:
+        $ref: '#/definitions/dtos.UserInfo'
+      comments:
+        items:
+          $ref: '#/definitions/dtos.CelebrationComment'
+        type: array
+      comments_count:
+        type: integer
+      created_at:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/dtos.PostMedia'
+        type: array
+      message:
+        type: string
+      post_id:
+        type: string
+      reactions:
+        items:
+          $ref: '#/definitions/dtos.UserReaction'
+        type: array
+      reactions_count:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  dtos.CelebrationComment:
     type: object
   dtos.Industry:
     properties:
@@ -221,6 +300,17 @@ definitions:
         type: integer
       name:
         type: string
+    type: object
+  dtos.PagedCelebrations:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dtos.Celebration'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
     type: object
   dtos.PagedPosts:
     properties:
@@ -642,6 +732,141 @@ paths:
       summary: Create industry
       tags:
       - Industries
+  /celebrations:
+    get:
+      consumes:
+      - application/json
+      description: Get celebrations based on request type
+      operationId: get-celebrations
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/celebrations.getCelebrationsResponse'
+      security:
+      - Bearer: []
+      summary: Get Celebrations
+      tags:
+      - Celebrations
+    post:
+      consumes:
+      - application/json
+      description: Create a celebration
+      operationId: create-celebration
+      parameters:
+      - description: create a new celebration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/celebrations.createCelebrationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/celebrations.createCelebrationResponse'
+      security:
+      - Bearer: []
+      summary: Create Celebration
+      tags:
+      - Celebrations
+  /celebrations/{celebrationID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a celebration
+      operationId: delete-celebration
+      parameters:
+      - description: celebration identifier
+        in: path
+        name: celebrationID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/celebrations.deleteCelebrationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete Celebration
+      tags:
+      - Celebrations
+  /celebrations/report/{celebrationID}:
+    post:
+      consumes:
+      - application/json
+      description: Report a celebration
+      operationId: report-celebration
+      parameters:
+      - description: celebration identifier
+        in: path
+        name: celebrationID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/celebrations.reportCelebrationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Report celebration
+      tags:
+      - Celebrations
   /client:
     post:
       consumes:
@@ -1397,6 +1622,46 @@ paths:
       security:
       - Bearer: []
       summary: Get user
+      tags:
+      - Users
+  /users/notification/token:
+    patch:
+      consumes:
+      - application/json
+      description: update user notification token
+      operationId: update-device-token
+      parameters:
+      - description: user identifier
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.getUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update user device token
       tags:
       - Users
 securityDefinitions:
