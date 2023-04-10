@@ -7,20 +7,22 @@ import (
 	"celebut-api/internal/mappers"
 	"celebut-api/internal/services/posts"
 	userservice "celebut-api/internal/services/users"
+	"celebut-api/internal/validators"
 	"celebut-api/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type postsRoute struct {
-	usersService userservice.User
-	postsService posts.Post
-	logger       logger.Interface
-	mapper       mappers.PostMapper
+	usersService   userservice.User
+	postsService   posts.Post
+	logger         logger.Interface
+	mapper         mappers.PostMapper
+	postsValidator validators.ValidatePost
 }
 
 func NewPostsRoute(handler *gin.RouterGroup, u userservice.User, p posts.Post, l logger.Interface, m mappers.PostMapper) {
-	c := &postsRoute{u, p, l, m}
+	c := &postsRoute{u, p, l, m, validators.NewPostValidator()}
 
 	handler.POST("/posts", c.create)
 	handler.DELETE("/posts/:postID", c.delete)
@@ -88,10 +90,18 @@ func (r *postsRoute) create(c *gin.Context) {
 		Media:   request.Media,
 	}
 
+	err = r.postsValidator.Validate(post)
+	if err != nil {
+		r.logger.Error(err, "http - v1 - posts - create")
+		handlers.HTTPErrorWithInformation(c, http.StatusBadRequest, "post validation failed", err)
+
+		return
+	}
+
 	dto, err := r.postsService.Create(ctx, post)
 	if err != nil {
 		r.logger.Error(err, "http - v1 - posts - create")
-		handlers.HTTPError(c, http.StatusInternalServerError, "unable to create a post")
+		handlers.HTTPErrorWithInformation(c, http.StatusInternalServerError, "unable to create a post", err)
 
 		return
 	}
