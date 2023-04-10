@@ -20,6 +20,7 @@ type User struct {
 	ProfileImage       *string       `json:"profile_image"`
 	IndustryType       *IndustryType `json:"industry_type"`
 	AccountType        AccountType   `json:"account_type"`
+	DateJoined         time.Time     `json:"date_joined"`
 }
 
 type UserInfo struct {

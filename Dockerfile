@@ -18,7 +18,7 @@ RUN make build-static
 FROM debian:buster-slim
 
 # Import the Certificate-Authority certificates for enabling HTTPS.
-#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Import the compiled executable.
 COPY --from=builder /app/bin/celebut-api /app/
