@@ -18,9 +18,9 @@ WORKDIR /app
 
 
 COPY --from=builder /app/main .
-COPY --from=builder /app/templates ./templates
+#COPY --from=builder /app/templates ./templates
 #COPY db/goose/migrations db/goose/migrations
-COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
+#COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
 
 USER golang
 
