@@ -3,10 +3,8 @@ FROM golang:1.22.1-alpine3.18 as builder
 WORKDIR /app
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 
-RUN ls -l /app
-
-COPY go.mod ./
-COPY go.sum ./
+COPY go.mod /app/
+COPY go.sum /app/
 
 RUN go mod download
 
