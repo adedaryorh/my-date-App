@@ -18,3 +18,7 @@ docs/.DS_Store
 # Coverage files
 **/cover.out
 bin/
+
+#go
+go.work*
+backend/*/tmp
