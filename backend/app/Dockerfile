@@ -1,28 +1,31 @@
-# First stage: build the executable.
-FROM golang:1.18.0-buster as builder
+FROM golang:1.22.1-alpine3.18 as builder
 
-RUN apt-get -y update \
-    && apt-get -y upgrade \
-    && apt-get -y install git bash make
+WORKDIR /app
+RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Set the working directory outside $GOPATH to enable the support for modules.
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates curl
+RUN apk add --no-cache tzdata
+RUN adduser -D -g '' golang
+
 WORKDIR /app
 
-# Import the code from the context.
-COPY . ./
 
-# Build the statically-linked executable looking into '/vendor' folder
-RUN make build-static
+COPY --from=builder /app/main .
+COPY --from=builder /app/templates ./templates
+#COPY db/goose/migrations db/goose/migrations
+COPY docs/swagger.json docs/swagger.json
 
-# Final stage: the running container.
-FROM debian:buster-slim
+USER golang
 
-# Import the Certificate-Authority certificates for enabling HTTPS.
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-# Import the compiled executable.
-COPY --from=builder /app/bin/celebut-api /app/
+ENV APP_ENV stg
+ENV APP_HOST 0.0.0.0
 
 EXPOSE 8080
 
-CMD ["/app/celebut-api"]
+CMD ["/app/main"]

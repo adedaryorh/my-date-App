@@ -2,39 +2,45 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"backend.app/configs"
+	"backend.app/database"
 	v1 "backend.app/internal/controller/http/v1"
+	"backend.app/internal/controller/http/v1/handlers"
 	"backend.app/pkg/httpserver"
 	"backend.app/pkg/logger"
-	"backend.app/pkg/postgres"
 	"github.com/gin-gonic/gin"
 )
 
 // Run creates objects via constructors.
 func Run(cfg *configs.Config) {
-	l := logger.New(cfg.Log.Level)
+	l := logger.New(cfg.LogLevel)
+	var err error
+	// Connect to DB
 
-	// Repository
-	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
-	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - postgres.NewClientRepo: %w", err))
-	}
-	defer pg.Close()
-
-	initialiseRepositories(pg)
+	db := database.ConnectDB(cfg, l)
+	defer db.Postgres.Close()
 
 	// HTTP Server
-	handler := gin.New()
+	server := gin.New()
 
 	// TODO: Use config
-	handler.MaxMultipartMemory = 8 << 20
+	server.MaxMultipartMemory = 8 << 20
+	handler := handlers.NewHandler(l, cfg, &db)
+	routesWithServer := v1.NewAppRouter(server, handler, cfg)
+	routesWithServer.RegisterRoutes(server, handler)
 
-	_ = v1.NewAppRouter(handler, l, pg, cfg)
-	httpServer := httpserver.New(handler)
+	routesWithServer.Server.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Welcome to Celebut Application",
+		})
+	})
+
+	httpServer := httpserver.New(routesWithServer.Server, cfg.Port)
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)

@@ -1,23 +1,34 @@
 package handlers
 
 import (
-	"errors"
-
-	"backend.app/internal/contexts"
-	"backend.app/internal/models"
-	"github.com/gin-gonic/gin"
+	"backend.app/configs"
+	"backend.app/database"
+	"backend.app/internal/core"
+	"backend.app/pkg/logger"
+	"backend.app/pkg/middleware"
 )
 
-func GetSessionUser(c *gin.Context) (*models.User, error) {
-	u, ok := c.Get(contexts.ContextUser)
-	if !ok || u == nil {
-		return nil, errors.New("no user found in context")
+type Handler struct {
+	core   core.Operations
+	log    *logger.Logger
+	config *configs.Config
+}
+
+type Operations interface {
+}
+
+func NewHandler(log *logger.Logger, config *configs.Config, db *database.DB) Operations {
+	newMiddleware, err := middleware.NewMiddleware(db, config, log)
+	if err != nil {
+		log.Fatal("middleware error: %v", err)
 	}
 
-	user, ok := u.(*models.User)
-	if !ok {
-		return nil, errors.New("unable to cast to session user")
+	h := Handler{
+		//controller: controllers.New(db, config, newMiddleware, log),
+		config: config,
+		log:    log,
+		core:   core.NewCore(config, log, db, newMiddleware),
 	}
-
-	return user, nil
+	op := Operations(&h)
+	return op
 }

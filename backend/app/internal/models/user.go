@@ -2,29 +2,37 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type User struct {
 	ID                 int
-	UserID             string
-	FirstName          *string
-	LastName           *string
-	Username           *string
-	CountryCode        *string
-	PhoneNumber        *string
+	UserID             uuid.UUID
+	FirstName          string
+	LastName           string
+	Username           string
+	CountryCode        string
+	PhoneNumber        string
 	Email              string
 	DateOfBirth        *time.Time
 	Gender             *string
 	RelationshipStatus *string
-	BusinessName       *string
-	NotificationToken  *string
 	Industry           *Industry
-	AccountType        AccountType
-	Interests          *string
+	AccountType        string
+	Interests          pq.StringArray
 	ProfileImageURL    *string
-	ProfileImageBase64 *string
-	Password           string
+	PasswordHash       string
 	Status             string
+	VerificationStatus string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+}
+
+type AWSObjectUrl struct {
+	KeyName   string     `json:"keyName,omitempty"`
+	Url       string     `json:"url,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	Note      string     `json:"note,omitempty"`
 }

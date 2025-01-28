@@ -3,6 +3,7 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -10,7 +11,7 @@ import (
 const (
 	_defaultReadTimeout     = 5 * time.Second
 	_defaultWriteTimeout    = 5 * time.Second
-	_defaultAddr            = ":8080"
+	_defaultPort            = "7070"
 	_defaultShutdownTimeout = 3 * time.Second
 )
 
@@ -22,12 +23,15 @@ type Server struct {
 }
 
 // New -.
-func New(handler http.Handler, opts ...Option) *Server {
+func New(handler http.Handler, port string, opts ...Option) *Server {
+	if port == "" {
+		port = _defaultPort
+	}
 	httpServer := &http.Server{
 		Handler:      handler,
 		ReadTimeout:  _defaultReadTimeout,
 		WriteTimeout: _defaultWriteTimeout,
-		Addr:         _defaultAddr,
+		Addr:         fmt.Sprintf(":%s", port),
 	}
 
 	s := &Server{
