@@ -6,7 +6,7 @@ RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificat
 COPY backend/app/go.mod backend/app/go.sum ./
 RUN go mod download
 
-COPY . .
+COPY backend/app/ .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 FROM alpine:latest
