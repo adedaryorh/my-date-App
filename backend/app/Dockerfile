@@ -3,10 +3,13 @@ FROM golang:1.22.1-alpine3.18 as builder
 WORKDIR /app
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 
-# COPY go.mod /app/
-# COPY go.sum /app/
+RUN ls -l
 
-# RUN go mod download
+COPY go.mod go.sum ./
+RUN ls -l
+RUN go mod download
+
+RUN ls -l
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
