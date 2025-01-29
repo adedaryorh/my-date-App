@@ -84,3 +84,5 @@ tools.env: ## Copy .env.dist to .env if it does not exist yet
 
 up: ## Start the containers and attach it
 	@docker-compose up
+lint:
+	golangci-lint run -c ./golangci.yaml	
