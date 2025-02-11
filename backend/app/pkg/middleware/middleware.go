@@ -42,14 +42,13 @@ type Middleware struct {
 }
 
 func NewMiddleware(db *database.DB, config *configs.Config, log *logger.Logger) (*Middleware, error) {
-
 	redis := redisservice.Redis{Client: db.Redis.Client}
 	jwt, err := NewJwtMaker(config, &redis)
 	if err != nil {
 		return nil, err
 	}
-	repo := repo.NewRepo(db)
-	tokenService := tokenservice.NewTokenService(&redis, repo)
+	repo := repo.NewRepo(db, log)
+	tokenService := tokenservice.NewTokenService(&redis, config, repo)
 	m := &Middleware{
 		Jwt:          jwt,
 		logger:       log,
@@ -119,12 +118,12 @@ func (m *Middleware) getUserFromToken(ctx context.Context, verified *Payload, re
 		return nil, errors.New("invalid user id")
 	}
 
-	user, err := m.repo.GetUserByField(ctx, helpers.Map{"user_id": id})
+	user, err := m.repo.GetUserByField(ctx, helpers.Map{"id": id})
 	if err != nil {
 		return nil, err
 	}
-
-	if user.Status != string(constants.UserStatusActive) {
+	m.logger.Info("%s", user.Status)
+	if user.Status != string(constants.StatusActive) {
 		return nil, messages.ErrInactiveUser
 	}
 	// ensure token is valid on redis too

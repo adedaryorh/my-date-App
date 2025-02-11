@@ -6,63 +6,60 @@ import (
 )
 
 type UserMapper interface {
-	MapToUserDto(user models.User) dtos.User
+	//MapToUserDto(user models.User) dtos.User
 	MapToUserProfileDto(user models.User) dtos.UserProfile
 	MapToUserInfoDto(user models.User) dtos.UserInfo
 }
 
-type DtoUserMapper struct {
-}
+// type DtoUserMapper struct {
+// }
 
-func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
-	dto := dtos.User{
-		UserID:             user.UserID,
-		FirstName:          user.FirstName,
-		LastName:           user.LastName,
-		Username:           user.Username,
-		CountryCode:        user.CountryCode,
-		PhoneNumber:        user.PhoneNumber,
-		Email:              user.Email,
-		DateOfBirth:        user.DateOfBirth,
-		Gender:             user.Gender,
-		RelationshipStatus: user.RelationshipStatus,
-		Interests:          user.Interests,
-		ProfileImage:       user.ProfileImageURL,
-		DateJoined:         user.CreatedAt,
-	}
+// func (um *DtoUserMapper) MapToUserDto(user models.User) dtos.User {
+// 	dto := dtos.User{
+// 		ID:          user.ID,
+// 		FirstName:   user.FirstName,
+// 		LastName:    user.LastName,
+// 		Username:    user.Username,
+// 		CountryCode: user.CountryCode,
+// 		PhoneNumber: user.PhoneNumber,
+// 		Email:       user.Email,
+// 		DateOfBirth: &user.DateOfBirth,
 
-	// if user.AccountType.ID == config.ACCOUNT_BASIC_ID {
-	// 	dto.AccountType.Name = config.ACCOUNT_BASIC
-	// } else {
-	// 	dto.AccountType.Name = config.ACCOUNT_BUSINESS
-	// }
+// 		Interests:    user.Interests,
+// 		ProfileImage: user.ProfileImageURL,
+// 		DateJoined:   user.CreatedAt,
+// 	}
 
-	return dto
-}
+// 	// if user.AccountType.ID == config.ACCOUNT_BASIC_ID {
+// 	// 	dto.AccountType.Name = config.ACCOUNT_BASIC
+// 	// } else {
+// 	// 	dto.AccountType.Name = config.ACCOUNT_BUSINESS
+// 	// }
 
-func (um *DtoUserMapper) MapToUserProfileDto(user models.User) dtos.UserProfile {
-	return dtos.UserProfile{
-		UserID:             user.UserID,
-		FirstName:          user.FirstName,
-		LastName:           user.LastName,
-		Username:           user.Username,
-		CountryCode:        &user.CountryCode,
-		PhoneNumber:        &user.PhoneNumber,
-		Email:              user.Email,
-		DateOfBirth:        *user.DateOfBirth,
-		Gender:             user.Gender,
-		RelationshipStatus: user.RelationshipStatus,
-		Interests:          user.Interests,
-		ProfileImage:       user.ProfileImageURL,
-	}
-}
+// 	return dto
+// }
 
-func (um *DtoUserMapper) MapToUserInfoDto(user models.User) dtos.UserInfo {
-	return dtos.UserInfo{
-		UserID:       user.UserID,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Username:     user.Username,
-		ProfileImage: user.ProfileImageURL,
-	}
-}
+// func (um *DtoUserMapper) MapToUserProfileDto(user models.User) dtos.UserProfile {
+// 	return dtos.UserProfile{
+// 		UserID:       user.ID,
+// 		FirstName:    user.FirstName,
+// 		LastName:     user.LastName,
+// 		Username:     user.Username,
+// 		CountryCode:  &user.CountryCode,
+// 		PhoneNumber:  &user.PhoneNumber,
+// 		Email:        user.Email,
+// 		DateOfBirth:  user.DateOfBirth,
+// 		Interests:    user.Interests,
+// 		ProfileImage: user.ProfileImageURL,
+// 	}
+// }
+
+// func (um *DtoUserMapper) MapToUserInfoDto(user models.User) dtos.UserInfo {
+// 	return dtos.UserInfo{
+// 		UserID:       user.ID,
+// 		FirstName:    user.FirstName,
+// 		LastName:     user.LastName,
+// 		Username:     user.Username,
+// 		ProfileImage: user.ProfileImageURL,
+// 	}
+// }

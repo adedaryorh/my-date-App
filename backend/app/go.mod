@@ -10,13 +10,13 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.6.0
-	github.com/ilyakaznacheev/cleanenv v1.2.6
 	github.com/jackc/pgx/v4 v4.16.0
+	github.com/joho/godotenv v1.3.0
 	github.com/leekchan/accounting v1.0.0
 	github.com/lib/pq v1.10.9
 	github.com/matoous/go-nanoid v1.5.1
+	github.com/pressly/goose v2.7.0+incompatible
 	github.com/rs/zerolog v1.26.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.4.3
@@ -27,7 +27,6 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -41,10 +40,9 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -54,7 +52,6 @@ require (
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
@@ -65,14 +62,14 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pressly/goose v2.7.0+incompatible // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.16.0+incompatible // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/twilio/twilio-go v1.23.11 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
-	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )

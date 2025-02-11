@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"backend.app/configs"
@@ -41,8 +42,16 @@ func New(config *configs.Config, opts ...Option) (*Postgres, error) {
 	}
 
 	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	pgUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		os.Getenv("PG_USER"),
+		os.Getenv("PG_PASSWORD"),
+		os.Getenv("PG_HOST"),
+		os.Getenv("PG_PORT"),
+		os.Getenv("PG_DATABASE"),
+		os.Getenv("PG_SSL_MODE"),
+	)
 
-	poolConfig, err := pgxpool.ParseConfig(config.PgUrl)
+	poolConfig, err := pgxpool.ParseConfig(pgUrl)
 	if err != nil {
 		return nil, fmt.Errorf("postgres - NewPostgres - pgxpool.ParseConfig: %w", err)
 	}

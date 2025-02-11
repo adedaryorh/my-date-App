@@ -5,6 +5,7 @@ var RedisKeys = struct {
 	AccessToken                 string
 	RefreshToken                string
 	ConfirmEmail                string
+	ConfirmPhone                string
 	PasswordReset               string
 	ConfirmBeneficiaryEmail     string
 	PasswordRetries             string
@@ -17,6 +18,7 @@ var RedisKeys = struct {
 	AccessToken:                 "auth:user:access:token",
 	RefreshToken:                "auth:user:refresh:token",
 	ConfirmEmail:                "auth:user:confirm:email:token",
+	ConfirmPhone:                "auth:user:confirm:phone:token",
 	PasswordReset:               "auth:user:password-reset:email:token",
 	ConfirmBeneficiaryEmail:     "beneficiary:confirm:email",
 	PasswordRetries:             "password:retries",

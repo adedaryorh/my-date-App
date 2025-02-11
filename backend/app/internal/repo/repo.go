@@ -7,22 +7,43 @@ import (
 
 	"backend.app/common/helpers"
 	"backend.app/database"
+	"backend.app/database/postgres"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/pkg/logger"
 	"github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 )
 
 type Repo struct {
-	db *database.DB
+	postgres *postgres.Postgres
+	log      *logger.Logger
 }
+
+const (
+	WalletsTable  = "wallets"
+	BalancesTable = "balances"
+	UsersTable    = "users"
+)
 
 type Operations interface {
+	// balance
+	CreateBalanceWithHistory(ctx context.Context, balance models.Balance) (*models.Balance, error)
+	GetBalanceByField(ctx context.Context, filter map[string]interface{}) (*models.Balance, error)
+	GetBalanceHistory(ctx context.Context, filter map[string]interface{}, sort string, limit int) ([]*models.BalanceHistory, error)
+
+	// user
 	CreateUser(ctx context.Context, c *models.User) error
 	GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error)
+	UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
+
+	// wallet
+	CreateWallet(ctx context.Context, wallet *models.Wallet) error
+	GetWalletByField(ctx context.Context, filter map[string]interface{}) (*dtos.Wallet, error)
 }
 
-func NewRepo(db *database.DB) Operations {
-	repo := Repo{db}
+func NewRepo(db *database.DB, log *logger.Logger) Operations {
+	repo := Repo{db.Postgres, log}
 	op := Operations(&repo)
 
 	return op

@@ -20,13 +20,13 @@ type (
 		Port       string `validate:"required" yaml:"port" env:"PORT"`
 		GinMode    string
 
-		// PGHost     string `validate:"required"`
-		// PGPort     string `validate:"required"`
-		// PGUser     string `validate:"required"`
-		// PGPassword string `validate:"required"`
-		// PGDatabase string `validate:"required"`
-		PgPoolMax string `validate:"required" yaml:"pg_pool_max" env:"PG_POOL_MAX"`
-		PgUrl     string `validate:"required" yaml:"url"      env:"PG_URL"`
+		PGHost     string `validate:"required"`
+		PGPort     string `validate:"required"`
+		PGUser     string `validate:"required"`
+		PGPassword string `validate:"required"`
+		PGDatabase string `validate:"required"`
+		PGSSlMode  string
+		PgPoolMax  string `validate:"required" yaml:"pg_pool_max" env:"PG_POOL_MAX"`
 
 		RedisUri string `validate:"required" yaml:"redis_uri" env:"REDIS_URI"`
 
@@ -41,7 +41,11 @@ type (
 		StorageEndpoint    string
 		AwsS3Bucket        string `validate:"required" yaml:"aws_s3_bucket" env:"AWS_S3_BUCKET"`
 
-		EnableSwagger string `validate:"required"`
+		EnableSwagger            string `validate:"required"`
+		SendGridApiKey           string `validate:"required"`
+		TwilioAccountSid         string `validate:"required"`
+		TwilioAuthToken          string `validate:"required"`
+		TwilioMessagingServiceId string `validate:"required"`
 	}
 )
 
@@ -62,19 +66,27 @@ func NewConfig() (*Config, error) {
 		AppHost:    helpers.Getenv("APP_HOST", "0.0.0.0"),
 		Port:       helpers.Getenv("PORT", "7070"),
 		RedisUri:   helpers.Getenv("REDIS_URI"),
+		PGHost:     os.Getenv("PG_HOST"),
+		PGPort:     os.Getenv("PG_PORT"),
+		PGUser:     os.Getenv("PG_USER"),
+		PGPassword: os.Getenv("PG_PASSWORD"),
+		PGDatabase: os.Getenv("PG_DATABASE"),
 		//RedisPort:               helpers.Getenv("REDIS_PORT"),
-		EnableSwagger:      helpers.Getenv("ENABLE_SWAGGER", "true"),
-		AwsRegion:          helpers.Getenv("AWS_REGION"),
-		AwsAccessKeyID:     helpers.Getenv("AWS_ACCESS_KEY_ID"),
-		AwsSecretAccessKey: helpers.Getenv("AWS_SECRET_ACCESS_KEY"),
-		AwsS3Bucket:        helpers.Getenv("AWS_S3_BUCKET"),
-		StorageEndpoint:    helpers.Getenv("STORAGE_ENDPOINT"),
-		ServiceAddress:     helpers.Getenv("SERVICE_ADDRESS"),
-		PgPoolMax:          helpers.Getenv("PG_POOL_MAX", "2"),
-		PgUrl:              helpers.Getenv("PG_URL"),
-		JwtSecret:          helpers.Getenv("JWT_SECRET"),
-		JwtSecretExpiry:    helpers.Getenv("JWT_SECRET_EXPIRY"),
-		GinMode:            helpers.Getenv("GIN_MODE"),
+		EnableSwagger:            helpers.Getenv("ENABLE_SWAGGER", "true"),
+		AwsRegion:                helpers.Getenv("AWS_REGION"),
+		AwsAccessKeyID:           helpers.Getenv("AWS_ACCESS_KEY_ID"),
+		AwsSecretAccessKey:       helpers.Getenv("AWS_SECRET_ACCESS_KEY"),
+		AwsS3Bucket:              helpers.Getenv("AWS_S3_BUCKET"),
+		StorageEndpoint:          helpers.Getenv("STORAGE_ENDPOINT"),
+		ServiceAddress:           helpers.Getenv("SERVICE_ADDRESS"),
+		PgPoolMax:                helpers.Getenv("PG_POOL_MAX", "2"),
+		JwtSecret:                helpers.Getenv("JWT_SECRET"),
+		JwtSecretExpiry:          helpers.Getenv("JWT_SECRET_EXPIRY"),
+		GinMode:                  helpers.Getenv("GIN_MODE"),
+		SendGridApiKey:           helpers.Getenv("SEND_GRID_API_KEY"),
+		TwilioAccountSid:         helpers.Getenv("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:          helpers.Getenv("TWILIO_AUTH_TOKEN"),
+		TwilioMessagingServiceId: helpers.Getenv("TWILIO_MESSAGING_SERVICE_ID"),
 	}
 
 	validate := validator.New()

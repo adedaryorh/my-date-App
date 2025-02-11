@@ -6,6 +6,8 @@ import (
 
 	"backend.app/configs"
 	"backend.app/database"
+	"backend.app/integrations/sms"
+	"backend.app/internal/dtos"
 	"backend.app/internal/models"
 	"backend.app/internal/repo"
 	"backend.app/internal/services/redisservice"
@@ -23,26 +25,43 @@ type Core struct {
 	config        *configs.Config
 	log           *logger.Logger
 	repo          repo.Operations
+	phoneService  map[string]sms.PhoneService
 }
 
 type Operations interface {
 	Middleware() *middleware.Middleware
 
-	SignUpUser(ctx context.Context)
+	// auth
+	SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.ResponseObject
+	SignUpBusiness(ctx context.Context, data *dtos.BusinessSignUp) *dtos.ResponseObject
+	ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) *dtos.ResponseObject
+	Login(ctx context.Context, data models.SignInDto) *dtos.ResponseObject
+	SendResetPasswordToken(ctx context.Context, email string) *dtos.ResponseObject
+	ResetPassword(ctx context.Context, data *models.ResetPasswordDto) *dtos.ResponseObject
+
+	// user
+	UploadUserProfileImage(ctx context.Context, user *models.User, data *dtos.UploadImage) *dtos.ResponseObject
+	UpdateUserProfile(ctx context.Context, user *models.User, data *dtos.UpdateUserProfile) *dtos.ResponseObject
+
+	// wallet
+	GetUserWallet(ctx context.Context, user *models.User) *dtos.ResponseObject
 }
 
 func NewCore(config *configs.Config, log *logger.Logger, db *database.DB, middleware *middleware.Middleware) Operations {
 	redis := redisservice.Redis{Client: db.Redis.Client}
-	repo := repo.NewRepo(db)
+	repo := repo.NewRepo(db, log)
 
 	c := Core{
 		config:        config,
 		log:           log,
 		redisService:  redis,
-		TokenService:  tokenservice.NewTokenService(&redis, repo),
+		TokenService:  tokenservice.NewTokenService(&redis, config, repo),
 		uploadService: *upload.NewUpload(config, log),
 		middleware:    middleware,
 		repo:          repo,
+		phoneService: map[string]sms.PhoneService{
+			"twilio": sms.NewTwilioService(config),
+		},
 	}
 	op := Operations(&c)
 

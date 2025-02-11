@@ -6,6 +6,7 @@ import (
 	"backend.app/internal/core"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -15,6 +16,24 @@ type Handler struct {
 }
 
 type Operations interface {
+	// Auth
+	SignUpUser(c *gin.Context)
+	SignUpBusiness(c *gin.Context)
+	Login(c *gin.Context)
+	ConfirmPhone(c *gin.Context)
+	SendResetPasswordToken(c *gin.Context)
+	ResetPassword(c *gin.Context)
+	Me(c *gin.Context)
+
+	// Middleware
+	AuthenticatedUserMiddleware() gin.HandlerFunc
+
+	// User
+	UpdateUserProfile(c *gin.Context)
+	UploadUserProfilePicture(c *gin.Context)
+
+	// Wallet
+	GetUserWallet(c *gin.Context)
 }
 
 func NewHandler(log *logger.Logger, config *configs.Config, db *database.DB) Operations {

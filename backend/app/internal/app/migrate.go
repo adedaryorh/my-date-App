@@ -1,65 +1,42 @@
-//go:build migrate
-
 package app
 
 import (
-	"errors"
-	"github.com/golang-migrate/migrate/v4"
-	"log"
+	"database/sql"
+	"fmt"
 	"os"
-	"time"
 
-	// migrate tools
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose"
+
+	"backend.app/configs"
+	"backend.app/pkg/logger"
 )
 
-const (
-	_defaultAttempts = 20
-	_defaultTimeout  = time.Second
-)
+func IsLocal() bool {
+	return os.Getenv("APP_ENV") == "" || os.Getenv("APP_ENV") == "dev"
+}
 
-func init() {
-	databaseURL, ok := os.LookupEnv("PG_URL")
-	if !ok || len(databaseURL) == 0 {
-		log.Fatalf("migrate: environment variable not declared: PG_URL")
+func runMigrations(env *configs.Config, log *logger.Logger) {
+	dbConnectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		env.PGUser,
+		env.PGPassword,
+		env.PGHost,
+		env.PGPort,
+		env.PGDatabase)
+
+	if IsLocal() {
+		dbConnectionString += "?sslmode=disable"
 	}
-
-	databaseURL += "?sslmode=disable"
-
-	var (
-		attempts = _defaultAttempts
-		err      error
-		m        *migrate.Migrate
-	)
-
-	for attempts > 0 {
-		m, err = migrate.New("file://migrations", databaseURL)
-		if err == nil {
-			break
-		}
-
-		log.Printf("Migrate: postgres is trying to connect, attempts left: %d", attempts)
-		time.Sleep(_defaultTimeout)
-		attempts--
-	}
-
+	db, err := sql.Open("postgres", dbConnectionString)
 	if err != nil {
-		log.Fatalf("Migrate: postgres connect error: %s", err)
+		log.Fatal("sql.Open failed: %v", err)
 	}
-
-	err = m.Up()
-	defer m.Close()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatalf("Migrate: up error: %s", err)
+	defer db.Close()
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatal("goose.SetDialect failed: %v", err)
 	}
-
-	// We are running this as a standalone task. We should exit to avoid spinning up main app
-	if errors.Is(err, migrate.ErrNoChange) {
-		log.Printf("Migrate: no change")
-	} else {
-		log.Printf("Migrate: up success")
+	// Assuming migrations are located in "db/migrations"
+	if err := goose.Up(db, "database/goose/migrations"); err != nil {
+		log.Fatal("goose.Up failed: %v", err)
 	}
-
-	os.Exit(0)
 }

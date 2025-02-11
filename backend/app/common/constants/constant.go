@@ -1,7 +1,12 @@
 package constants
 
-// ContextUserID -
-const ContextUserID = "context-user-id"
+type DocumentKind string
 
-// ContextUser -
-const ContextUser = "context-user"
+const (
+	// DATE_LAYOUT The date layout constant
+	DATE_LAYOUT = "2006-01-02"
+
+	AUTH_TOKEN_TTL = "5m"
+
+	DocumentKindProfilePicture DocumentKind = "profile-picture"
+)

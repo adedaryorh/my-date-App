@@ -30,7 +30,7 @@ type (
 
 func NewPayload(user models.User, duration time.Duration) (*Payload, error) {
 	payload := &Payload{
-		user.UserID.String(),
+		user.ID.String(),
 		user.Email,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),

@@ -10,6 +10,7 @@ import (
 
 	"backend.app/common/helpers"
 	"backend.app/common/messages"
+	"backend.app/configs"
 	"backend.app/internal/models"
 	"backend.app/internal/repo"
 	"backend.app/internal/services/redisservice"
@@ -19,14 +20,16 @@ import (
 var defaultTtl = "1h"
 
 type TokenService struct {
-	redis *redisservice.Redis
-	repo  repo.Operations
+	redis  *redisservice.Redis
+	repo   repo.Operations
+	config *configs.Config
 }
 
-func NewTokenService(redis *redisservice.Redis, repo repo.Operations) TokenService {
+func NewTokenService(redis *redisservice.Redis, config *configs.Config, repo repo.Operations) TokenService {
 	tokenService := TokenService{
-		redis: redis,
-		repo:  repo,
+		redis:  redis,
+		repo:   repo,
+		config: config,
 	}
 	return tokenService
 }
