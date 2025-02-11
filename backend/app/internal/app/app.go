@@ -20,8 +20,12 @@ import (
 func Run(cfg *configs.Config) {
 	l := logger.New(cfg.LogLevel)
 	var err error
-	// Connect to DB
 
+	if cfg.AppEnv != "dev" {
+		runMigrations(cfg, l)
+	}
+
+	// Connect to DB
 	db := database.ConnectDB(cfg, l)
 	defer db.Postgres.Close()
 
@@ -43,7 +47,7 @@ func Run(cfg *configs.Config) {
 	httpServer := httpserver.New(routesWithServer.Server, cfg.Port)
 
 	// Waiting signal
-	interrupt := make(chan os.Signal, 1)
+	interrupt := make(chan os.Signal, 10)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	select {

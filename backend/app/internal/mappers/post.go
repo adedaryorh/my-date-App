@@ -35,10 +35,10 @@ func (um *DtoPostMapper) MapToPostDto(p models.Post) dtos.Post {
 		PostID:  p.PostID,
 		Message: *p.Message,
 		Author: dtos.UserInfo{
-			UserID:    p.User.UserID,
+			UserID:    p.User.ID,
 			FirstName: p.User.FirstName,
-			LastName:  p.User.LastName,
-			Username:  p.User.Username,
+			//LastName:  p.User.LastName,
+			Username: p.User.Username,
 		},
 		UserReaction:   um.reactionsMapper.MapToUserReactionListDto(p.UserReactions),
 		ReactionsCount: len(p.UserReactions),

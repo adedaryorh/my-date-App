@@ -39,10 +39,7 @@ func main() {
 			log.Fatal().Err(err).Msg(err.Error())
 		}
 	}
-	sslMode := "disable"
-	if os.Getenv("APP_ENV") != "dev" {
-		sslMode = "require"
-	}
+
 	db, err := sql.Open("postgres",
 		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 			os.Getenv("PG_USER"),
@@ -50,7 +47,7 @@ func main() {
 			os.Getenv("PG_HOST"),
 			os.Getenv("PG_PORT"),
 			os.Getenv("PG_DATABASE"),
-			sslMode,
+			os.Getenv("PG_SSL_MODE"),
 		))
 
 	if err != nil {

@@ -60,7 +60,7 @@ run: ## Start the containers and attach it
 	@docker-compose up -d
 
 swag-v1: ### swag init
-	swag init -g internal/controller/http/v1/router.go
+	swag init --parseDependency --parseInternal
 .PHONY: swag-v1
 
 swag-fmt: ### swag format

@@ -67,11 +67,11 @@ func ValidateInput(input interface{}) []string {
 			case "is_date":
 				errors = append(errors, fmt.Sprintf("%s is not a valid date", e.Value()))
 			case "after_now":
-				errors = append(errors, fmt.Sprintf("%s is not after now", e.Value()))
+				errors = append(errors, fmt.Sprintf("%s cannot be in the past", e.Value()))
 			case "before_now":
-				errors = append(errors, fmt.Sprintf("%s is not before now", e.Value()))
+				errors = append(errors, fmt.Sprintf("%s cannot be in the future", e.Value()))
 			case "is_phone":
-				errors = append(errors, fmt.Sprintf("%s is not a valid phone", e.Value()))
+				errors = append(errors, fmt.Sprintf("%s is not a valid phone number", e.Value()))
 			case "is_password":
 				errors = append(errors, fmt.Sprintf("%s is not a valid password", e.Value()))
 			case "min":

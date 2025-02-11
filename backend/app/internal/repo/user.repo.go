@@ -4,30 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
+
 	"backend.app/common/helpers"
+	"backend.app/common/messages"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
-	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4"
 )
 
 // CreateUser -.
 func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
-	var industryId *int
-	if c.Industry != nil {
-		industryId = &c.Industry.ID
-	}
-
-	var dob *string
-	if c.DateOfBirth != nil {
-		formattedDob := c.DateOfBirth.Format("2006-01-02")
-		dob = &formattedDob
-	}
-
-	sql, args, err := r.db.Postgres.Builder.
+	sql, args, err := r.postgres.Builder.
 		Insert("users").
-		Columns("user_id, first_name, last_name, username, country_code, phone, email, dob, gender, relationship_status, business_name, industry_id, account_type_id, password_hash, status").
-		Values(c.UserID, c.FirstName, c.LastName, c.Username, c.CountryCode, c.PhoneNumber, c.Email, dob, c.Gender, c.RelationshipStatus, industryId, c.PasswordHash, c.Status).
+		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type").
+		Values(c.FirstName, c.LastName, c.Username, c.CountryCode, c.PhoneNumber, c.CompletionState, c.VerificationStatus, c.Email, c.DateOfBirth, c.AccountType, c.PasswordHash, c.Status, c.BusinessName, c.IndustryType).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 
@@ -35,7 +28,7 @@ func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
 		return fmt.Errorf("UserPostgresRepo - CreateUser - r.Builder: %w", err)
 	}
 
-	row := r.db.Postgres.Pool.QueryRow(ctx, sql, args...)
+	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
 
 	err = row.Scan(&c.ID)
 	if err != nil {
@@ -47,10 +40,9 @@ func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
 
 // GetUserByField -.
 func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error) {
-	sql, args, err := r.db.Postgres.Builder.
-		Select("u.id,u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+	sql, args, err := r.postgres.Builder.
+		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at").
 		From("users u").
-		LeftJoin("industries i ON i.id = industry_id").
 		Where(squirrel.Eq(filter)).
 		ToSql()
 
@@ -58,45 +50,43 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		return nil, fmt.Errorf("unable to build query: %w", err)
 	}
 
-	row := r.db.Postgres.Pool.QueryRow(ctx, sql, args...)
-	if err != nil {
-		return nil, fmt.Errorf("r.Pool.Query: %w", err)
-	}
+	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
 
-	u := models.User{
-		Industry: &models.Industry{},
-	}
-
-	var industryID *int
-	var industryName *string
+	u := models.User{}
+	var longitude, latitude pgtype.Float4
 	err = row.Scan(
 		&u.ID,
-		&u.UserID,
 		&u.FirstName,
 		&u.LastName,
 		&u.Username,
-		&u.CountryCode,
-		&u.PhoneNumber,
 		&u.Email,
+		&u.CountryCode,
+		&longitude,
+		&latitude,
+		&u.PhoneNumber,
+		&u.CompletionState,
+		&u.IpAddress,
+		&u.DeviceType,
 		&u.DateOfBirth,
-		&u.Gender,
-		&u.RelationshipStatus,
-		&industryID,
+		&u.AccountType,
+		&u.Interests,
+		&u.ProfileImageURL,
+		&u.VerificationStatus,
 		&u.PasswordHash,
 		&u.Status,
-		&industryName)
+		&u.BusinessName,
+		&u.IndustryType,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+		&u.NextLoginAt,
+	)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, nil
+			return nil, messages.ErrUserNotFound
 		}
 
 		return nil, fmt.Errorf("row.Scan: %w", err)
-	}
-
-	if industryID != nil {
-		u.Industry.ID = *industryID
-		u.Industry.Name = *industryName
 	}
 
 	return &u, nil
@@ -108,7 +98,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 	isFirstPage := query.Cursor == ""
 	pointsNext := false
 
-	builder := r.db.Postgres.Builder.
+	builder := r.postgres.Builder.
 		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
 		From("users u").
 		LeftJoin("industries i ON i.id = industry_id")
@@ -141,7 +131,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 		return nil, fmt.Errorf("unable to build query: %w", err)
 	}
 
-	rows, err := r.db.Postgres.Pool.Query(ctx, sql, args...)
+	rows, err := r.postgres.Pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("r.Pool.Query: %w", err)
 	}
@@ -152,12 +142,9 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 		var industryID *int
 		var industryName *string
 
-		u := models.User{
-			Industry: &models.Industry{},
-		}
+		u := models.User{}
 		err = rows.Scan(
 			&u.ID,
-			&u.UserID,
 			&u.FirstName,
 			&u.LastName,
 			&u.Username,
@@ -165,8 +152,6 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 			&u.PhoneNumber,
 			&u.Email,
 			&u.DateOfBirth,
-			&u.Gender,
-			&u.RelationshipStatus,
 			&industryID,
 			&u.PasswordHash,
 			&u.Status,
@@ -190,9 +175,9 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 	var cursorData CursorData
 	query.Limit = len(users)
 	if len(users) > 0 {
-		cursorData.FirstId = users[0].UserID.String()
+		cursorData.FirstId = users[0].ID.String()
 		cursorData.FirstCreatedAt = users[0].CreatedAt
-		cursorData.LastId = users[query.Limit-1].UserID.String()
+		cursorData.LastId = users[query.Limit-1].ID.String()
 		cursorData.LastCreatedAt = users[query.Limit-1].CreatedAt
 	}
 
@@ -209,7 +194,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 
 // GetUserByID -.
 func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
-	sql, _, err := r.db.Postgres.Builder.
+	sql, _, err := r.postgres.Builder.
 		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
 		From("users u").
 		LeftJoin("industries i ON i.id = industry_id").
@@ -220,17 +205,14 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 		return nil, fmt.Errorf("unable to build query: %w", err)
 	}
 
-	row := r.db.Postgres.Pool.QueryRow(ctx, sql, userID)
+	row := r.postgres.Pool.QueryRow(ctx, sql, userID)
 
-	u := models.User{
-		Industry: &models.Industry{},
-	}
+	u := models.User{}
 
 	var industryID *int
 	var industryName *string
 	err = row.Scan(
 		&u.ID,
-		&u.UserID,
 		&u.FirstName,
 		&u.LastName,
 		&u.Username,
@@ -238,8 +220,6 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 		&u.PhoneNumber,
 		&u.Email,
 		&u.DateOfBirth,
-		&u.Gender,
-		&u.RelationshipStatus,
 		&industryID,
 		&u.PasswordHash,
 		&u.Status,
@@ -254,49 +234,24 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 	}
 
 	if industryID != nil {
-		u.Industry.ID = *industryID
-		u.Industry.Name = *industryName
 	}
 
 	return &u, nil
 }
 
 // UpdateUser -.
-func (r *Repo) UpdateUser(ctx context.Context, c *models.User, updatePassword bool) error {
-	var industryId *int
-	if c.Industry != nil && c.Industry.ID != 0 {
-		industryId = &c.Industry.ID
-	}
-
-	var dob *string
-	if c.DateOfBirth != nil {
-		formattedDob := c.DateOfBirth.Format("2006-01-02")
-		dob = &formattedDob
-	}
-
-	sql, args, err := r.db.Postgres.Builder.
+func (r *Repo) UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error {
+	sql, args, err := r.postgres.Builder.
 		Update("users").
-		SetMap(squirrel.Eq{
-			"first_name":          c.FirstName,
-			"last_name":           c.LastName,
-			"username":            c.Username,
-			"country_code":        c.CountryCode,
-			"phone":               c.PhoneNumber,
-			"email":               c.Email,
-			"dob":                 dob,
-			"gender":              c.Gender,
-			"relationship_status": c.RelationshipStatus,
-			"industry_id":         industryId,
-			"status":              c.Status,
-		}).
-		Where(squirrel.Eq{"user_id": c.UserID}).
+		SetMap(squirrel.Eq(fields)).
+		Where(squirrel.Eq{"id": Id}).
 		ToSql()
 
 	if err != nil {
 		return fmt.Errorf("UserPostgresRepo - UpdateUser - r.Builder: %w", err)
 	}
 
-	_, err = r.db.Postgres.Pool.Exec(ctx, sql, args...)
+	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("UserPostgresRepo - UpdateUser - r.Pool.Exec: %w", err)
 	}

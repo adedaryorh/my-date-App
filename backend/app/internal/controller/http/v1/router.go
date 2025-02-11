@@ -56,7 +56,10 @@ func NewAppRouter(server *gin.Engine, handler handlers.Operations, cfg *configs.
 
 func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations) {
 	version := server.Group("/v1")
+
 	AuthRoutes(version, handler)
+	WalletRoutes(version, handler)
+	UserRoutes(version, handler)
 }
 func CheckRoutes(r *gin.Engine) {
 	r.GET("/v1", func(c *gin.Context) {
