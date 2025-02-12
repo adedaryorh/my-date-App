@@ -36,17 +36,6 @@ type AcceptInviteDto struct {
 	Gender    string `json:"gender"`
 }
 
-type ResetPasswordDto struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,is_password"`
-	Token    string `json:"token" validate:"required,len=6"`
-}
-
-type ChangePasswordDto struct {
-	OldPassword string `json:"old_password" validate:"required,is_password"`
-	NewPassword string `json:"new_password" validate:"required,is_password"`
-}
-
 type PasswordDto struct {
 	Password string `json:"password" validate:"required,min=8,max=32"`
 }

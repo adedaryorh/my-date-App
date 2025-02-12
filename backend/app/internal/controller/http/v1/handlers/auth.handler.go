@@ -157,16 +157,16 @@ func (h *Handler) ConfirmPhone(c *gin.Context) {
 }
 
 // @Tags Auth
-// @Summary Send Password Reset Link
+// @Summary Send Password Reset Token
 // @Schemes
-// @Description Sends User Password Reset Link
-// @Param   request   body     dtos.Email  true  "data to send user password reset link"
+// @Description Sends User Password Reset Token
+// @Param   request   body     dtos.Phone  true  "data to send user password reset link"
 // @Accept json
 // @Produce json
 // @Success 200 {object} dtos.ResponseObject "desc"
 // @Router /auth/reset-password [post]
 func (h *Handler) SendResetPasswordToken(c *gin.Context) {
-	var input dtos.Email
+	var input dtos.Phone
 	// bind input
 	err := c.BindJSON(&input)
 	if err != nil {
@@ -177,7 +177,7 @@ func (h *Handler) SendResetPasswordToken(c *gin.Context) {
 		})
 		return
 	}
-	input.Email = strings.ToLower(input.Email)
+
 	inputErrors := helpers.ValidateInput(input)
 	if inputErrors != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -189,7 +189,7 @@ func (h *Handler) SendResetPasswordToken(c *gin.Context) {
 	}
 
 	// send to controller
-	result := h.core.SendResetPasswordToken(c, input.Email)
+	result := h.core.SendResetPasswordToken(c, input.Phone)
 	c.JSON(result.Code, result)
 }
 
@@ -197,13 +197,13 @@ func (h *Handler) SendResetPasswordToken(c *gin.Context) {
 // @Summary Password Reset
 // @Schemes
 // @Description Resets User Password
-// @Param   request   body     models.ResetPasswordDto   true  "data to reset user's password"
+// @Param   request   body     dtos.ResetPassword   true  "data to reset user's password"
 // @Accept json
 // @Produce json
 // @Success 200 {object} dtos.ResponseObject "desc"
 // @Router /auth/reset-password [patch]
 func (h *Handler) ResetPassword(c *gin.Context) {
-	var input models.ResetPasswordDto
+	var input dtos.ResetPassword
 	// bind input
 	if err := c.BindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -213,7 +213,7 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-	input.Email = strings.ToLower(input.Email)
+
 	if inputErrors := helpers.ValidateInput(input); inputErrors != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  constants.HttpStatusBadRequest,

@@ -50,9 +50,27 @@ type Email struct {
 	Email string `json:"email" validate:"required,email"`
 }
 
+// Phone The phone object
+type Phone struct {
+	Phone string `json:"phone_number" validate:"required,is_phone"`
+}
+
 // UploadImage data object to update an image
 type UploadImage struct {
 	Image *multipart.FileHeader `form:"image" validate:"required,is_file"`
+}
+
+// ResetPassword data to reset password
+type ResetPassword struct {
+	PhoneNumber string `json:"phone_number" validate:"required,is_phone"`
+	Password    string `json:"password" validate:"required,is_password"`
+	Token       string `json:"token" validate:"required,len=6"`
+}
+
+// ChangePassword data to change an existing password
+type ChangePassword struct {
+	OldPassword string `json:"old_password" validate:"required,is_password"`
+	NewPassword string `json:"new_password" validate:"required,is_password"`
 }
 
 type UserInfo struct {
