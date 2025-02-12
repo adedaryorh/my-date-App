@@ -26,3 +26,7 @@ func (c *Core) ChangePassword(ctx context.Context, data *dtos.ChangePassword, us
 	}
 	return SuccessResponse(constants.PasswordChangedSuccessfully, nil)
 }
+
+// AddAreaOfInterests
+// AddPreferredLanguage
+// AddNotificationPreference
