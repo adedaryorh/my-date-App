@@ -37,9 +37,12 @@ type Operations interface {
 	ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) *dtos.ResponseObject
 	Login(ctx context.Context, data models.SignInDto) *dtos.ResponseObject
 	SendResetPasswordToken(ctx context.Context, email string) *dtos.ResponseObject
-	ResetPassword(ctx context.Context, data *models.ResetPasswordDto) *dtos.ResponseObject
+	ResetPassword(ctx context.Context, data *dtos.ResetPassword) *dtos.ResponseObject
 
-	// user
+	// settings
+	ChangePassword(ctx context.Context, data *dtos.ChangePassword, user *models.User) *dtos.ResponseObject
+
+	// profile
 	UploadUserProfileImage(ctx context.Context, user *models.User, data *dtos.UploadImage) *dtos.ResponseObject
 	UpdateUserProfile(ctx context.Context, user *models.User, data *dtos.UpdateUserProfile) *dtos.ResponseObject
 
