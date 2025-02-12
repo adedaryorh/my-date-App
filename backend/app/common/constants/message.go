@@ -10,6 +10,7 @@ const (
 	LoginSuccessful                  = "login successful"
 	PasswordTokenSuccessfullySent    = "password token successfully sent"
 	PasswordResetSuccessful          = "password reset successful"
+	PasswordChangedSuccessfully      = "password changed successfully"
 	UserProfileSuccessfullyUploaded  = "user profile picture successfully uploaded"
 	UserProfileSuccessfullyUpdated   = "user profile successfully updated"
 	UserSuccessFullyFetched          = "user successfully fetched"

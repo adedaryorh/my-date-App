@@ -28,9 +28,12 @@ type Operations interface {
 	// Middleware
 	AuthenticatedUserMiddleware() gin.HandlerFunc
 
-	// User
+	// Profile
 	UpdateUserProfile(c *gin.Context)
 	UploadUserProfilePicture(c *gin.Context)
+
+	// Settings
+	LogoutMiddleware() gin.HandlerFunc
 
 	// Wallet
 	GetUserWallet(c *gin.Context)
