@@ -28,5 +28,9 @@ func (c *Core) ChangePassword(ctx context.Context, data *dtos.ChangePassword, us
 }
 
 // AddAreaOfInterests
+func (c *Core) AddAreaOfInterests(ctx context.Context) {
+
+}
+
 // AddPreferredLanguage
 // AddNotificationPreference
