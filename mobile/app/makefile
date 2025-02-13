@@ -1,0 +1,13 @@
+run:
+		flutter run \
+		--flavor $(flavor) \
+		--target lib/main_$(flavor).dart \
+		--dart-define-from-file=lib/env/$(flavor)_creds.json
+
+
+clean: 
+		flutter clean
+		cd ios && rm -rf Podfile.lock
+		cd ios && rm -rf Pods
+		flutter pub get
+		cd ios && pod install
