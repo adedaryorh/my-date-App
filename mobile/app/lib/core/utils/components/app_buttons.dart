@@ -26,7 +26,7 @@ class MainButton extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                  ?.copyWith(color: Colors.black, fontWeight: FontWeight.w600),
             ),
     );
   }
