@@ -11,3 +11,10 @@ clean:
 		cd ios && rm -rf Pods
 		flutter pub get
 		cd ios && pod install
+
+clean_gen:
+		   dart run build_runner clean
+		   dart run build_runner build --delete-conflicting-outputs
+
+gen:
+	 dart run build_runner build --delete-conflicting-outputs
