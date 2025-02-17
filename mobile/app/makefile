@@ -18,3 +18,9 @@ clean_gen:
 
 gen:
 	 dart run build_runner build --delete-conflicting-outputs
+
+splash:
+		dart run flutter_native_splash:create
+
+
+.PHONY: clean run splash clean clean_gen
