@@ -59,6 +59,14 @@ export default {
             DEFAULT: "hsla(185, 46%, 62%, 1)",
             light: "hsla(185, 46%, 92%, 1)",
           },
+          violet: {
+            DEFAULT: "hsla(245, 88%, 65%, 1)",
+            light: "hsla(0, 100%, 92%, 1)",
+          },
+          red: {
+            DEFAULT: "hsla(0, 100%, 50%, 0.96)",
+            light: "hsla(0, 100%, 95%, 1)",
+          },
         },
         shadow: {
           green: "hsla(40, 89%, 63%, 0.2)",
