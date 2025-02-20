@@ -7,11 +7,19 @@ String? validatePassword(String? value) {
   return null;
 }
 
+String? validateUsername(String? input) {
+  if (input == null || input.trim().isEmpty) {
+    return 'Username is required';
+  } else {
+    return null;
+  }
+}
+
 String? validateName(String? value) {
   const pattern = r"^[.!#$%&'*+<>:;,%@()(/=?^_`{|}~-]";
   final regExp = RegExp(pattern);
   if (value!.isEmpty) {
-    return '';
+    return 'Fullname is required';
   }
   if (regExp.hasMatch(value)) {
     return 'invalid';
@@ -19,20 +27,17 @@ String? validateName(String? value) {
   return null;
 }
 
-String? validateEmail(String? value) {
-  const pattern =
-      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]"
-      r'{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]'
-      r'{0,253}[a-zA-Z0-9])?)*$';
-  final regExp = RegExp(pattern);
-  if (value!.length < 6) {
-    return '';
-  } else if (value.isEmpty) {
-    return '';
-  } else if (!regExp.hasMatch(value)) {
-    return '';
+String? validateEmailAddress(String? input) {
+  const emailRegex =
+      r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
+
+  if (input == null ||
+      input.trim().isEmpty ||
+      !RegExp(emailRegex).hasMatch(input)) {
+    return 'Please enter a valid email address';
+  } else {
+    return null;
   }
-  return null;
 }
 
 String? validatePhoneNumber(String? value) {
