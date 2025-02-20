@@ -19,6 +19,7 @@ dependencies:
   overlay_support: ^2.1.0
   smooth_page_indicator: ^1.2.0+3
   pinput: ^5.0.0
+  flutter_svg: ^2.0.7
 
   # state management
   hooks_riverpod: ^2.5.1
