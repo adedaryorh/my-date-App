@@ -1,10 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
-export default function LoginForm({ setStep }: { setStep: (step: string) => void }) {
+export default function LoginForm() {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setStep("otp");
+    redirect("/otp");
   };
   return (
     <div className="flex flex-col items-center justify-center w-3/4">
