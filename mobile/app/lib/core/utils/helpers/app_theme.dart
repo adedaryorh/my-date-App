@@ -15,6 +15,7 @@ class AppTheme {
       dialogBackgroundColor: const Color(0xffFFFFFF),
       outlinedButtonTheme: outlinedButtonThemeData(),
       elevatedButtonTheme: elevatedButtonThemeData(),
+      inputDecorationTheme: inputDecorationTheme(),
     );
   }
 }
@@ -135,20 +136,23 @@ InputDecorationTheme inputDecorationTheme() => InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(7),
         borderSide: const BorderSide(color: Colors.red),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(7),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(7),
       ),
       disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide(color: Colors.black.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(7),
+        borderSide: BorderSide(color: Colors.black.withOpacity(0.7)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(7),
       ),
     );

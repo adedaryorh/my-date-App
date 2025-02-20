@@ -28,7 +28,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/signIn',
         name: AppRoute.signIn.name,
-        builder: (context, state) => const AccountTypeView(),
+        builder: (context, state) => const SignInView(),
       ),
       GoRoute(
         path: '/personalSignUp',
@@ -40,6 +40,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoute.businessSignUp.name,
         builder: (context, state) => const SignUpBusiness(),
       ),
+      GoRoute(
+        path: '/forgetPassword',
+        name: AppRoute.forgetPassword.name,
+        builder: (context, state) => const ForgetPasswordView(),
+      ),
+      GoRoute(
+        path: '/verifyPhone',
+        name: AppRoute.verifyPhone.name,
+        builder: (context, state) => const VerifyPhoneView(),
+      ),
+      GoRoute(
+        path: '/verificationSuccess',
+        name: AppRoute.verificationSuccess.name,
+        builder: (context, state) => const VerificationSuccessView(),
+      ),
     ],
   );
 });
@@ -49,5 +64,8 @@ enum AppRoute {
   accountType,
   signIn,
   personalSignUp,
-  businessSignUp
+  businessSignUp,
+  forgetPassword,
+  verifyPhone,
+  verificationSuccess
 }
