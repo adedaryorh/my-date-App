@@ -67,6 +67,7 @@ export default {
             DEFAULT: "hsla(0, 100%, 50%, 0.96)",
             light: "hsla(0, 100%, 95%, 1)",
           },
+          overlay: "hsla(0, 0%, 0%, 0.3)",
         },
         shadow: {
           green: "hsla(40, 89%, 63%, 0.2)",
@@ -76,6 +77,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
+      },
+      animation: {
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
     },
   },
