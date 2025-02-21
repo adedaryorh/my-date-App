@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function OtpForm() {
-  const [count, setCount] = useState<number>(59);
+  const [count, setCount] = useState(59);
   useEffect(() => {
     if (count === 0) return;
 
@@ -30,12 +30,12 @@ export default function OtpForm() {
         <div className="flex flex-col items-center w-full gap-6">
           <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS}>
             <InputOTPGroup className="outline-none focus:outline-none">
-              <InputOTPSlot index={0} className="h-14 w-16 bg-gray-100" />
-              <InputOTPSlot index={1} className="h-14 w-16 bg-gray-100" />
-              <InputOTPSlot index={2} className="h-14 w-16 bg-gray-100" />
-              <InputOTPSlot index={3} className="h-14 w-16 bg-gray-100" />
-              <InputOTPSlot index={4} className="h-14 w-16 bg-gray-100" />
-              <InputOTPSlot index={5} className="h-14 w-16 bg-gray-100" />
+              <InputOTPSlot index={0} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
+              <InputOTPSlot index={1} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
+              <InputOTPSlot index={2} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
+              <InputOTPSlot index={3} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
+              <InputOTPSlot index={4} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
+              <InputOTPSlot index={5} className="h-9 md:h-14 w-9 md:w-16 bg-gray-100" />
             </InputOTPGroup>
           </InputOTP>
         </div>

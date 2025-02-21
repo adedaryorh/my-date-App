@@ -1,4 +1,8 @@
-export default function AuthForm({ children }: Readonly<{ children: React.ReactNode }>) {
+type Props = {
+  children: React.ReactElement;
+};
+
+export default function AuthForm({ children }: Props) {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-9 items-center h-screen">
       <div className="relative hidden lg:block md:col-span-5 bg-white h-full" style={{ backgroundImage: "url('/img/login-background.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
