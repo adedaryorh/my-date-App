@@ -1,7 +1,7 @@
+import 'package:celebut/apps/shared/auth/presentation/views/sign_up/widgets/signin_option.dart';
+import 'package:celebut/apps/shared/auth/presentation/views/sign_up/widgets/user_agreement.dart';
 import 'package:celebut/core/core.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class SignUpPersonal extends StatefulWidget {
   const SignUpPersonal({super.key});
@@ -19,7 +19,6 @@ class _SignUpPersonalState extends State<SignUpPersonal> {
   final _formKey = GlobalKey<FormState>();
   bool obscure = true;
   bool obscure1 = true;
-  bool agreed = false;
 
   @override
   void dispose() {
@@ -179,57 +178,7 @@ class _SignUpPersonalState extends State<SignUpPersonal> {
             const SizedBox(
               height: 10,
             ),
-            Row(
-              children: [
-                Transform.scale(
-                  scale: 0.7,
-                  child: Checkbox(
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    value: agreed,
-                    onChanged: (val) {
-                      if (val == null) return;
-                      setState(() {
-                        agreed = val;
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: RichText(
-                    selectionColor: context.colorScheme.primary,
-                    text: TextSpan(
-                      text: 'I agree to Celebut',
-                      style: context.textTheme.bodySmall,
-                      children: <TextSpan>[
-                        TextSpan(
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              //print('Tap Here onTap');
-                            },
-                          text: '“Terms and conditions',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                        TextSpan(
-                            text: ' and ', style: context.textTheme.bodySmall),
-                        TextSpan(
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              //print('Tap Here onTap');
-                            },
-                          text: 'Privacy policy”',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            const UserAgreement(),
             const SizedBox(
               height: 20,
             ),
@@ -241,27 +190,7 @@ class _SignUpPersonalState extends State<SignUpPersonal> {
             const SizedBox(
               height: 10,
             ),
-            TextButton(
-              onPressed: () => context.pushNamed(AppRoute.signIn.name),
-              child: Center(
-                child: RichText(
-                  selectionColor: context.colorScheme.primary,
-                  text: TextSpan(
-                    text: "Don't have an account?",
-                    style: context.textTheme.bodySmall,
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: ' Sign In',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: context.colorScheme.primary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            const SignInOption(),
           ],
         ),
       ),

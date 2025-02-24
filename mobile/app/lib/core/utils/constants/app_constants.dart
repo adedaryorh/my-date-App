@@ -6,4 +6,13 @@ class AppConstants {
     AppTheme.onboard2,
     AppTheme.onboard3,
   ];
+
+  static const industryTypes = [
+    'Entertainment',
+    'Agriculture',
+    'Finance',
+    'Mining',
+    'Information Technology',
+    'Furniture',
+  ];
 }
