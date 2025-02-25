@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Menu } from "@/types/menu";
+import { Menu } from "@/types/interfaces";
 
 export function MenuItem({ item, path, onClick }: { item: Menu; path: string; onClick?: () => void }) {
   return (

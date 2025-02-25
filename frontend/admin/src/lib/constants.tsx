@@ -1,4 +1,4 @@
-import { Menu } from "@/types/menu";
+import { Menu } from "@/types/interfaces";
 import { JSX } from "react";
 
 export const MenuItems: Menu[] = [

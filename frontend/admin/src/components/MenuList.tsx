@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function MenuList({ path, handleNavigation }: { path: string; handleNavigation?: () => void }) {
   return (
-    <ul className="py-8">
+    <ul className="py-11 pb-8">
       {MenuItems.map((item) => (
         <MenuItem key={item.url} item={item} path={path} onClick={handleNavigation} />
       ))}
-      <li className="border-t px-10 mt-4 pt-4">
+      <li className="border-t px-5 lg:px-10 mt-4 pt-4">
         <Link href="/user-configuration" className={`${path === "/user-configuration" ? "text-celebut-gold bg-white" : "text-white bg-transparent"} flex gap-4 items-center justify-normal text-sm font-semibold px-6 py-3 rounded-[8px]`}>
           <div className="flex justify-center items-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -20,7 +20,7 @@ export default function MenuList({ path, handleNavigation }: { path: string; han
           <span>Super Admin</span>
         </Link>
       </li>
-      <li className="border-t px-10 mt-4 py-4">
+      <li className="border-t px-5 lg:px-10 mt-4 py-4">
         <button type="button" className="text-white bg-transparent flex gap-4 items-center justify-normal text-sm font-semibold px-6 py-3 rounded-[8px]">
           <div className="flex justify-center items-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
