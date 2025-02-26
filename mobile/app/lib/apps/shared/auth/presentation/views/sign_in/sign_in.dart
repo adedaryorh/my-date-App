@@ -110,7 +110,10 @@ class _SignInViewState extends State<SignInView> {
                     MainButton(
                       loading: false,
                       text: 'Log In',
-                      pressed: () {},
+                      pressed: () {
+                        //context.goNamed(AppRoute.bCreateCelebration.name);
+                        context.goNamed(AppRoute.pCreateCelebration.name);
+                      },
                     ),
                   ],
                 ),

@@ -5,4 +5,11 @@ class AppAssets {
   static const celebutLogo = 'assets/images/layer10.png';
   static const successCheck = 'assets/images/Group 1321317099.png';
   static const downArrow = 'assets/images/down-arrow-backup-2-svgrepo-com.svg';
+  static const bottomNavCelebrate = 'assets/images/layer11.png';
+  static const timeline = 'assets/images/bx_bx-news.png';
+  static const bottomNavAvatar = 'assets/images/Group 1631.png';
+  static const store = 'assets/images/Stall.png';
+  static const search = 'assets/images/search 1.svg';
+  static const starCheck = 'assets/images/Vector.svg';
+  static const defaultAvatarGirl = 'assets/images/Mask.png';
 }
