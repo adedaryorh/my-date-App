@@ -1,3 +1,4 @@
+export 'package:celebut/core/utils/components/app_bar_widget.dart';
 export 'package:celebut/core/utils/components/app_buttons.dart';
 export 'package:celebut/core/utils/components/app_dialogs.dart';
 export 'package:celebut/core/utils/components/app_spacer.dart';
