@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
@@ -25,14 +26,16 @@ func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
 		ToSql()
 
 	if err != nil {
-		return fmt.Errorf("UserPostgresRepo - CreateUser - r.Builder: %w", err)
+		r.log.Error("UserPostgresRepo - CreateUser - r.Builder: %w", err)
+		return errors.New("something went wrong")
 	}
 
 	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
 
 	err = row.Scan(&c.ID)
 	if err != nil {
-		return fmt.Errorf("UserPostgresRepo - CreateUser - r.Pool.Scan: %w", err)
+		r.log.Error("UserPostgresRepo - CreateUser - r.Pool.Scan: %w", err)
+		return errors.New("something went wrong")
 	}
 
 	return nil
@@ -41,15 +44,15 @@ func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
 // GetUserByField -.
 func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
-		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at").
+		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at").
 		From("users u").
 		Where(squirrel.Eq(filter)).
 		ToSql()
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to build query: %w", err)
+		r.log.Error("unable to build query: %w", err)
+		return nil, errors.New("something went wrong")
 	}
-
 	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
 
 	u := models.User{}
@@ -70,6 +73,8 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		&u.DateOfBirth,
 		&u.AccountType,
 		&u.Interests,
+		&u.NotificationPreference,
+		&u.Language,
 		&u.ProfileImageURL,
 		&u.VerificationStatus,
 		&u.PasswordHash,
@@ -80,15 +85,13 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		&u.UpdatedAt,
 		&u.NextLoginAt,
 	)
-
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, messages.ErrUserNotFound
 		}
-
-		return nil, fmt.Errorf("row.Scan: %w", err)
+		r.log.Error("row.Scan: %w", err)
+		return nil, errors.New("something went wrong")
 	}
-
 	return &u, nil
 }
 
@@ -109,7 +112,8 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 	if query.Cursor != "" {
 		decodedCursor, err := helpers.DecodeCursor(query.Cursor)
 		if err != nil {
-			//
+			r.log.Debug("GetAllUsers: DecodeCursor error : %v", err)
+			return nil, err
 		}
 		pointsNext = decodedCursor["points_next"] == true
 
@@ -128,12 +132,14 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 
 	sql, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("unable to build query: %w", err)
+		r.log.Debug("unable to build query: %w", err)
+		return nil, errors.New("something went wrong")
 	}
 
 	rows, err := r.postgres.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("r.Pool.Query: %w", err)
+		r.log.Debug("r.Pool.Query: %w", err)
+		return nil, errors.New("something went wrong")
 	}
 	defer rows.Close()
 
@@ -202,7 +208,8 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 		ToSql()
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to build query: %w", err)
+		r.log.Debug("unable to build query: %w", err)
+		return nil, errors.New("something went wrong")
 	}
 
 	row := r.postgres.Pool.QueryRow(ctx, sql, userID)
@@ -230,7 +237,8 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("row.Scan: %w", err)
+		r.log.Debug("row.Scan: %w", err)
+		return nil, errors.New("something went wrong")
 	}
 
 	if industryID != nil {
@@ -248,12 +256,14 @@ func (r *Repo) UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]i
 		ToSql()
 
 	if err != nil {
-		return fmt.Errorf("UserPostgresRepo - UpdateUser - r.Builder: %w", err)
+		r.log.Debug("UserPostgresRepo - UpdateUser - r.Builder: %w", err)
+		return errors.New("something went wrong")
 	}
 
 	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("UserPostgresRepo - UpdateUser - r.Pool.Exec: %w", err)
+		r.log.Debug("UserPostgresRepo - UpdateUser - r.Pool.Exec: %w", err)
+		return errors.New("something went wrong")
 	}
 
 	return nil

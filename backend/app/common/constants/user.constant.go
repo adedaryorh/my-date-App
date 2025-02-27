@@ -7,6 +7,7 @@ type (
 	AccountStatus      string
 	IndustryType       string
 	AreaOfInterest     string
+	NotificationType   string
 	CompletionState    int
 )
 
@@ -51,8 +52,20 @@ const (
 	AreaOfInterestScaryThings         AreaOfInterest = "scary-things"
 	AreaOfInterestMovies              AreaOfInterest = "movies"
 	AreaOfInterestMusic               AreaOfInterest = "music"
+
+	NotificationTypeEmail NotificationType = "email"
+	NotificationTypePush  NotificationType = "push"
 )
 
+func (n NotificationType) IsValid() bool {
+	switch n {
+	case NotificationTypeEmail, NotificationTypePush:
+		return true
+	}
+	return false
+}
+
+// IsValid is used to validate the AreaOfInterest enum
 func (a AreaOfInterest) IsValid() bool {
 	switch a {
 	case AreaOfInterestNewsAndEvent,

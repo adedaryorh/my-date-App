@@ -1,14 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"backend.app/common/constants"
 	"backend.app/common/helpers"
-	"backend.app/common/messages"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,23 +25,15 @@ import (
 func (h *Handler) SignUpUser(c *gin.Context) {
 	var input dtos.UserSignUp
 	// bind input
-	err := c.BindJSON(&input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	input.Email = strings.ToLower(input.Email)
-	inputErrors := helpers.ValidateInput(input)
-	if inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	// send to core
@@ -60,23 +53,15 @@ func (h *Handler) SignUpUser(c *gin.Context) {
 func (h *Handler) SignUpBusiness(c *gin.Context) {
 	var input dtos.BusinessSignUp
 	// bind input
-	err := c.BindJSON(&input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	input.Email = strings.ToLower(input.Email)
-	inputErrors := helpers.ValidateInput(input)
-	if inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	// send to core
@@ -96,26 +81,19 @@ func (h *Handler) SignUpBusiness(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var input models.SignInDto
 	// bind input
-	err := c.BindJSON(&input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	input.Email = strings.ToLower(input.Email)
-	inputErrors := helpers.ValidateInput(input)
-	if inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		fmt.Println(err)
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
-	// send to controller
+	// send to core
 	result := h.core.Login(c, input)
 	c.JSON(result.Code, result)
 }
@@ -132,25 +110,16 @@ func (h *Handler) Login(c *gin.Context) {
 func (h *Handler) ConfirmPhone(c *gin.Context) {
 	var input dtos.ConfirmPhoneNumber
 	// bind input
-	err := c.BindJSON(&input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
-	inputErrors := helpers.ValidateInput(input)
-	if inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
-
 	// send to controller
 	result := h.core.ConfirmPhone(c, &input)
 	c.JSON(result.Code, result)
@@ -168,23 +137,15 @@ func (h *Handler) ConfirmPhone(c *gin.Context) {
 func (h *Handler) SendResetPasswordToken(c *gin.Context) {
 	var input dtos.Phone
 	// bind input
-	err := c.BindJSON(&input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 
-	inputErrors := helpers.ValidateInput(input)
-	if inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 
@@ -206,20 +167,14 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	var input dtos.ResetPassword
 	// bind input
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 
-	if inputErrors := helpers.ValidateInput(input); inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	// send to controller

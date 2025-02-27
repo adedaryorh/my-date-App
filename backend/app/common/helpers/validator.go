@@ -26,7 +26,7 @@ type Enum interface {
 	IsValid() bool
 }
 
-func ValidateInput(input interface{}) []string {
+func ValidateInput(input interface{}) error {
 	var errors []string
 	v := validator.New()
 	v.RegisterValidation("is_enum", ValidateEnum)
@@ -87,8 +87,14 @@ func ValidateInput(input interface{}) []string {
 			}
 		}
 	}
-
-	return errors
+	var s string
+	for _, errorString := range errors {
+		s += fmt.Sprintf("%s \n", errorString)
+	}
+	if len(s) > 0 {
+		return fmt.Errorf("%s", s)
+	}
+	return nil
 }
 
 func ValidateFile(field validator.FieldLevel) bool {

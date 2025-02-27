@@ -121,7 +121,6 @@ func (u *Upload) s3FileSession() (*session.Session, error) {
 				secretAccessKey,
 				"", // a token will be created when the session it's used.
 			),
-			Endpoint: &u.config.StorageEndpoint,
 		})
 }
 

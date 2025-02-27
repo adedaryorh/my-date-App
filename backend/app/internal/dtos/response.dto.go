@@ -8,5 +8,5 @@ type ResponseObject struct {
 	Status  constants.HttpStatus `json:"status,omitempty"`
 	Message string               `json:"message,omitempty"`
 	Data    interface{}          `json:"data,omitempty"`
-	Error   error                `json:"error,omitempty"`
+	Error   interface{}          `json:"error,omitempty"`
 }

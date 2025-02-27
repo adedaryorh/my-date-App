@@ -14,31 +14,32 @@ import (
 	"backend.app/common/messages"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/pkg/response"
 )
 
 // SignUpUser method that handles user sign up
 func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.ResponseObject {
 	existingPhoneUser, err := c.repo.GetUserByField(ctx, helpers.Map{"phone_number": data.PhoneNumber})
 	if err != nil && err != messages.ErrUserNotFound {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	// phone already confirmed
 	if existingPhoneUser != nil && existingPhoneUser.CompletionState > 1 {
-		return BadRequestResponse(errors.New("phone number already confirmed"))
+		return response.BadRequestResponse(errors.New("phone number already confirmed"))
 	}
 
 	// phone number previously submitted but not confirmed yet
 	if existingPhoneUser != nil && existingPhoneUser.CompletionState < 2 {
 		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-			return ServerErrorResponse(err, "user token not successfully sent")
+			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
-		return SuccessResponse(constants.UserTokenSuccessfullySent, nil)
+		return response.SuccessResponse(constants.UserTokenSuccessfullySent, nil)
 	}
 
 	err = c.isUnique(ctx, data.Email, data.PhoneNumber, data.Username)
 	if err != nil {
-		return BadRequestResponse(err, constants.HttpStatus(err.Error()))
+		return response.BadRequestResponse(err, constants.HttpStatus(err.Error()))
 	}
 
 	dob, _ := time.Parse(constants.DATE_LAYOUT, data.DateOfBirth)
@@ -66,32 +67,32 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 		// create user
 		if err = c.repo.CreateUser(ctx, &newUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-			return ServerErrorResponse(err, constants.UserTokenNotSuccessfullySent)
+			return response.ServerErrorResponse(err, constants.UserTokenNotSuccessfullySent)
 		}
 
 		// generate and send otp
 		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, &newUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-			return ServerErrorResponse(err, "user token not successfully sent")
+			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
 
-		return CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
+		return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
 	}
 
 	// update user
 	fields := c.getUpdateFields(existingPhoneUser, data)
 	if len(fields) > 0 {
 		if err = c.repo.UpdateUser(ctx, existingPhoneUser.ID, fields); err != nil {
-			return ServerErrorResponse(err, constants.UserTokenNotSuccessfullySent)
+			return response.ServerErrorResponse(err, constants.UserTokenNotSuccessfullySent)
 		}
 	}
 	//generate and send otp
 	if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-		return ServerErrorResponse(err, "user token not successfully sent")
+		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
 
-	return CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
+	return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
 
 }
 
@@ -155,24 +156,24 @@ func (c *Core) isUnique(ctx context.Context, email, phoneNumber, username string
 func (c *Core) SignUpBusiness(ctx context.Context, data *dtos.BusinessSignUp) *dtos.ResponseObject {
 	existingPhoneUser, err := c.repo.GetUserByField(ctx, helpers.Map{"phone_number": data.PhoneNumber})
 	if err != nil && err != messages.ErrUserNotFound {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	// phone already confirmed
 	if existingPhoneUser != nil && existingPhoneUser.CompletionState > 1 {
-		return BadRequestResponse(errors.New("phone number already confirmed"))
+		return response.BadRequestResponse(errors.New("phone number already confirmed"))
 	}
 	// phone number previously submitted but not confirmed
 	if existingPhoneUser != nil && existingPhoneUser.CompletionState < 2 {
 		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-			return ServerErrorResponse(err, "business token not successfully sent")
+			return response.ServerErrorResponse(err, "business token not successfully sent")
 		}
-		return SuccessResponse(constants.UserTokenSuccessfullySent, nil)
+		return response.SuccessResponse(constants.UserTokenSuccessfullySent, nil)
 	}
 
 	err = c.isUnique(ctx, data.Email, data.PhoneNumber, data.Username)
 	if err != nil {
-		return BadRequestResponse(err, constants.HttpStatus(err.Error()))
+		return response.BadRequestResponse(err, constants.HttpStatus(err.Error()))
 	}
 
 	// build user object
@@ -196,20 +197,20 @@ func (c *Core) SignUpBusiness(ctx context.Context, data *dtos.BusinessSignUp) *d
 		// create user
 		err = c.repo.CreateUser(ctx, &newUser)
 		if err != nil {
-			return ServerErrorResponse(err, constants.BusinessTokenNotSuccessfullySent)
+			return response.ServerErrorResponse(err, constants.BusinessTokenNotSuccessfullySent)
 		}
 		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, &newUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-			return ServerErrorResponse(err, "user token not successfully sent")
+			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
 	}
 	// generate and send otp
 	if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-		return ServerErrorResponse(err, "user token not successfully sent")
+		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
 
-	return CreatedSuccessResponse(constants.BusinessTokenSuccessfullySent, nil)
+	return response.CreatedSuccessResponse(constants.BusinessTokenSuccessfullySent, nil)
 
 }
 
@@ -218,25 +219,25 @@ func (c *Core) ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) 
 	// ensure phone number is unique
 	existingUser, err := c.repo.GetUserByField(ctx, helpers.Map{"phone_number": data.PhoneNumber})
 	if err != nil && err != messages.ErrUserDoesNotExist {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 
 	if existingUser == nil {
-		return BadRequestResponse(messages.ErrUserDoesNotExist, constants.HttpStatusResourceNotFound)
+		return response.BadRequestResponse(messages.ErrUserDoesNotExist, constants.HttpStatusResourceNotFound)
 	}
 	if existingUser.CompletionState > 2 {
-		return BadRequestResponse(fmt.Errorf("%s already confirmed", data.PhoneNumber))
+		return response.BadRequestResponse(fmt.Errorf("%s already confirmed", data.PhoneNumber))
 	}
 
 	//confirm user token
 	valid := c.TokenService.ValidateToken(ctx, fmt.Sprintf("%s:%s", models.RedisKeys.ConfirmPhone, data.PhoneNumber), data.Token)
 	if !valid {
-		return BadRequestResponse(messages.ErrInvalidToken, constants.HttpStatusInvalidToken)
+		return response.BadRequestResponse(messages.ErrInvalidToken, constants.HttpStatusInvalidToken)
 	}
 
 	// create wallet for user
 	if err = c.CreateWallet(ctx, existingUser, constants.CurrencyUSD); err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 
 	if err = c.repo.UpdateUser(ctx, existingUser.ID, helpers.Map{
@@ -244,28 +245,28 @@ func (c *Core) ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) 
 		"completion_state": constants.CompletionStateTwo,
 		"updated_at":       time.Now().UTC(),
 	}); err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
-	return SuccessResponse(constants.PhoneNumberConfirmedSuccessFully, nil)
+	return response.SuccessResponse(constants.PhoneNumberConfirmedSuccessFully, nil)
 }
 
 // Login method that handles logs user in
 func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseObject {
 	user, err := c.repo.GetUserByField(ctx, helpers.Map{"email": data.Email})
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	// validate password
 	if user == nil {
-		return BadRequestResponse(messages.ErrIncorrectLogin)
+		return response.BadRequestResponse(messages.ErrIncorrectLogin)
 	}
 
 	if user.Status != string(constants.AccountStatusActive) {
-		return BadRequestResponse(messages.ErrInactiveUser)
+		return response.BadRequestResponse(messages.ErrInactiveUser)
 	}
 
 	if user.NextLoginAt != nil && user.NextLoginAt.After(time.Now()) {
-		return BadRequestResponse(errors.New("user account temporarily locked "))
+		return response.BadRequestResponse(errors.New("user account temporarily locked "))
 	}
 
 	//validate hashed password
@@ -278,14 +279,14 @@ func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseO
 			// deactivate user
 			err := c.setNextLogin(ctx, user.ID)
 			if err != nil {
-				return ServerErrorResponse(err)
+				return response.ServerErrorResponse(err)
 			}
-			return BadRequestResponse(errors.New("too many password retries, user account temporarily locked"))
+			return response.BadRequestResponse(errors.New("too many password retries, user account temporarily locked"))
 		}
 		count++
 		// count password retries
 		c.redisService.Set(ctx, key, count, helpers.GetDurationFromTimeString("15m"))
-		return BadRequestResponse(messages.ErrIncorrectLogin)
+		return response.BadRequestResponse(messages.ErrIncorrectLogin)
 	}
 	c.redisService.Delete(ctx, key)
 
@@ -299,10 +300,10 @@ func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseO
 	// }
 	result, err := c.generateTokens(ctx, user)
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 
-	return CreatedSuccessResponse(constants.LoginSuccessful, result)
+	return response.CreatedSuccessResponse(constants.LoginSuccessful, result)
 }
 
 func (c *Core) setNextLogin(ctx context.Context, userId uuid.UUID) error {
@@ -325,34 +326,34 @@ func (c *Core) deactivateUser(ctx context.Context, userId uuid.UUID) error {
 func (c *Core) SendResetPasswordToken(ctx context.Context, phoneNumber string) *dtos.ResponseObject {
 	user, err := c.repo.GetUserByField(ctx, helpers.Map{"phone_number": phoneNumber})
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	if user.Status != string(constants.AccountStatusActive) {
-		return BadRequestResponse(errors.New("inactive user"))
+		return response.BadRequestResponse(errors.New("inactive user"))
 	}
 
 	// generate and send otp
 	if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.PasswordReset, user); err != nil {
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
-		return ServerErrorResponse(err, "user token not successfully sent")
+		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
-	return SuccessResponse(constants.PasswordTokenSuccessfullySent, nil)
+	return response.SuccessResponse(constants.PasswordTokenSuccessfullySent, nil)
 }
 
 // ResetPassword methods to use reset  a user's password
 func (c *Core) ResetPassword(ctx context.Context, data *dtos.ResetPassword) *dtos.ResponseObject {
 	user, err := c.repo.GetUserByField(ctx, helpers.Map{"phone_number": data.PhoneNumber})
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	valid := c.TokenService.ValidateToken(ctx, fmt.Sprintf("%s:%s", models.RedisKeys.PasswordReset, data.PhoneNumber), data.Token)
 	if !valid {
-		return BadRequestResponse(errors.New("invalid token"), constants.HttpStatusInvalidToken)
+		return response.BadRequestResponse(errors.New("invalid token"), constants.HttpStatusInvalidToken)
 	}
 	if err = c.repo.UpdateUser(ctx, user.ID, helpers.Map{"password_hash": helpers.Hash(data.Password)}); err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
-	return SuccessResponse(constants.PasswordResetSuccessful, nil)
+	return response.SuccessResponse(constants.PasswordResetSuccessful, nil)
 }
 
 func (c *Core) RefreshTokens(ctx context.Context, user *models.User) (*models.AuthenticatedUser, error) {
@@ -362,7 +363,6 @@ func (c *Core) RefreshTokens(ctx context.Context, user *models.User) (*models.Au
 func (c *Core) generateTokens(ctx context.Context, user *models.User) (*models.AuthenticatedUser, error) {
 	// generate jwt tokens
 	tokens, err := c.middleware.Jwt.CreateAuthRefreshTokens(ctx, *user)
-
 	if err != nil {
 		return nil, messages.ErrCouldNotGenerateToken
 	}

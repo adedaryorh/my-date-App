@@ -9,7 +9,7 @@ import (
 func ProfileRoutes(server *gin.RouterGroup, handler handlers.Operations) {
 	profile := server.Group("/profile", handler.AuthenticatedUserMiddleware())
 	{
-		profile.PUT("", handler.UpdateUserProfile)
-		profile.PUT("/add-profile-image", handler.UploadUserProfilePicture)
+		profile.PATCH("", handler.UpdateUserProfile)
+		profile.PATCH("/add-profile-image", handler.UploadUserProfilePicture)
 	}
 }

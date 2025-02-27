@@ -97,7 +97,7 @@ const docTemplate = `{
         },
         "/auth/reset-password": {
             "post": {
-                "description": "Sends User Password Reset Link",
+                "description": "Sends User Password Reset Token",
                 "consumes": [
                     "application/json"
                 ],
@@ -107,7 +107,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Send Password Reset Link",
+                "summary": "Send Password Reset Token",
                 "parameters": [
                     {
                         "description": "data to send user password reset link",
@@ -115,7 +115,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.Email"
+                            "$ref": "#/definitions/dtos.Phone"
                         }
                     }
                 ],
@@ -147,7 +147,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordDto"
+                            "$ref": "#/definitions/dtos.ResetPassword"
                         }
                     }
                 ],
@@ -252,42 +252,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/add-profile-image": {
-            "put": {
-                "description": "Add User Profile Picture",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Add User Profile Picture",
-                "parameters": [
-                    {
-                        "description": "data to add user profile picture",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dtos.UploadImage"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "desc",
-                        "schema": {
-                            "$ref": "#/definitions/dtos.ResponseObject"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/update-profile": {
-            "put": {
+        "/profile": {
+            "patch": {
                 "description": "Updates user information",
                 "consumes": [
                     "application/json"
@@ -296,7 +262,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Profile"
                 ],
                 "summary": "Update user information",
                 "parameters": [
@@ -329,6 +295,278 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/add-profile-image": {
+            "patch": {
+                "description": "Add User Profile Picture",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Add User Profile Picture",
+                "parameters": [
+                    {
+                        "description": "data to add user profile picture",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.UploadImage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/add-language": {
+            "patch": {
+                "description": "Adds user's Preferred Language",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Add Preferred Language",
+                "parameters": [
+                    {
+                        "description": "data to add preferred language",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.Language"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/add-notification-preferences": {
+            "patch": {
+                "description": "Adds user's Notification Preference",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Add Notification Preference",
+                "parameters": [
+                    {
+                        "description": "data to add notification preference",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.NotificationPreference"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/area-of-interests": {
+            "patch": {
+                "description": "Adds User Area of Interest",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Add Area Of Interest",
+                "parameters": [
+                    {
+                        "description": "data to add area of interests ",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AreaOfInterest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/change-password": {
+            "patch": {
+                "description": "Changes user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Change user password",
+                "parameters": [
+                    {
+                        "description": "data to change user password ",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/logout": {
+            "put": {
+                "description": "Logs a user out",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Logs a user out",
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ws": {
+            "get": {
+                "description": "Connects the client to the server via web sockets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WebSocket"
+                ],
+                "summary": "Connects the client to the server via web sockets",
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ResponseObject"
                         }
                     }
                 }
@@ -385,6 +623,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "constants.AreaOfInterest": {
+            "type": "string",
+            "enum": [
+                "news-and-event",
+                "entertainment",
+                "lifestyle",
+                "personal-development",
+                "humour-and-memes",
+                "sports",
+                "science",
+                "history",
+                "animals",
+                "education",
+                "technology",
+                "product-and-brand",
+                "marketing",
+                "scary-things",
+                "movies",
+                "music"
+            ],
+            "x-enum-varnames": [
+                "AreaOfInterestNewsAndEvent",
+                "AreaOfInterestEntertainment",
+                "AreaOfInterestLifestyle",
+                "AreaOfInterestPersonalDevelopment",
+                "AreaOfInterestHumourAndMemes",
+                "AreaOfInterestSports",
+                "AreaOfInterestScience",
+                "AreaOfInterestHistory",
+                "AreaOfInterestAnimals",
+                "AreaOfInterestEducation",
+                "AreaOfInterestTechnology",
+                "AreaOfInterestProductAndBrand",
+                "AreaOfInterestMarketing",
+                "AreaOfInterestScaryThings",
+                "AreaOfInterestMovies",
+                "AreaOfInterestMusic"
+            ]
+        },
         "constants.HttpStatus": {
             "type": "string",
             "enum": [
@@ -393,7 +670,8 @@ const docTemplate = `{
                 "success",
                 "resource-not-found",
                 "invalid-token",
-                "token-found"
+                "token-expired",
+                "token-not-found"
             ],
             "x-enum-varnames": [
                 "HttpStatusBadRequest",
@@ -401,6 +679,7 @@ const docTemplate = `{
                 "HttpStatusSuccess",
                 "HttpStatusResourceNotFound",
                 "HttpStatusInvalidToken",
+                "HttpStatusTokenExpired",
                 "HttpStatusTokenNotFound"
             ]
         },
@@ -422,6 +701,28 @@ const docTemplate = `{
                 "IndustryTypeInformationTechnology",
                 "IndustryTypeFurniture"
             ]
+        },
+        "constants.NotificationType": {
+            "type": "string",
+            "enum": [
+                "email",
+                "push"
+            ],
+            "x-enum-varnames": [
+                "NotificationTypeEmail",
+                "NotificationTypePush"
+            ]
+        },
+        "dtos.AreaOfInterest": {
+            "type": "object",
+            "properties": {
+                "areas_of_interest": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/constants.AreaOfInterest"
+                    }
+                }
+            }
         },
         "dtos.BusinessSignUp": {
             "type": "object",
@@ -464,6 +765,21 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.ChangePassword": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.ConfirmPhoneNumber": {
             "type": "object",
             "required": [
@@ -479,13 +795,56 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.Email": {
+        "dtos.Language": {
             "type": "object",
             "required": [
-                "email"
+                "language"
             ],
             "properties": {
-                "email": {
+                "language": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                }
+            }
+        },
+        "dtos.NotificationPreference": {
+            "type": "object",
+            "properties": {
+                "notification_preferences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/constants.NotificationType"
+                    }
+                }
+            }
+        },
+        "dtos.Phone": {
+            "type": "object",
+            "required": [
+                "phone_number"
+            ],
+            "properties": {
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.ResetPassword": {
+            "type": "object",
+            "required": [
+                "password",
+                "phone_number",
+                "token"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 }
             }
@@ -619,25 +978,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ResetPasswordDto": {
-            "type": "object",
-            "required": [
-                "email",
-                "password",
-                "token"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "models.SignInDto": {
             "type": "object",
             "required": [
@@ -701,6 +1041,9 @@ const docTemplate = `{
                 "ip_address": {
                     "type": "string"
                 },
+                "language": {
+                    "type": "string"
+                },
                 "last_name": {
                     "type": "string"
                 },
@@ -712,6 +1055,12 @@ const docTemplate = `{
                 },
                 "next_login_at": {
                     "type": "string"
+                },
+                "notification_preference": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "phone_number": {
                     "type": "string"
