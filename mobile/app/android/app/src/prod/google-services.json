@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "895375292733",
+    "project_id": "celebut-prod",
+    "storage_bucket": "celebut-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895375292733:android:28efde1b59b73e861bad54",
+        "android_client_info": {
+          "package_name": "com.celebut.celebut"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwZtuTvhstK11g7v84h9SvalQNmJrJryU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

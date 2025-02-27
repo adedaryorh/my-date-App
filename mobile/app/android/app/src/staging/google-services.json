@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "194638684779",
+    "project_id": "celebut-staging",
+    "storage_bucket": "celebut-staging.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194638684779:android:9f42f70e92723c8a06472e",
+        "android_client_info": {
+          "package_name": "com.celebut.celebut.staging"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANpL0kmqq5-itvjat9TBk3AZO-j1qSasE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
