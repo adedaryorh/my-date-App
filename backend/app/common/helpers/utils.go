@@ -125,6 +125,20 @@ func Base64StringToByte(s string) ([]byte, error) {
 	}
 	return decoded, nil
 }
+func StructToBase64(v interface{}) (string, error) {
+	var buf bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+	err := json.NewEncoder(encoder).Encode(v)
+	if err != nil {
+		return "", err
+	}
+	encoder.Close()
+	return buf.String(), nil
+}
+
+func Base64ToStruct(v interface{}, enc string) error {
+	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
+}
 
 func Hash(s string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(s), 14)

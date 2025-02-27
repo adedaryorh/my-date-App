@@ -38,7 +38,6 @@ type (
 		AwsAccessKeyID     string `validate:"required" yaml:"access_key_id" env:"AWS_ACCESS_KEY_ID"`
 		AwsSecretAccessKey string `validate:"required" yaml:"secret_id" env:"AWS_SECRET_ID"`
 		AwsRegion          string `validate:"required" yaml:"region" env:"AWS_REGION"`
-		StorageEndpoint    string
 		AwsS3Bucket        string `validate:"required" yaml:"aws_s3_bucket" env:"AWS_S3_BUCKET"`
 
 		EnableSwagger            string `validate:"required"`
@@ -77,7 +76,6 @@ func NewConfig() (*Config, error) {
 		AwsAccessKeyID:           helpers.Getenv("AWS_ACCESS_KEY_ID"),
 		AwsSecretAccessKey:       helpers.Getenv("AWS_SECRET_ACCESS_KEY"),
 		AwsS3Bucket:              helpers.Getenv("AWS_S3_BUCKET"),
-		StorageEndpoint:          helpers.Getenv("STORAGE_ENDPOINT"),
 		ServiceAddress:           helpers.Getenv("SERVICE_ADDRESS"),
 		PgPoolMax:                helpers.Getenv("PG_POOL_MAX", "2"),
 		JwtSecret:                helpers.Getenv("JWT_SECRET"),

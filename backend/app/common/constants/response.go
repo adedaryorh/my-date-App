@@ -8,5 +8,6 @@ const (
 	HttpStatusSuccess          HttpStatus = "success"
 	HttpStatusResourceNotFound HttpStatus = "resource-not-found"
 	HttpStatusInvalidToken     HttpStatus = "invalid-token"
-	HttpStatusTokenNotFound    HttpStatus = "token-found"
+	HttpStatusTokenExpired     HttpStatus = "token-expired"
+	HttpStatusTokenNotFound    HttpStatus = "token-not-found"
 )

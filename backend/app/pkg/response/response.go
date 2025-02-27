@@ -1,6 +1,7 @@
-package core
+package response
 
 import (
+	"fmt"
 	"net/http"
 
 	"backend.app/common/constants"
@@ -24,7 +25,7 @@ func failureResponse(code int, status constants.HttpStatus, message string, err 
 	return &dtos.ResponseObject{
 		Code:    code,
 		Message: message,
-		Error:   err,
+		Error:   err.Error(),
 		Status:  status,
 	}
 }
@@ -49,5 +50,6 @@ func BadRequestResponse(err error, status ...constants.HttpStatus) *dtos.Respons
 	if len(status) > 0 {
 		stat = status[0]
 	}
+	fmt.Println(err)
 	return failureResponse(http.StatusBadRequest, stat, err.Error(), err)
 }

@@ -9,6 +9,7 @@ import (
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
 	"backend.app/internal/services/upload"
+	"backend.app/pkg/response"
 )
 
 // UploadUserProfileImage Method used to upload user's profile picture
@@ -17,12 +18,12 @@ func (c *Core) UploadUserProfileImage(ctx context.Context, user *models.User, da
 	attachmentKinds := []upload.AttachmentKind{upload.AttachmentKindImagePNG, upload.AttachmentKindImageJPEG, upload.AttachmentKindImageJPG}
 	profilePix, err := c.uploadDocument(int64(maxFileSize), string(constants.DocumentKindProfilePicture), user.ID.String(), data.Image, attachmentKinds)
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
 	if err := c.repo.UpdateUser(ctx, user.ID, helpers.Map{"profile_image_url": profilePix.Url}); err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
-	return SuccessResponse(constants.UserProfileSuccessfullyUploaded, nil)
+	return response.SuccessResponse(constants.UserProfileSuccessfullyUploaded, nil)
 }
 
 // UpdateUserProfile Method used to update the user's profile
@@ -44,7 +45,7 @@ func (c *Core) UpdateUserProfile(ctx context.Context, user *models.User, data *d
 		update["date_of_birth"] = dob
 	}
 	if err := c.repo.UpdateUser(ctx, user.ID, update); err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
-	return SuccessResponse(constants.UserProfileSuccessfullyUpdated, nil)
+	return response.SuccessResponse(constants.UserProfileSuccessfullyUpdated, nil)
 }

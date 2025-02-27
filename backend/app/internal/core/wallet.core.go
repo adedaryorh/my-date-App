@@ -9,6 +9,7 @@ import (
 	"backend.app/common/messages"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/pkg/response"
 )
 
 // CreateWallet creates a new wallet
@@ -43,7 +44,7 @@ func (c *Core) CreateWallet(ctx context.Context, user *models.User, currency con
 func (c *Core) GetUserWallet(ctx context.Context, user *models.User) *dtos.ResponseObject {
 	result, err := c.repo.GetWalletByField(ctx, helpers.Map{"owner_id": user.ID})
 	if err != nil {
-		return ServerErrorResponse(err)
+		return response.ServerErrorResponse(err)
 	}
-	return SuccessResponse("user wallet successfully fetched", result)
+	return response.SuccessResponse("user wallet successfully fetched", result)
 }

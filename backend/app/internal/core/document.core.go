@@ -18,10 +18,10 @@ func (c *Core) uploadDocument(maxFileSize int64, kind, sourceId string, document
 	// upload file to aws
 	fileInput := upload.FileInput{
 		Content: file,
-		Name:    fmt.Sprintf("%s-%s.%s", kind, sourceId, fileType),
+		Name:    fmt.Sprintf("%s/%s.%s", kind, sourceId, fileType),
 		Kind:    string(upload.AttachmentMap[fileType]),
 		Size:    document.Size,
-		URL:     fmt.Sprintf("%s-%s", kind, sourceId),
+		URL:     fmt.Sprintf("%s/%s", kind, sourceId),
 	}
 	//upload file to AWS
 	return c.UploadFileToAwsS3(fileInput, int64(maxFileSize), allowedKinds)

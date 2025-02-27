@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 
 	"backend.app/common/constants"
 	"backend.app/common/helpers"
-	"backend.app/common/messages"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/pkg/response"
 )
 
 // @Tags Profile
@@ -21,24 +21,19 @@ import (
 // @Success 200 {object} dtos.ResponseObject{} "desc"
 // @Failure 400 {object} map[string]interface{} "Invalid input"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Router /profile [put]
+// @Router /profile [patch]
 func (h *Handler) UpdateUserProfile(c *gin.Context) {
 	var input *dtos.UpdateUserProfile
 	// bind input
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
-	if inputErrors := helpers.ValidateInput(input); inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	user := c.MustGet("authUser").(models.User) // auth user
@@ -55,24 +50,20 @@ func (h *Handler) UpdateUserProfile(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} dtos.ResponseObject "desc"
-// @Router /profile/add-profile-image [put]
+// @Router /profile/add-profile-image [patch]
 func (h *Handler) UploadUserProfilePicture(c *gin.Context) {
 	var input *dtos.UploadImage
 	// bind input
-	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   err,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+	if err := c.Bind(&input); err != nil {
+		fmt.Println(">>>>>>>>>>>>")
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
-	if inputErrors := helpers.ValidateInput(input); inputErrors != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  constants.HttpStatusBadRequest,
-			"error":   inputErrors,
-			"message": messages.ErrInvalidInput.Error(),
-		})
+
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
 		return
 	}
 	user := c.MustGet("authUser").(models.User) // auth user

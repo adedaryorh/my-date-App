@@ -14,13 +14,13 @@ func (h *Handler) AuthenticatedUserMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := h.core.Middleware().JwtUserAuth(c)
 		if err != nil {
-			status := http.StatusUnauthorized
+			status := constants.HttpStatusTokenExpired
 			if err == messages.ErrInvalidToken {
-				status = http.StatusGone
+				status = constants.HttpStatusInvalidToken
 			}
-			c.JSON(status, gin.H{
-				"status":  constants.HttpStatusBadRequest,
-				"error":   err,
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  status,
+				"error":   err.Error(),
 				"message": messages.ErrInvalidInput.Error(),
 			})
 			c.Abort()
@@ -37,7 +37,7 @@ func (h *Handler) AuthenticatedUserMiddleware() gin.HandlerFunc {
 // @Description Logs a user out
 // @Accept json
 // @Produce json
-// @Success 200 {object} response.ResponseObject "desc"
+// @Success 200 {object} dtos.ResponseObject "desc"
 // @Router /settings/logout [put]
 func (h *Handler) LogoutMiddleware() gin.HandlerFunc {
 	// add the middleware function
@@ -45,7 +45,7 @@ func (h *Handler) LogoutMiddleware() gin.HandlerFunc {
 		if err := h.core.Middleware().JwtLogUserOut(c); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"status":  constants.HttpStatusBadRequest,
-				"error":   err,
+				"error":   err.Error(),
 				"message": "logout not successful",
 			})
 			c.Abort()

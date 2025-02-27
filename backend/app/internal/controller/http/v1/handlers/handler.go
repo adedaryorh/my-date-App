@@ -34,6 +34,13 @@ type Operations interface {
 
 	// Settings
 	LogoutMiddleware() gin.HandlerFunc
+	ChangePassword(c *gin.Context)
+	AddAreaOfInterests(c *gin.Context)
+	AddPreferredLanguage(c *gin.Context)
+	AddNotificationPreference(c *gin.Context)
+
+	// Web socket
+	WebSocketHandler(c *gin.Context)
 
 	// Wallet
 	GetUserWallet(c *gin.Context)

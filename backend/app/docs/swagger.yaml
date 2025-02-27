@@ -1,4 +1,40 @@
 definitions:
+  constants.AreaOfInterest:
+    enum:
+    - news-and-event
+    - entertainment
+    - lifestyle
+    - personal-development
+    - humour-and-memes
+    - sports
+    - science
+    - history
+    - animals
+    - education
+    - technology
+    - product-and-brand
+    - marketing
+    - scary-things
+    - movies
+    - music
+    type: string
+    x-enum-varnames:
+    - AreaOfInterestNewsAndEvent
+    - AreaOfInterestEntertainment
+    - AreaOfInterestLifestyle
+    - AreaOfInterestPersonalDevelopment
+    - AreaOfInterestHumourAndMemes
+    - AreaOfInterestSports
+    - AreaOfInterestScience
+    - AreaOfInterestHistory
+    - AreaOfInterestAnimals
+    - AreaOfInterestEducation
+    - AreaOfInterestTechnology
+    - AreaOfInterestProductAndBrand
+    - AreaOfInterestMarketing
+    - AreaOfInterestScaryThings
+    - AreaOfInterestMovies
+    - AreaOfInterestMusic
   constants.HttpStatus:
     enum:
     - bad-request
@@ -6,7 +42,8 @@ definitions:
     - success
     - resource-not-found
     - invalid-token
-    - token-found
+    - token-expired
+    - token-not-found
     type: string
     x-enum-varnames:
     - HttpStatusBadRequest
@@ -14,6 +51,7 @@ definitions:
     - HttpStatusSuccess
     - HttpStatusResourceNotFound
     - HttpStatusInvalidToken
+    - HttpStatusTokenExpired
     - HttpStatusTokenNotFound
   constants.IndustryType:
     enum:
@@ -31,6 +69,21 @@ definitions:
     - IndustryTypeMining
     - IndustryTypeInformationTechnology
     - IndustryTypeFurniture
+  constants.NotificationType:
+    enum:
+    - email
+    - push
+    type: string
+    x-enum-varnames:
+    - NotificationTypeEmail
+    - NotificationTypePush
+  dtos.AreaOfInterest:
+    properties:
+      areas_of_interest:
+        items:
+          $ref: '#/definitions/constants.AreaOfInterest'
+        type: array
+    type: object
   dtos.BusinessSignUp:
     properties:
       business_name:
@@ -62,6 +115,16 @@ definitions:
     - phone_number
     - username
     type: object
+  dtos.ChangePassword:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   dtos.ConfirmPhoneNumber:
     properties:
       phone_number:
@@ -72,12 +135,41 @@ definitions:
     - phone_number
     - token
     type: object
-  dtos.Email:
+  dtos.Language:
     properties:
-      email:
+      language:
+        maxLength: 100
+        minLength: 2
         type: string
     required:
-    - email
+    - language
+    type: object
+  dtos.NotificationPreference:
+    properties:
+      notification_preferences:
+        items:
+          $ref: '#/definitions/constants.NotificationType'
+        type: array
+    type: object
+  dtos.Phone:
+    properties:
+      phone_number:
+        type: string
+    required:
+    - phone_number
+    type: object
+  dtos.ResetPassword:
+    properties:
+      password:
+        type: string
+      phone_number:
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - phone_number
+    - token
     type: object
   dtos.ResponseObject:
     properties:
@@ -169,19 +261,6 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
-  models.ResetPasswordDto:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-      token:
-        type: string
-    required:
-    - email
-    - password
-    - token
-    type: object
   models.SignInDto:
     properties:
       email:
@@ -224,6 +303,8 @@ definitions:
         type: array
       ip_address:
         type: string
+      language:
+        type: string
       last_name:
         type: string
       latitude:
@@ -232,6 +313,10 @@ definitions:
         type: number
       next_login_at:
         type: string
+      notification_preference:
+        items:
+          type: string
+        type: array
       phone_number:
         type: string
       profile_image_url:
@@ -323,7 +408,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.ResetPasswordDto'
+          $ref: '#/definitions/dtos.ResetPassword'
       produces:
       - application/json
       responses:
@@ -337,14 +422,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Sends User Password Reset Link
+      description: Sends User Password Reset Token
       parameters:
       - description: data to send user password reset link
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dtos.Email'
+          $ref: '#/definitions/dtos.Phone'
       produces:
       - application/json
       responses:
@@ -352,7 +437,7 @@ paths:
           description: desc
           schema:
             $ref: '#/definitions/dtos.ResponseObject'
-      summary: Send Password Reset Link
+      summary: Send Password Reset Token
       tags:
       - Auth
   /auth/self:
@@ -414,30 +499,8 @@ paths:
       summary: Signs user up
       tags:
       - Auth
-  /users/add-profile-image:
-    put:
-      consumes:
-      - application/json
-      description: Add User Profile Picture
-      parameters:
-      - description: data to add user profile picture
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dtos.UploadImage'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: desc
-          schema:
-            $ref: '#/definitions/dtos.ResponseObject'
-      summary: Add User Profile Picture
-      tags:
-      - User
-  /users/update-profile:
-    put:
+  /profile:
+    patch:
       consumes:
       - application/json
       description: Updates user information
@@ -467,7 +530,187 @@ paths:
             type: object
       summary: Update user information
       tags:
-      - User
+      - Profile
+  /profile/add-profile-image:
+    patch:
+      consumes:
+      - application/json
+      description: Add User Profile Picture
+      parameters:
+      - description: data to add user profile picture
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UploadImage'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+      summary: Add User Profile Picture
+      tags:
+      - Profile
+  /settings/add-language:
+    patch:
+      consumes:
+      - application/json
+      description: Adds user's Preferred Language
+      parameters:
+      - description: data to add preferred language
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.Language'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add Preferred Language
+      tags:
+      - Settings
+  /settings/add-notification-preferences:
+    patch:
+      consumes:
+      - application/json
+      description: Adds user's Notification Preference
+      parameters:
+      - description: data to add notification preference
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.NotificationPreference'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add Notification Preference
+      tags:
+      - Settings
+  /settings/area-of-interests:
+    patch:
+      consumes:
+      - application/json
+      description: Adds User Area of Interest
+      parameters:
+      - description: 'data to add area of interests '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AreaOfInterest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add Area Of Interest
+      tags:
+      - Settings
+  /settings/change-password:
+    patch:
+      consumes:
+      - application/json
+      description: Changes user password
+      parameters:
+      - description: 'data to change user password '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ChangePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Change user password
+      tags:
+      - Settings
+  /settings/logout:
+    put:
+      consumes:
+      - application/json
+      description: Logs a user out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+      summary: Logs a user out
+      tags:
+      - Settings
+  /v1/ws:
+    get:
+      consumes:
+      - application/json
+      description: Connects the client to the server via web sockets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+      summary: Connects the client to the server via web sockets
+      tags:
+      - WebSocket
   /wallets:
     get:
       consumes:

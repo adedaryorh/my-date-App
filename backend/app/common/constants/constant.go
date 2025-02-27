@@ -8,5 +8,5 @@ const (
 
 	AUTH_TOKEN_TTL = "5m"
 
-	DocumentKindProfilePicture DocumentKind = "profile-picture"
+	DocumentKindProfilePicture DocumentKind = "profile-images"
 )

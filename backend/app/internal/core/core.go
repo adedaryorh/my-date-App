@@ -15,6 +15,8 @@ import (
 	"backend.app/internal/services/upload"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type Core struct {
@@ -41,6 +43,9 @@ type Operations interface {
 
 	// settings
 	ChangePassword(ctx context.Context, data *dtos.ChangePassword, user *models.User) *dtos.ResponseObject
+	AddAreaOfInterests(ctx context.Context, data *dtos.AreaOfInterest, user *models.User) *dtos.ResponseObject
+	AddPreferredLanguage(ctx context.Context, data *dtos.Language, user *models.User) *dtos.ResponseObject
+	AddNotificationPreference(ctx context.Context, data *dtos.NotificationPreference, user *models.User) *dtos.ResponseObject
 
 	// profile
 	UploadUserProfileImage(ctx context.Context, user *models.User, data *dtos.UploadImage) *dtos.ResponseObject
@@ -48,6 +53,9 @@ type Operations interface {
 
 	// wallet
 	GetUserWallet(ctx context.Context, user *models.User) *dtos.ResponseObject
+
+	// websocket
+	HandleWebsocketConnection(ctx *gin.Context, conn *websocket.Conn)
 }
 
 func NewCore(config *configs.Config, log *logger.Logger, db *database.DB, middleware *middleware.Middleware) Operations {
