@@ -1,12 +1,15 @@
 import { CardProps } from "@/types/interfaces";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
-export default function Card({ title, percentage, value, isPositive, bgColor, textColor, spanColor }: Readonly<CardProps>) {
+export default function Card({ title, icon, iconBg, percentage, value, isPositive, bgColor, headingColor, textColor, spanColor }: Readonly<CardProps>) {
   return (
     <div className={`p-7 ${bgColor} ${textColor} border border-[#E6E6E6] rounded-[12px] flex-1`}>
-      <h3 className="text-base font-semibold mb-7">{title}</h3>
+      <div className="flex gap-5 items-center mb-7">
+        <div className={`${iconBg} p-2 rounded-full`}>{icon}</div>
+        <h3 className="text-base font-semibold">{title}</h3>
+      </div>
       <div className="flex items-center gap-4">
-        <h4 className="text-4xl font-bold">{(+value)?.toLocaleString()}</h4>
+        <h4 className={`${headingColor} text-4xl font-bold`}>{(+value)?.toLocaleString()}</h4>
         <div>
           <div className="flex items-center justify-between">
             {isPositive ? <TrendingUp color="#9ACD37" size={24} /> : <TrendingDown color="#FF0000F6" size={24} />}

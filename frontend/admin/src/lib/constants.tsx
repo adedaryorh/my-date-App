@@ -1,4 +1,4 @@
-import { Menu } from "@/types/interfaces";
+import { AuditTrail, BarChartData, LineChartData, Menu, PieChartData, User } from "@/types/interfaces";
 import { JSX } from "react";
 
 export const MenuItems: Menu[] = [
@@ -81,8 +81,8 @@ export const MenuItems: Menu[] = [
         <path d="M14 8.78L18.24 1.45L19.97 2.45L14.74 11.5L8.23 7.75L3.46 16H20V18H0V0H2V14.54L7.5 5L14 8.78Z" fill="currentColor" />
       </svg>
     ),
-    title: "Commersialization",
-    url: "/commersialization",
+    title: "Commercialization",
+    url: "/commercialization",
   },
   {
     icon: (
@@ -109,8 +109,8 @@ export const MenuItems: Menu[] = [
         <path d="M3.9375 4.85938C3.83437 4.85938 3.75 4.94375 3.75 5.04688V6.17188C3.75 6.275 3.83437 6.35938 3.9375 6.35938H12.9375C13.0406 6.35938 13.125 6.275 13.125 6.17188V5.04688C13.125 4.94375 13.0406 4.85938 12.9375 4.85938H3.9375ZM8.25 8.23438H3.9375C3.83437 8.23438 3.75 8.31875 3.75 8.42188V9.54688C3.75 9.65 3.83437 9.73438 3.9375 9.73438H8.25C8.35312 9.73438 8.4375 9.65 8.4375 9.54688V8.42188C8.4375 8.31875 8.35312 8.23438 8.25 8.23438ZM7.125 18.9688H1.875V2.46875H15V9.96875C15 10.0719 15.0844 10.1562 15.1875 10.1562H16.5C16.6031 10.1562 16.6875 10.0719 16.6875 9.96875V1.53125C16.6875 1.11641 16.3523 0.78125 15.9375 0.78125H0.9375C0.522656 0.78125 0.1875 1.11641 0.1875 1.53125V19.9062C0.1875 20.3211 0.522656 20.6562 0.9375 20.6562H7.125C7.22813 20.6562 7.3125 20.5719 7.3125 20.4688V19.1562C7.3125 19.0531 7.22813 18.9688 7.125 18.9688ZM17.4375 16.9062H14.0625V16.0484C15.1477 15.725 15.9375 14.7219 15.9375 13.5312C15.9375 12.0805 14.7633 10.9062 13.3125 10.9062C11.8617 10.9062 10.6875 12.0805 10.6875 13.5312C10.6875 14.7195 11.4773 15.725 12.5625 16.0484V16.9062H9.1875C8.98125 16.9062 8.8125 17.075 8.8125 17.2812V20.8438C8.8125 21.05 8.98125 21.2188 9.1875 21.2188H17.4375C17.6437 21.2188 17.8125 21.05 17.8125 20.8438V17.2812C17.8125 17.075 17.6437 16.9062 17.4375 16.9062ZM12.1406 13.5312C12.1406 12.8844 12.6656 12.3594 13.3125 12.3594C13.9594 12.3594 14.4844 12.8844 14.4844 13.5312C14.4844 14.1781 13.9594 14.7031 13.3125 14.7031C12.6656 14.7031 12.1406 14.1781 12.1406 13.5312ZM16.3594 19.7656H10.2656V18.3594H16.3594V19.7656Z" fill="currentColor" />
       </svg>
     ),
-    title: "Audit Tray",
-    url: "/audit-tray",
+    title: "Audit Trail",
+    url: "/audit-trail",
   },
   {
     icon: (
@@ -149,5 +149,112 @@ export const headerIcons: { icon: JSX.Element; title: string }[] = [
       </svg>
     ),
     title: "call",
+  },
+];
+
+export const pieChartData: PieChartData[] = [
+  { os: "web", users: 150000000, fill: "var(--color-web)" },
+  { os: "android", users: 450000000, fill: "var(--color-android)" },
+  { os: "IOS", users: 400000000, fill: "var(--color-IOS)" },
+];
+
+export const lineChartData: LineChartData[] = [
+  { day: "Sunday", revenue: 200000 },
+  { day: "Monday", revenue: 305000 },
+  { day: "Tuesday", revenue: 457000 },
+  { day: "Wednesday", revenue: 730000 },
+  { day: "Thursday", revenue: 901200 },
+  { day: "Friday", revenue: 1809000 },
+  { day: "Saturday", revenue: 2000000 },
+];
+
+export const barChartData: BarChartData[] = [
+  { day: "Sunday", web: 186, android: 80, IOS: 70 },
+  { day: "Monday", web: 305, android: 200, IOS: 102 },
+  { day: "Tuesday", web: 237, android: 120, IOS: 287 },
+  { day: "Wednesday", web: 73, android: 190, IOS: 135 },
+  { day: "Thursday", web: 209, android: 130, IOS: 322 },
+  { day: "Friday", web: 214, android: 140, IOS: 119 },
+  { day: "Saturday", web: 214, android: 140, IOS: 98 },
+];
+
+export const auditTrail: AuditTrail[] = [
+  { id: 100, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 200, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 300, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 400, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 500, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 600, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 700, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 800, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 900, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+  { id: 1000, name: "Ajanlekoko Adekoya", sector: "Dashboard", status: "online" },
+];
+
+export const users: User[] = [
+  {
+    id: "728ed52f",
+    image: "/img/user.jpeg",
+    fullname: "Eromosele Oluwatobiloba",
+    email: "Eromoseleoluwatobiloba@celebut.com",
+    badge_type: "business",
+    country: "USA",
+    state: "California",
+    document_type: "SSN",
+    status: "approved",
+    application_date: "27/2/2025",
+    dob: "1/1/1999",
+  },
+  {
+    id: "63rev23j",
+    image: "/img/user.jpeg",
+    fullname: "Eromosele Oluwatobiloba",
+    email: "Eromoseleoluwatobiloba@celebut.com",
+    badge_type: "Royal Family",
+    country: "Ghana",
+    state: "Accra",
+    document_type: "passport",
+    status: "failed",
+    application_date: "27/2/2025",
+    dob: "1/1/1999",
+  },
+  {
+    id: "893nd22i",
+    image: "/img/user.jpeg",
+    fullname: "Eromosele Oluwatobiloba",
+    email: "Eromoseleoluwatobiloba@celebut.com",
+    badge_type: "public figure",
+    country: "Nigeria",
+    state: "Lagos",
+    document_type: "NIN",
+    status: "pending",
+    application_date: "27/2/2025",
+    dob: "1/1/1999",
+  },
+  {
+    id: "167jk450",
+    image: "/img/user.jpeg",
+    fullname: "Eromosele Oluwatobiloba",
+    email: "Eromoseleoluwatobiloba@celebut.com",
+    badge_type: "personal",
+    country: "UK",
+    state: "London",
+    document_type: "NIN",
+    status: "pending",
+    application_date: "27/2/2025",
+    dob: "1/1/1999",
+  },
+  {
+    id: "167jk450",
+    image: "/img/user.jpeg",
+    fullname: "Eromosele Oluwatobiloba",
+    email: "Eromoseleoluwatobiloba@celebut.com",
+    badge_type: "government official",
+    country: "USA",
+    state: "New York",
+    document_type: "NIN",
+    status: "approved",
+    application_date: "27/2/2025",
+    dob: "1/1/1999",
   },
 ];

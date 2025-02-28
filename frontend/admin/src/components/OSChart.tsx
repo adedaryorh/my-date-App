@@ -24,8 +24,8 @@ const chartConfig = {
 const renderCustomLegend: ContentType = ({ payload }) => {
   return (
     <ul className="flex justify-between items-center gap-5">
-      {payload?.map((entry, index: number) => (
-        <li key={`item-${index}`} className="flex gap-2 items-center">
+      {payload?.map((entry) => (
+        <li key={entry.value} className="flex gap-2 items-center">
           <span className="capitalize text-sm font-semibold">{entry.value}</span>
           <span className="inline-block w-[30px] h-[10px] rounded-sm" style={{ backgroundColor: entry.color }}></span>
         </li>

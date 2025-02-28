@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile nav */}
       <AnimatePresence>
         {isOpen && (
-          <motion.aside className="h-screen w-full bg-celebut-gold overflow-scroll absolute" initial={{ opacity: 0, x: -500 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -500 }} transition={{ duration: 0.5 }}>
+          <motion.aside className="h-screen w-full bg-celebut-gold overflow-scroll absolute z-50" initial={{ opacity: 0, x: -500 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -500 }} transition={{ duration: 0.5 }}>
             <div className="flex justify-end p-5 fixed top-0 right-0">
               <X size={30} color="#fff" onClick={toggleMenu} />
             </div>
