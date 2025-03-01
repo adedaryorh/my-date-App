@@ -65,7 +65,8 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 	}
 	if existingPhoneUser == nil {
 		// create user
-		if err = c.repo.CreateUser(ctx, &newUser); err != nil {
+		user, err := c.repo.CreateUser(ctx, &newUser)
+		if err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 			return response.ServerErrorResponse(err, constants.UserTokenNotSuccessfullySent)
 		}
@@ -75,6 +76,7 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
+		c.mixPanel.TrackEvent(ctx, user, constants.AppEventSignUpStarted)
 
 		return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
 	}
@@ -91,7 +93,7 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
-
+	c.mixPanel.TrackEvent(ctx, existingPhoneUser, constants.AppEventSignUpStarted)
 	return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
 
 }
@@ -195,7 +197,7 @@ func (c *Core) SignUpBusiness(ctx context.Context, data *dtos.BusinessSignUp) *d
 
 	if existingPhoneUser == nil {
 		// create user
-		err = c.repo.CreateUser(ctx, &newUser)
+		user, err := c.repo.CreateUser(ctx, &newUser)
 		if err != nil {
 			return response.ServerErrorResponse(err, constants.BusinessTokenNotSuccessfullySent)
 		}
@@ -203,12 +205,14 @@ func (c *Core) SignUpBusiness(ctx context.Context, data *dtos.BusinessSignUp) *d
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
+		c.mixPanel.TrackEvent(ctx, user, constants.AppEventSignUpStarted)
 	}
 	// generate and send otp
 	if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
+	c.mixPanel.TrackEvent(ctx, existingPhoneUser, constants.AppEventSignUpStarted)
 
 	return response.CreatedSuccessResponse(constants.BusinessTokenSuccessfullySent, nil)
 
@@ -247,6 +251,8 @@ func (c *Core) ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) 
 	}); err != nil {
 		return response.ServerErrorResponse(err)
 	}
+	c.mixPanel.SetProfile(ctx, existingUser)
+	c.mixPanel.TrackEvent(ctx, existingUser, constants.AppEventSignUpCompleted)
 	return response.SuccessResponse(constants.PhoneNumberConfirmedSuccessFully, nil)
 }
 
@@ -256,16 +262,19 @@ func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseO
 	if err != nil {
 		return response.ServerErrorResponse(err)
 	}
+	c.mixPanel.TrackEvent(ctx, user, constants.AppEventLoginStarted)
 	// validate password
 	if user == nil {
 		return response.BadRequestResponse(messages.ErrIncorrectLogin)
 	}
 
 	if user.Status != string(constants.AccountStatusActive) {
+		c.mixPanel.TrackEvent(ctx, user, constants.AppEventLoginFailed)
 		return response.BadRequestResponse(messages.ErrInactiveUser)
 	}
 
 	if user.NextLoginAt != nil && user.NextLoginAt.After(time.Now()) {
+		c.mixPanel.TrackEvent(ctx, user, constants.AppEventLoginFailed)
 		return response.BadRequestResponse(errors.New("user account temporarily locked "))
 	}
 
@@ -274,6 +283,7 @@ func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseO
 	isValid := helpers.CompareHash(user.PasswordHash, data.Password)
 
 	if !isValid {
+		c.mixPanel.TrackEvent(ctx, user, constants.AppEventLoginFailed)
 		count := c.redisService.GetIntValue(ctx, key)
 		if count >= 5 {
 			// deactivate user
@@ -298,12 +308,13 @@ func (c *Core) Login(ctx context.Context, data models.SignInDto) *dtos.ResponseO
 	// 		return nil, err
 	// 	}
 	// }
+	c.mixPanel.TrackEvent(ctx, user, constants.AppEventLoginSuccessful)
 	result, err := c.generateTokens(ctx, user)
 	if err != nil {
 		return response.ServerErrorResponse(err)
 	}
 
-	return response.CreatedSuccessResponse(constants.LoginSuccessful, result)
+	return response.SuccessResponse(constants.LoginSuccessful, result)
 }
 
 func (c *Core) setNextLogin(ctx context.Context, userId uuid.UUID) error {

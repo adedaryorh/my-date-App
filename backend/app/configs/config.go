@@ -3,6 +3,7 @@ package configs
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"backend.app/common/helpers"
 	validator "github.com/go-playground/validator/v10"
@@ -45,6 +46,10 @@ type (
 		TwilioAccountSid         string `validate:"required"`
 		TwilioAuthToken          string `validate:"required"`
 		TwilioMessagingServiceId string `validate:"required"`
+		MixPanelProjectToken     string `validate:"required"`
+		MixPanelApiSecret        string `validate:"required"`
+		MixPanelProjectId        int    `validate:"required"`
+		MixPanelUsername         string `validate:"required"`
 	}
 )
 
@@ -55,6 +60,11 @@ func NewConfig() (*Config, error) {
 		if err := godotenv.Load(".env"); err != nil {
 			log.Fatalf("env file error: %s", err.Error())
 		}
+	}
+
+	mixPanelProjectId, err := strconv.Atoi(helpers.Getenv("MIX_PANEL_PROJECT_ID"))
+	if err != nil {
+		log.Fatalf("mix panel project id error: %s", err.Error())
 	}
 
 	config := Config{
@@ -85,12 +95,14 @@ func NewConfig() (*Config, error) {
 		TwilioAccountSid:         helpers.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:          helpers.Getenv("TWILIO_AUTH_TOKEN"),
 		TwilioMessagingServiceId: helpers.Getenv("TWILIO_MESSAGING_SERVICE_ID"),
+		MixPanelProjectToken:     helpers.Getenv("MIX_PANEL_PROJECT_TOKEN"),
+		MixPanelApiSecret:        helpers.Getenv("MIX_PANEL_API_SECRET"),
+		MixPanelUsername:         helpers.Getenv("MIX_PANEL_USERNAME"),
+		MixPanelProjectId:        mixPanelProjectId,
 	}
 
 	validate := validator.New()
-	err := validate.Struct(config)
-
-	if err != nil {
+	if err = validate.Struct(config); err != nil {
 		log.Fatalf("env validation error: %s", err.Error())
 	}
 
