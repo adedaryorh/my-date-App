@@ -33,7 +33,7 @@ type Operations interface {
 	GetBalanceHistory(ctx context.Context, filter map[string]interface{}, sort string, limit int) ([]*models.BalanceHistory, error)
 
 	// user
-	CreateUser(ctx context.Context, c *models.User) error
+	CreateUser(ctx context.Context, c *models.User) (*models.User, error)
 	GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error)
 	UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
 

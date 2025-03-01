@@ -17,28 +17,28 @@ import (
 )
 
 // CreateUser -.
-func (r *Repo) CreateUser(ctx context.Context, c *models.User) error {
+func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
 		Insert("users").
 		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type").
-		Values(c.FirstName, c.LastName, c.Username, c.CountryCode, c.PhoneNumber, c.CompletionState, c.VerificationStatus, c.Email, c.DateOfBirth, c.AccountType, c.PasswordHash, c.Status, c.BusinessName, c.IndustryType).
+		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 
 	if err != nil {
 		r.log.Error("UserPostgresRepo - CreateUser - r.Builder: %w", err)
-		return errors.New("something went wrong")
+		return nil, errors.New("something went wrong")
 	}
 
 	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
 
-	err = row.Scan(&c.ID)
+	err = row.Scan(&user.ID)
 	if err != nil {
 		r.log.Error("UserPostgresRepo - CreateUser - r.Pool.Scan: %w", err)
-		return errors.New("something went wrong")
+		return nil, errors.New("something went wrong")
 	}
 
-	return nil
+	return user, nil
 }
 
 // GetUserByField -.

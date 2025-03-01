@@ -6,6 +6,7 @@ import (
 
 	"backend.app/configs"
 	"backend.app/database"
+	mixpanel "backend.app/integrations/analytics/mix-panel"
 	"backend.app/integrations/sms"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
@@ -28,6 +29,7 @@ type Core struct {
 	log           *logger.Logger
 	repo          repo.Operations
 	phoneService  map[string]sms.PhoneService
+	mixPanel      *mixpanel.MixPanel
 }
 
 type Operations interface {
@@ -73,6 +75,7 @@ func NewCore(config *configs.Config, log *logger.Logger, db *database.DB, middle
 		phoneService: map[string]sms.PhoneService{
 			"twilio": sms.NewTwilioService(config),
 		},
+		mixPanel: mixpanel.NewMixPanel(config, log),
 	}
 	op := Operations(&c)
 
