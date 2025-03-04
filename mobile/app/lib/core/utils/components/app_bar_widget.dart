@@ -4,8 +4,15 @@ import 'package:flutter_svg/svg.dart';
 
 class TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TimelineAppBar({
+    required this.onTapAvatar,
+    required this.onTapStore,
+    required this.onTapSearch,
     super.key,
   });
+
+  final VoidCallback onTapAvatar;
+  final VoidCallback onTapStore;
+  final VoidCallback onTapSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +26,7 @@ class TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               InkWell(
+                onTap: onTapAvatar,
                 child: Stack(
                   children: [
                     Container(
@@ -52,6 +60,7 @@ class TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               InkWell(
+                onTap: onTapStore,
                 child: Image.asset(
                   AppAssets.store,
                   width: 38,
@@ -59,6 +68,7 @@ class TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               InkWell(
+                onTap: onTapSearch,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 15),
                   child: SvgPicture.asset(
