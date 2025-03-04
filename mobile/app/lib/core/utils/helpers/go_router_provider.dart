@@ -92,6 +92,96 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 key: state.pageKey,
               ),
             ),
+            routes: [
+              GoRoute(
+                parentNavigatorKey: rootNavigation,
+                path: '/pProfile',
+                name: AppRoute.pProfile.name,
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: ProfileViewPersonal(
+                      key: state.pageKey,
+                    ),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/pSettings',
+                    name: AppRoute.pSettings.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: SettingsView(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                    routes: [
+                      GoRoute(
+                        parentNavigatorKey: rootNavigation,
+                        path: '/pAreasOfInterest',
+                        name: AppRoute.pAreasOfInterest.name,
+                        pageBuilder: (context, state) {
+                          return NoTransitionPage(
+                            child: AreaOfInterest(
+                              key: state.pageKey,
+                            ),
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        parentNavigatorKey: rootNavigation,
+                        path: '/pNotificationSettings',
+                        name: AppRoute.pNotificationSettings.name,
+                        pageBuilder: (context, state) {
+                          return NoTransitionPage(
+                            child: NotificationsSettings(
+                              key: state.pageKey,
+                            ),
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        parentNavigatorKey: rootNavigation,
+                        path: '/pOthersCelebrationsPost',
+                        name: AppRoute.pOthersCelebrationsPost.name,
+                        pageBuilder: (context, state) {
+                          return NoTransitionPage(
+                            child: OthersCelebrationPost(
+                              key: state.pageKey,
+                            ),
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        parentNavigatorKey: rootNavigation,
+                        path: '/pChangePassword',
+                        name: AppRoute.pChangePassword.name,
+                        pageBuilder: (context, state) {
+                          return NoTransitionPage(
+                            child: ChangePassword(
+                              key: state.pageKey,
+                            ),
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        parentNavigatorKey: rootNavigation,
+                        path: '/pPrivacyAndSafety',
+                        name: AppRoute.pPrivacyAndSafety.name,
+                        pageBuilder: (context, state) {
+                          return NoTransitionPage(
+                            child: PrivacyAndSafety(
+                              key: state.pageKey,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -128,6 +218,34 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 key: state.pageKey,
               ),
             ),
+            routes: [
+              GoRoute(
+                parentNavigatorKey: rootNavigation,
+                path: '/bProfile',
+                name: AppRoute.bProfile.name,
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: ProfileViewBusiness(
+                      key: state.pageKey,
+                    ),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/bSettings',
+                    name: AppRoute.bSettings.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: SettingsView(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -147,7 +265,16 @@ enum AppRoute {
   pCreateCelebration,
   pCelebration,
   pTimeline,
+  pProfile,
+  pSettings,
+  pAreasOfInterest,
+  pChangePassword,
+  pNotificationSettings,
+  pOthersCelebrationsPost,
+  pPrivacyAndSafety,
   bCreateCelebration,
   bCelebration,
   bTimeline,
+  bProfile,
+  bSettings,
 }

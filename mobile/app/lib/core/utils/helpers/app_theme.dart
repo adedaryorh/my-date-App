@@ -16,6 +16,7 @@ class AppTheme {
       outlinedButtonTheme: outlinedButtonThemeData(),
       elevatedButtonTheme: elevatedButtonThemeData(),
       inputDecorationTheme: inputDecorationTheme(),
+      switchTheme: switchThemeData(),
     );
   }
 }
@@ -129,6 +130,18 @@ ElevatedButtonThemeData elevatedButtonThemeData() => ElevatedButtonThemeData(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
+      ),
+    );
+
+SwitchThemeData switchThemeData() => SwitchThemeData(
+      thumbColor: WidgetStateProperty.all<Color>(
+        const Color(0xffF5BD4B),
+      ),
+      trackOutlineColor: WidgetStateProperty.all<Color>(
+        const Color(0xffF5BD4B),
+      ),
+      trackColor: WidgetStateProperty.all<Color>(
+        Colors.white,
       ),
     );
 
