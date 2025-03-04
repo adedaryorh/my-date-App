@@ -1,6 +1,7 @@
 export 'package:celebut/core/utils/components/app_bar_widget.dart';
 export 'package:celebut/core/utils/components/app_buttons.dart';
 export 'package:celebut/core/utils/components/app_dialogs.dart';
+export 'package:celebut/core/utils/components/app_search_bar.dart';
 export 'package:celebut/core/utils/components/app_spacer.dart';
 export 'package:celebut/core/utils/components/custom_radio_list_tile.dart';
 export 'package:celebut/core/utils/components/custom_snackbar.dart';

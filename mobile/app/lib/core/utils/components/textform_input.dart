@@ -74,15 +74,18 @@ class TextFormInput extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       validator: validator,
       onTap: onTap,
-      decoration: InputDecoration(
-        labelText: labelText,
-        labelStyle: labelStyle ??
-            context.textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600, color: Colors.black45),
-        prefixIcon: prefixIcon,
-        fillColor: Colors.white,
-        suffixIcon: suffixIcon,
-      ),
+      decoration: decoration ??
+          InputDecoration(
+            labelText: labelText,
+            labelStyle: labelStyle ??
+                context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black45,
+                ),
+            prefixIcon: prefixIcon,
+            fillColor: Colors.white,
+            suffixIcon: suffixIcon,
+          ),
     );
   }
 }
