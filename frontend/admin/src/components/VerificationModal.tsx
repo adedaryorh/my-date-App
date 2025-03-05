@@ -4,8 +4,9 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 // import { Label } from "@/components/ui/label";
 import { User } from "@/types/interfaces";
 import Image from "next/image";
+import { Dispatch, SetStateAction } from "react";
 
-export function VerificationModal({ data, isOpen, onClose }: { data: User; isOpen: boolean; onClose: () => void }) {
+export function VerificationModal({ data, isOpen, onClose, setIsBadgeModalOpen, isBadgeModalOpen }: { data: User; isOpen: boolean; setIsBadgeModalOpen: Dispatch<SetStateAction<boolean>>; isBadgeModalOpen: boolean; onClose: () => void }) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-auto">
@@ -47,11 +48,11 @@ export function VerificationModal({ data, isOpen, onClose }: { data: User; isOpe
         </div>
         <DialogFooter>
           <div className="w-full grid grid-cols-1 gap-[18px]">
-            <Button type="button" className="uppercase bg-celebut-gold text-white w-full">
+            <Button type="button" className="uppercase bg-celebut-gold text-white w-full text-base font-bold" onClick={() => setIsBadgeModalOpen(!isBadgeModalOpen)}>
               Grant verification badge
             </Button>
             {data.status === "approved" && (
-              <Button variant={"destructive"} type="button" className="uppercase text-white w-full">
+              <Button variant={"destructive"} type="button" className="uppercase text-white w-full text-base font-bold">
                 Revoke verification badge
               </Button>
             )}

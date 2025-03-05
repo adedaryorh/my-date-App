@@ -57,3 +57,9 @@ export interface User {
   application_date: string;
   dob: string;
 }
+
+export interface Badge {
+  id: number;
+  name: string;
+  image: JSX.Element;
+}
