@@ -34,7 +34,7 @@ class TimelineAppBar extends StatelessWidget implements PreferredSizeWidget {
                       height: 30,
                       width: 30,
                       decoration: const BoxDecoration(
-                        color: Colors.grey,
+                        color: Colors.black26,
                         borderRadius: BorderRadius.all(
                           Radius.circular(5),
                         ),

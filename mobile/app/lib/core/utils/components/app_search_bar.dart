@@ -29,15 +29,6 @@ class _AppSearchBarState extends State<AppSearchBar> {
       ),
       child: TextFormInput(
         controller: widget.searchCtr,
-        prefixIcon: IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.search,
-            weight: 24,
-          ),
-          color: Colors.grey,
-          iconSize: 24,
-        ),
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.all(10),
           prefixIcon: IconButton(
