@@ -95,6 +95,44 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 parentNavigatorKey: rootNavigation,
+                path: 'pMediaDetail/:mediaType',
+                name: AppRoute.pMediaDetail.name,
+                pageBuilder: (context, state) {
+                  final mediaType = state.pathParameters['mediaType'];
+                  return NoTransitionPage(
+                    child: DetailMediaView(
+                      mediaType: mediaType,
+                      key: state.pageKey,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: rootNavigation,
+                path: '/pNewPost',
+                name: AppRoute.pNewPost.name,
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: NewPost(
+                      key: state.pageKey,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: rootNavigation,
+                path: '/pSharePost',
+                name: AppRoute.pSharePost.name,
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: SharePost(
+                      key: state.pageKey,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: rootNavigation,
                 path: '/pProfile',
                 name: AppRoute.pProfile.name,
                 pageBuilder: (context, state) {
@@ -272,6 +310,9 @@ enum AppRoute {
   pNotificationSettings,
   pOthersCelebrationsPost,
   pPrivacyAndSafety,
+  pMediaDetail,
+  pNewPost,
+  pSharePost,
   bCreateCelebration,
   bCelebration,
   bTimeline,

@@ -66,4 +66,14 @@ class AppConstants {
     'Live',
     'New Followers ',
   ];
+
+  static const reportOptions = [
+    'Child Sexual Abuse Material',
+    'Extremism',
+    'Drug',
+    'Gambling',
+    'Pornography',
+    'Graphic Violence',
+    'Weapon',
+  ];
 }

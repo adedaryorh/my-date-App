@@ -22,4 +22,19 @@ class AppAssets {
   static const requestVerificationIcon = 'assets/images/verify_request.png';
   static const walletIcon = 'assets/images/Wallet.png';
   static const checkIcon = 'assets/images/check-svgrepo-com.svg';
+  static const postClap = 'assets/images/emojione_clapping-hands.png';
+  static const postComment = 'assets/images/comment.png';
+  static const postArrowUp = 'assets/images/arrow-up.png';
+  static const speak = 'assets/images/speak.svg';
+  static const celebrationTimeline = 'assets/images/g2138.png';
+  static const expandVideo = 'assets/images/expand_video.svg';
+  static const forwardVideo = 'assets/images/forward.png';
+  static const rewindVideo = 'assets/images/rewind.png';
+  static const playVideo = 'assets/images/play-1003-svgrepo-com.svg';
+  static const pauseVideo = 'assets/images/native pause.svg';
+  static const girlStory = 'assets/images/girl_story.jpg';
+  static const guyStory = 'assets/images/guy_story.jpg';
+  static const camera = 'assets/images/camera.svg';
+  static const handCelebratedIcon = 'assets/images/g2138.png';
+  static const reportFlag = 'assets/images/emojione_flag-for-black-flag.png';
 }

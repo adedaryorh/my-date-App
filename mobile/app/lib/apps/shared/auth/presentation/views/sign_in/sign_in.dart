@@ -130,11 +130,10 @@ class _SignInViewState extends State<SignInView> {
                       children: <TextSpan>[
                         TextSpan(
                           text: ' Sign Up',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: context.colorScheme.primary,
-                                  ),
+                          style: context.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: context.colorScheme.primary,
+                          ),
                         ),
                       ],
                     ),
