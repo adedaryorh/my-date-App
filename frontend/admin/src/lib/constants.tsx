@@ -1,4 +1,4 @@
-import { AuditTrail, BarChartData, LineChartData, Menu, PieChartData, User } from "@/types/interfaces";
+import { AuditTrail, BarChartData, LineChartData, Menu, PieChartData, User, Account } from "@/types/interfaces";
 import { JSX } from "react";
 
 export const MenuItems: Menu[] = [
@@ -256,6 +256,65 @@ export const users: User[] = [
     status: "approved",
     application_date: "27/2/2025",
     dob: "1/1/1999",
+  },
+];
+
+export const accounts: Account[] = [
+  {
+    id: 1,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "Philippines",
+    account_type: "personal",
+  },
+  {
+    id: 2,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "Philippines",
+    account_type: "business",
+  },
+  {
+    id: 3,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "Nigeria",
+    account_type: "personal",
+  },
+  {
+    id: 4,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "China",
+    account_type: "business",
+  },
+  {
+    id: 5,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "USA",
+    account_type: "personal",
+  },
+  {
+    id: 6,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "France",
+    account_type: "personal",
+  },
+  {
+    id: 7,
+    username: "Ajaladtraveler",
+    email: "ajanlekokoadekoya@gmail.com",
+    status: "Active",
+    country: "Nigeria",
+    account_type: "personal",
   },
 ];
 

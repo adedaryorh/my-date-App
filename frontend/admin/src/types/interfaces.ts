@@ -63,3 +63,12 @@ export interface Badge {
   name: string;
   image: JSX.Element;
 }
+
+export interface Account {
+  id: number;
+  username: string;
+  email: string;
+  status: string;
+  country: string;
+  account_type: "personal" | "business";
+}
