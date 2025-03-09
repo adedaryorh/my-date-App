@@ -3,14 +3,27 @@
 import MenuList from "@/components/MenuList";
 import { headerIcons } from "@/lib/constants";
 import { Menu, X } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import Image from "next/image";
 
+// import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+// import { updateRoute } from "@/lib/features/routeSlice";
+import { usePathname } from "next/navigation";
+// import Link from "next/link";
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // const { previousRoute } = useAppSelector((state) => state.history);
   const pathname = usePathname();
   const heading = pathname.replaceAll("-", " ").substring(1);
+
+  // const dispatch = useAppDispatch();
+
+  // useEffect(() => {
+  //   if (pathname) {
+  //     dispatch(updateRoute(pathname));
+  //   }
+  // }, [dispatch, pathname]);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -19,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Prevent scrolling when menu is open
     document.body.style.overflow = !isOpen ? "hidden" : "unset";
   };
-  // Close menu on navigation
+  // Close mobile menu on navigation
   const handleNavigation = () => {
     setIsOpen(false);
     document.body.style.overflow = "unset";
@@ -59,7 +72,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <button className="lg:hidden" onClick={toggleMenu} type="button" title="Open menu">
               <Menu color="#F5BD4B" size={30} />
             </button>
-            <h1 className="capitalize text-xl lg:text-4xl font-bold">{heading}</h1>
+            <div>
+              <h1 className="capitalize text-xl lg:text-4xl font-bold">{heading}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-1 lg:gap-6">
             {headerIcons.map((headerIcon) => (
