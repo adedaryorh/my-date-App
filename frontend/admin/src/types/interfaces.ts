@@ -3,7 +3,7 @@ import { JSX } from "react";
 export interface Menu {
   icon: JSX.Element;
   title: string;
-  url: string;
+  url: string | string[];
 }
 
 export interface CardProps {
