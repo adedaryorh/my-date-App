@@ -78,3 +78,18 @@ export interface FilterModalProps {
   onOpenChange: (open: boolean) => void;
   onApplyFilters?: (filters: { status: string[] }) => void;
 }
+
+export interface TabItem {
+  value: string;
+  label: string;
+  content: React.ReactNode;
+}
+
+export interface DropdownTabsProps {
+  tabs: TabItem[];
+  defaultValue?: string;
+  className?: string;
+  selectClassName?: string;
+  contentClassName?: string;
+  setFilterOpen: (open: boolean) => void;
+}
