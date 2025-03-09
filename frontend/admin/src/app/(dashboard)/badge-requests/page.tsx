@@ -29,7 +29,7 @@ export default function UserAccount() {
           </button>
         </div>
       </div>
-      <BadgeRequestsTable account_type="all" />
+      <BadgeRequestsTable />
 
       <FilterModal open={filterOpen} onOpenChange={setFilterOpen} onApplyFilters={handleApplyFilters} />
     </>

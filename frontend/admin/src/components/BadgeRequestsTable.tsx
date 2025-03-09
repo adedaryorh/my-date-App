@@ -11,14 +11,14 @@ import { BadgeModal } from "@/components/BadgeModal";
 import { Eye } from "lucide-react";
 import { NotificationModal } from "./NotificationModal";
 
-export default function UsersTable({ account_type }: { account_type: "all" | "personal" | "business" }) {
+export default function BadgeRequestsTable() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [response, setResponse] = useState<string>("");
 
-  const data = users.filter((user: User) => user.badge_type === account_type || account_type === "all");
+  const data = users;
 
   const handleViewClick = (user: User) => {
     setSelectedUser(user);
@@ -52,6 +52,7 @@ export default function UsersTable({ account_type }: { account_type: "all" | "pe
           isOpen={isNotificationModalOpen}
           onClose={() => {
             setIsNotificationModalOpen(false);
+            setIsBadgeModalOpen(false);
           }}
           isSuccess={true}
           response={response}
