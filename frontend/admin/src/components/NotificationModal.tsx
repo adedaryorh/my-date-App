@@ -15,7 +15,7 @@ export function NotificationModal({ isOpen, onClose, isSuccess, response }: { is
         <div className="flex flex-col items-center justify-between gap-4 mb-7">
           <div className="relative">{isSuccess ? <Image src="/img/success-icon.png" alt="success" width={100} height={100} /> : <img src={"/img/error-icon.svg"} alt="error" width={100} height={100} />}</div>
         </div>
-        <p className="text-[32px] font-semibold">{response}</p>
+        <p className="text-[32px] font-semibold text-center">{response}</p>
       </DialogContent>
     </Dialog>
   );

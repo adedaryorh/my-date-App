@@ -2,16 +2,17 @@
 
 import { Ellipsis } from "lucide-react";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { NotificationModal } from "@/components/NotificationModal";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -36,6 +37,9 @@ const formSchema = z.object({
 
 export default function UserProfile() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isConfirmModal, setIsConfirmModal] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [response, setResponse] = useState<string>("");
 
   const handleEdit = () => {
     setIsOpen(true);
@@ -177,12 +181,21 @@ export default function UserProfile() {
           <p className="text-base font-normal">Login by</p>
         </div>
       </div>
-      <ProfileModal isOpen={isOpen} setIsOpen={setIsOpen} />
+      <ProfileModal isOpen={isOpen} setIsOpen={setIsOpen} setIsConfirmModal={setIsConfirmModal} />
+      <ConfirmProfileModal isOpen={isConfirmModal} setIsConfirmModal={setIsConfirmModal} setIsNotificationModalOpen={setIsNotificationModalOpen} setResponse={setResponse} />
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => {
+          setIsNotificationModalOpen(false);
+        }}
+        isSuccess={true}
+        response={response}
+      />
     </>
   );
 }
 
-const ProfileModal = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) => {
+const ProfileModal = ({ isOpen, setIsOpen, setIsConfirmModal }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void; setIsConfirmModal: Dispatch<SetStateAction<boolean>> }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -195,6 +208,7 @@ const ProfileModal = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOp
     },
   });
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsConfirmModal(true);
     console.log(values);
   }
   return (
@@ -306,6 +320,39 @@ const ProfileModal = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOp
             </div>
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const ConfirmProfileModal = ({ isOpen, setIsConfirmModal, setIsNotificationModalOpen, setResponse }: { isOpen: boolean; setIsConfirmModal: (isOpen: boolean) => void; setIsNotificationModalOpen: (isOpen: boolean) => void; setResponse: (response: string) => void }) => {
+  function handleConfirmation() {
+    setIsNotificationModalOpen(true);
+    setResponse("Changes Saved Successfully");
+    setIsConfirmModal(false);
+  }
+  return (
+    <Dialog open={isOpen} onOpenChange={() => setIsConfirmModal(false)}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader className="w-full">
+          <VisuallyHidden>
+            <DialogTitle>Save profile edit</DialogTitle>
+          </VisuallyHidden>
+        </DialogHeader>
+        <div className="flex flex-col mt-6 mb-12 items-center gap-6">
+          <h3 className="font-bold text-2xl">Save Changes</h3>
+          <p className="font-normal text-base w-[30ch] text-center">Are you sure you want to save the changes made to this user</p>
+        </div>
+        <DialogFooter>
+          <div className="w-full grid grid-cols-1 gap-[18px]">
+            <Button type="button" className="uppercase bg-celebut-gold text-white w-full text-base font-bold" onClick={handleConfirmation}>
+              Yes, Save
+            </Button>
+            <Button type="button" className="uppercase text-celebut-gold w-full text-base font-bold bg-transparent hover:bg-transparent" onClick={() => setIsConfirmModal(false)}>
+              No, cancel
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

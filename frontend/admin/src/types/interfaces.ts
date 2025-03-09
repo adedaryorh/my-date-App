@@ -72,3 +72,9 @@ export interface Account {
   country: string;
   account_type: "personal" | "business";
 }
+
+export interface FilterModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onApplyFilters?: (filters: { status: string[] }) => void;
+}
