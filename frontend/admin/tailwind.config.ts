@@ -61,7 +61,7 @@ export default {
           },
           violet: {
             DEFAULT: "hsla(245, 88%, 65%, 1)",
-            light: "hsla(0, 100%, 92%, 1)",
+            light: "hsla(245, 88%, 95%, 1)",
           },
           red: {
             DEFAULT: "hsla(0, 100%, 50%, 0.96)",
@@ -89,5 +89,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar-hide")],
 } satisfies Config;
