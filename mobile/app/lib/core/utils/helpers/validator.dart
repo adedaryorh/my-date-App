@@ -51,3 +51,11 @@ String? validatePhoneNumber(String? value) {
   }
   return null;
 }
+
+String? validateDate(String? value) {
+  if (value!.isEmpty) {
+    return '';
+  } else {
+    return null;
+  }
+}
