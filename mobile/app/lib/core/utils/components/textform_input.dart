@@ -76,8 +76,8 @@ class TextFormInput extends StatelessWidget {
       onTap: onTap,
       decoration: decoration ??
           InputDecoration(
-            labelText: labelText,
-            labelStyle: labelStyle ??
+            hintText: labelText,
+            hintStyle: labelStyle ??
                 context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Colors.black45,

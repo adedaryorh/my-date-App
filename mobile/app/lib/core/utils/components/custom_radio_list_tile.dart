@@ -16,7 +16,7 @@ class CustomRadioListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = selectedOption == option;
-    return InkWell(
+    return GestureDetector(
       onTap: () => onSelected(option),
       child: Container(
         height: 38,
@@ -51,6 +51,70 @@ class CustomRadioListTile extends StatelessWidget {
                       : const Color(0xff96A7AF),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomRadioButton extends StatelessWidget {
+  const CustomRadioButton({
+    required this.option,
+    required this.selectedOption,
+    required this.onSelected,
+    this.suffixWidget,
+    super.key,
+  });
+
+  final String option;
+  final String? selectedOption;
+  final ValueChanged<String> onSelected;
+  final Widget? suffixWidget;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedOption == option;
+    return GestureDetector(
+      onTap: () => onSelected(option),
+      child: Container(
+        height: 38,
+        width: double.maxFinite,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: [
+            Container(
+              height: 24,
+              width: 24,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color:
+                      isSelected ? context.colorScheme.primary : Colors.black,
+                ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? context.colorScheme.primary
+                      : Colors.transparent,
+                ),
+              ),
+            ),
+            const Space(20),
+            Row(
+              children: [
+                Text(
+                  option,
+                  style: context.textTheme.bodyMedium,
+                ),
+                const Space(100),
+                suffixWidget ?? Container(),
+              ],
             ),
           ],
         ),
