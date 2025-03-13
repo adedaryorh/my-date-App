@@ -76,4 +76,30 @@ class AppConstants {
     'Graphic Violence',
     'Weapon',
   ];
+
+  static const Map<String, String> profileDetailOptions = {
+    AppAssets.profilePerson: 'Personal Data',
+    AppAssets.profileWallet: 'Wallet',
+    AppAssets.settings2: 'Notifications',
+  };
+
+  static const Map<String, String> profileSupportOptions = {
+    AppAssets.profileInfo: 'Help Center',
+    AppAssets.profileAddPerson: 'Add another account',
+  };
+
+  static const featureList = [
+    'Wishlist',
+    'Access to premium celebrations feature',
+    'Extended celebration posts',
+    'Revenue from celebrations',
+    'Write longer posts and articles when sharing updates on your timeline.',
+  ];
+
+  static const whoCanSeeContent = [
+    'Everyone',
+    'Friends Only',
+    'Friends & Friends of Friends',
+    'Selected Friends',
+  ];
 }
