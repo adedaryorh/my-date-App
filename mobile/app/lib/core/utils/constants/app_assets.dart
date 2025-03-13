@@ -37,4 +37,10 @@ class AppAssets {
   static const camera = 'assets/images/camera.svg';
   static const handCelebratedIcon = 'assets/images/g2138.png';
   static const reportFlag = 'assets/images/emojione_flag-for-black-flag.png';
+  static const settings2 = 'assets/images/settings2.svg';
+  static const shareIcon = 'assets/images/material-symbols_share-outline.svg';
+  static const profilePerson = 'assets/images/profile_person.svg';
+  static const profileWallet = 'assets/images/profile_wallet.svg';
+  static const profileInfo = 'assets/images/profile_info.svg';
+  static const profileAddPerson = 'assets/images/profile_add_person.svg';
 }

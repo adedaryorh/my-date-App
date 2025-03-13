@@ -145,6 +145,66 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     parentNavigatorKey: rootNavigation,
+                    path: '/pFriendsList',
+                    name: AppRoute.pFriendsList.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: FriendsList(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/pBusinessList',
+                    name: AppRoute.pBusinessList.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: BusinessList(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/pEditProfile',
+                    name: AppRoute.pEditProfile.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: EditProfile(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/pProfileDetails',
+                    name: AppRoute.pProfileDetails.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: ProfileDetails(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
+                    path: '/premiumDetail',
+                    name: AppRoute.premiumDetail.name,
+                    pageBuilder: (context, state) {
+                      return NoTransitionPage(
+                        child: PremiumDetail(
+                          key: state.pageKey,
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: rootNavigation,
                     path: '/pSettings',
                     name: AppRoute.pSettings.name,
                     pageBuilder: (context, state) {
@@ -214,6 +274,56 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             ),
                           );
                         },
+                        routes: [
+                          GoRoute(
+                            parentNavigatorKey: rootNavigation,
+                            path: '/controlContent',
+                            name: AppRoute.controlContent.name,
+                            pageBuilder: (context, state) {
+                              return NoTransitionPage(
+                                child: ControlContent(
+                                  key: state.pageKey,
+                                ),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            parentNavigatorKey: rootNavigation,
+                            path: '/bannedWords',
+                            name: AppRoute.bannedWords.name,
+                            pageBuilder: (context, state) {
+                              return NoTransitionPage(
+                                child: BannedWords(
+                                  key: state.pageKey,
+                                ),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            parentNavigatorKey: rootNavigation,
+                            path: '/timelineViewControl',
+                            name: AppRoute.timelineViewControl.name,
+                            pageBuilder: (context, state) {
+                              return NoTransitionPage(
+                                child: TimelineViewControl(
+                                  key: state.pageKey,
+                                ),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            parentNavigatorKey: rootNavigation,
+                            path: '/blockedAccounts',
+                            name: AppRoute.blockedAccounts.name,
+                            pageBuilder: (context, state) {
+                              return NoTransitionPage(
+                                child: BlockedAccounts(
+                                  key: state.pageKey,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -313,6 +423,15 @@ enum AppRoute {
   pMediaDetail,
   pNewPost,
   pSharePost,
+  pFriendsList,
+  pEditProfile,
+  pProfileDetails,
+  pBusinessList,
+  premiumDetail,
+  controlContent,
+  bannedWords,
+  blockedAccounts,
+  timelineViewControl,
   bCreateCelebration,
   bCelebration,
   bTimeline,
