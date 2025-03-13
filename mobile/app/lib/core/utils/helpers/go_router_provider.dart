@@ -1,4 +1,4 @@
-import 'package:celebut/apps/apps.dart';
+import 'package:celebut/features/features.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -333,70 +333,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      ShellRoute(
-        navigatorKey: businessShellNavigation,
-        parentNavigatorKey: rootNavigation,
-        restorationScopeId: 'app',
-        builder: (context, state, child) =>
-            MainEntryBusinessView(key: state.pageKey, child: child),
-        routes: [
-          GoRoute(
-            path: '/bCelebration',
-            name: AppRoute.bCelebration.name,
-            pageBuilder: (context, state) => MaterialPage(
-              child: CelebrationBusiness(
-                key: state.pageKey,
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/bCreateCelebration',
-            name: AppRoute.bCreateCelebration.name,
-            pageBuilder: (context, state) => MaterialPage(
-              child: CreateCelebrationBusiness(
-                key: state.pageKey,
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/bTimeline',
-            name: AppRoute.bTimeline.name,
-            pageBuilder: (context, state) => MaterialPage(
-              child: TimelineBusiness(
-                key: state.pageKey,
-              ),
-            ),
-            routes: [
-              GoRoute(
-                parentNavigatorKey: rootNavigation,
-                path: '/bProfile',
-                name: AppRoute.bProfile.name,
-                pageBuilder: (context, state) {
-                  return NoTransitionPage(
-                    child: ProfileViewBusiness(
-                      key: state.pageKey,
-                    ),
-                  );
-                },
-                routes: [
-                  GoRoute(
-                    parentNavigatorKey: rootNavigation,
-                    path: '/bSettings',
-                    name: AppRoute.bSettings.name,
-                    pageBuilder: (context, state) {
-                      return NoTransitionPage(
-                        child: SettingsView(
-                          key: state.pageKey,
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
     ],
   );
 });
@@ -432,9 +368,4 @@ enum AppRoute {
   bannedWords,
   blockedAccounts,
   timelineViewControl,
-  bCreateCelebration,
-  bCelebration,
-  bTimeline,
-  bProfile,
-  bSettings,
 }
