@@ -1,6 +1,6 @@
-import 'package:celebut/apps/apps.dart';
-import 'package:celebut/apps/shared/settings/presentation/widgets/log_out_dialog.dart';
-import 'package:celebut/apps/shared/settings/presentation/widgets/select_language.dart';
+import 'package:celebut/features/features.dart';
+import 'package:celebut/features/settings/presentation/widgets/log_out_dialog.dart';
+import 'package:celebut/features/settings/presentation/widgets/select_language.dart';
 import 'package:flutter/material.dart';
 
 extension XBuildContext<T> on BuildContext {

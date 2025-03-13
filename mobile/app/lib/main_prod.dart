@@ -1,4 +1,4 @@
-import 'package:celebut/apps/shared/app_widget.dart';
+import 'package:celebut/features/app_widget.dart';
 import 'package:celebut/firebase_options_prod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
