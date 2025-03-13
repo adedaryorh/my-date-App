@@ -1,16 +1,15 @@
-import 'package:celebut/apps/shared/settings/presentation/widgets/privacy_option_item.dart';
 import 'package:celebut/core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class PrivacyAndSafety extends StatefulWidget {
-  const PrivacyAndSafety({super.key});
+class BlockedAccounts extends StatefulWidget {
+  const BlockedAccounts({super.key});
 
   @override
-  State<PrivacyAndSafety> createState() => _PrivacyAndSafetyState();
+  State<BlockedAccounts> createState() => _BlockedAccountsState();
 }
 
-class _PrivacyAndSafetyState extends State<PrivacyAndSafety> {
+class _BlockedAccountsState extends State<BlockedAccounts> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,27 +39,26 @@ class _PrivacyAndSafetyState extends State<PrivacyAndSafety> {
                 height: 20,
               ),
               Text(
-                'Privacy and Safety',
+                'Blocked Accounts',
                 style: context.textTheme.headlineMedium,
               ),
-              const Text('Chose who & what can seen on your timeline'),
-              const Space(50),
-              ...List.generate(
-                AppConstants.privacyOptions.length,
-                (index) => PrivacyOptionItem(
-                  title: AppConstants.privacyOptions[index],
-                  tapped: () {
-                    switch (AppConstants.privacyOptions[index]) {
-                      case 'Content':
-                        context.pushNamed(AppRoute.controlContent.name);
-                      case 'Banned Words':
-                        context.pushNamed(AppRoute.bannedWords.name);
-                      case 'Blocked Accounts':
-                        context.pushNamed(AppRoute.blockedAccounts.name);
-                    }
-                  },
+              const Spacer(),
+              Align(
+                child: Column(
+                  children: [
+                    Text(
+                      'No Blocked Accounts',
+                      style: context.textTheme.titleMedium,
+                    ),
+                    const Space(20),
+                    Text(
+                      'You have no blocked accounts',
+                      style: context.textTheme.bodyMedium,
+                    ),
+                  ],
                 ),
               ),
+              const Spacer(),
             ],
           ),
         ),
