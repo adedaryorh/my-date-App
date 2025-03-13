@@ -1,9 +1,12 @@
+import 'package:celebut/apps/personal/profile/presentation/widgets/main_business_profile.dart';
 import 'package:celebut/apps/personal/profile/presentation/widgets/main_profile_widget.dart';
 import 'package:celebut/apps/personal/profile/presentation/widgets/profile_item.dart';
+import 'package:celebut/apps/personal/profile/presentation/widgets/tab_view_widget.dart';
 import 'package:celebut/apps/personal/profile/presentation/widgets/top_background_widget.dart';
 import 'package:celebut/core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileViewPersonal extends StatefulWidget {
   const ProfileViewPersonal({super.key});
@@ -13,6 +16,8 @@ class ProfileViewPersonal extends StatefulWidget {
 }
 
 class _ProfileViewPersonalState extends State<ProfileViewPersonal> {
+  bool showTabView = false;
+  bool isBusiness = false;
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -24,26 +29,65 @@ class _ProfileViewPersonalState extends State<ProfileViewPersonal> {
                 children: [
                   TopBackgroundWidget(
                     constraints: constraints,
-                  ),
-                  SizedBox(
-                    height: constraints.maxHeight / 7.5,
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: profileItemComponents.length,
-                    itemBuilder: (context, index) {
-                      final item = profileItemComponents[index];
-                      return ProfileItem(
-                        model: item,
-                      );
+                    tapped: () {
+                      if (showTabView) {
+                        setState(() {
+                          showTabView = false;
+                        });
+                      } else {
+                        context.pop();
+                      }
                     },
                   ),
+                  if (isBusiness) ...[
+                    SizedBox(
+                      height: constraints.maxHeight / 5,
+                    ),
+                  ] else ...[
+                    SizedBox(
+                      height: constraints.maxHeight / 7.5,
+                    ),
+                  ],
+                  if (showTabView) ...[
+                    const TabViewWidget(),
+                  ] else ...[
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: profileItemComponents.length,
+                      itemBuilder: (context, index) {
+                        final item = profileItemComponents[index];
+                        return ProfileItem(
+                          model: item,
+                          tapped: () {
+                            switch (item.title) {
+                              case 'Friends':
+                                context.pushNamed(AppRoute.pFriendsList.name);
+                              case 'Business':
+                                context.pushNamed(AppRoute.pBusinessList.name);
+                              case 'Contents':
+                                setState(() {
+                                  showTabView = true;
+                                });
+                              case 'Celebrated':
+                                setState(() {
+                                  showTabView = true;
+                                });
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
-              MainProfileWidget(
-                constraints: constraints,
-              ),
+              if (isBusiness) ...[
+                MainBusinessProfile(constraints: constraints),
+              ] else ...[
+                MainProfileWidget(
+                  constraints: constraints,
+                ),
+              ],
               Positioned(
                 top: constraints.maxHeight / 7.5,
                 left: (constraints.maxWidth - 80) / 2,

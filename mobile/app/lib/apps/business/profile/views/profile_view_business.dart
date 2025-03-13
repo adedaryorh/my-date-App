@@ -24,6 +24,7 @@ class _ProfileViewBusinessState extends State<ProfileViewBusiness> {
                 children: [
                   TopBackgroundWidget(
                     constraints: constraints,
+                    tapped: () {},
                   ),
                   SizedBox(
                     height: constraints.maxHeight / 7.5,
@@ -36,6 +37,7 @@ class _ProfileViewBusinessState extends State<ProfileViewBusiness> {
                       final item = profileBusinessItemComponents[index];
                       return ProfileItem(
                         model: item,
+                        tapped: () {},
                       );
                     },
                   ),

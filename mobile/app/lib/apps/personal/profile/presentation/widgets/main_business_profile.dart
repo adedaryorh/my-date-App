@@ -2,8 +2,8 @@ import 'package:celebut/core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class MainProfileWidget extends StatefulWidget {
-  const MainProfileWidget({
+class MainBusinessProfile extends StatefulWidget {
+  const MainBusinessProfile({
     required this.constraints,
     super.key,
   });
@@ -11,10 +11,10 @@ class MainProfileWidget extends StatefulWidget {
   final BoxConstraints constraints;
 
   @override
-  State<MainProfileWidget> createState() => _MainProfileWidgetState();
+  State<MainBusinessProfile> createState() => _MainBusinessProfileState();
 }
 
-class _MainProfileWidgetState extends State<MainProfileWidget> {
+class _MainBusinessProfileState extends State<MainBusinessProfile> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -61,34 +61,30 @@ class _MainProfileWidgetState extends State<MainProfileWidget> {
             Column(
               children: [
                 Text(
-                  'Alice Smith',
-                  style: context.textTheme.bodyLarge,
+                  'Ralph Lauren',
+                  style: context.textTheme.titleMedium,
                 ),
                 Text(
-                  'D.O.B: August 21st, 1999',
-                  style: context.textTheme.bodyMedium,
-                ),
-                Text(
-                  'Livin’ Crusing, Lavida',
-                  style: context.textTheme.bodyMedium
-                      ?.copyWith(color: const Color(0xff979797)),
+                  'We are a global leader in the design, '
+                  'marketing and distribution of '
+                  'luxury lifestyle products. For more than 50 years, '
+                  'our reputation and distinctive image',
+                  style: context.textTheme.bodySmall,
+                  textAlign: TextAlign.center,
                 ),
                 const Space(20),
-                InkWell(
-                  onTap: () => context.pushNamed(AppRoute.pProfileDetails.name),
-                  child: Container(
-                    alignment: Alignment.center,
-                    width: 109,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.primary,
-                      borderRadius: const BorderRadius.all(Radius.circular(50)),
-                    ),
-                    child: Text(
-                      'Edit Profile',
-                      style: context.textTheme.bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
+                Container(
+                  alignment: Alignment.center,
+                  height: 45,
+                  width: 247,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: context.colorScheme.primary,
+                  ),
+                  child: Text(
+                    'Edit Profile',
+                    style: context.textTheme.titleMedium
+                        ?.copyWith(color: Colors.white),
                   ),
                 ),
               ],

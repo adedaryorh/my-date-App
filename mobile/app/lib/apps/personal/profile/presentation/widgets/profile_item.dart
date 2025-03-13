@@ -24,41 +24,46 @@ final List<ItemComponent> profileBusinessItemComponents = [
 class ProfileItem extends StatelessWidget {
   const ProfileItem({
     required this.model,
+    required this.tapped,
     super.key,
   });
 
   final ItemComponent model;
+  final VoidCallback tapped;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 68,
-      width: double.maxFinite,
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-      padding: const EdgeInsets.only(left: 20, right: 30),
-      decoration: const BoxDecoration(
-        color: Color(0xffF4F4F4),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              SvgPicture.asset(
-                model.assetPath,
-                width: 19,
-                height: 19,
-              ),
-              const Space(30),
-              Text(model.title),
-            ],
-          ),
-          const Icon(
-            Icons.arrow_forward_ios,
-            size: 11,
-          ),
-        ],
+    return GestureDetector(
+      onTap: tapped,
+      child: Container(
+        height: 68,
+        width: double.maxFinite,
+        margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+        padding: const EdgeInsets.only(left: 20, right: 30),
+        decoration: const BoxDecoration(
+          color: Color(0xffF4F4F4),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                SvgPicture.asset(
+                  model.assetPath,
+                  width: 19,
+                  height: 19,
+                ),
+                const Space(30),
+                Text(model.title),
+              ],
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 11,
+            ),
+          ],
+        ),
       ),
     );
   }

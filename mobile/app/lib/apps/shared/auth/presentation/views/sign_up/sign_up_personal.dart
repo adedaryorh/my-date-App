@@ -1,8 +1,6 @@
 import 'package:celebut/apps/shared/auth/presentation/views/sign_up/widgets/signin_option.dart';
 import 'package:celebut/apps/shared/auth/presentation/views/sign_up/widgets/user_agreement.dart';
 import 'package:celebut/core/core.dart';
-import 'package:celebut/core/utils/intl_phone_number_input/src/utils/phone_number.dart';
-import 'package:celebut/core/utils/intl_phone_number_input/src/widgets/input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
