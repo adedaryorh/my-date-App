@@ -7,9 +7,11 @@ import (
 	"backend.app/common/constants"
 	"backend.app/common/helpers"
 	"backend.app/internal/dtos"
+	"backend.app/internal/mappers"
 	"backend.app/internal/models"
 	"backend.app/internal/services/upload"
 	"backend.app/pkg/response"
+	"github.com/google/uuid"
 )
 
 // UploadUserProfileImage Method used to upload user's profile picture
@@ -48,4 +50,34 @@ func (c *Core) UpdateUserProfile(ctx context.Context, user *models.User, data *d
 		return response.ServerErrorResponse(err)
 	}
 	return response.SuccessResponse(constants.UserProfileSuccessfullyUpdated, nil)
+}
+
+// GetSelfProfile get self profile
+func (c *Core) GetSelfProfile(ctx context.Context, user *models.User) *dtos.ResponseObject {
+	// map user
+	var profile mappers.DtoUserMapper
+	return response.SuccessResponse(constants.UserSuccessFullyFetched, profile.MapSelfProfileDto(user))
+}
+
+// GetSingleProfile get single user profile
+func (c *Core) GetSingleProfile(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject {
+	var profile mappers.DtoUserMapper
+	// TODO !!!! check if user blocked
+
+	// get user
+	userData, err := c.repo.GetUserByField(ctx, helpers.Map{"id": userId})
+	if err != nil {
+		return response.ServerErrorResponse(err)
+	}
+	// map user
+	return response.SuccessResponse(constants.UserSuccessFullyFetched, profile.MapUserProfileDto(userData))
+}
+
+// GetAllProfiles get all user profiles
+func (c *Core) GetAllProfiles(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject {
+	result, err := c.repo.GetAllUsers(ctx, user, query)
+	if err != nil {
+		return response.ServerErrorResponse(err)
+	}
+	return response.SuccessResponse(constants.UserProfilesSuccessfullyFetched, result)
 }

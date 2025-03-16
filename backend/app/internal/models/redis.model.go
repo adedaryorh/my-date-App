@@ -13,6 +13,7 @@ var RedisKeys = struct {
 	ScholarshipProgramFavorites string
 	DefaultSchoolProgram        string
 	BalanceLock                 string
+	GeneralCelebration          string
 }{
 	DataAuthStateTokens:         "data:auth:state-tokens",
 	AccessToken:                 "auth:user:access:token",
@@ -26,4 +27,5 @@ var RedisKeys = struct {
 	ScholarshipProgramFavorites: "scholarship-program:favorites",
 	DefaultSchoolProgram:        "default.school-program",
 	BalanceLock:                 "balance:lock",
+	GeneralCelebration:          "general:celebration",
 }

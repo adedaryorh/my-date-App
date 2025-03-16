@@ -47,6 +47,8 @@ const (
 	AttachmentKindImageJPEG AttachmentKind = "image/jpeg"
 	AttachmentKindImageJPG  AttachmentKind = "image/jpg"
 	AttachmentKindImagePNG  AttachmentKind = "image/png"
+	AttachmentKindVideoMP4  AttachmentKind = "video/mp4"
+	AttachmentKindVideoMOV  AttachmentKind = "video/mov"
 )
 
 var AttachmentKindMap = map[string]AttachmentKind{
@@ -55,6 +57,8 @@ var AttachmentKindMap = map[string]AttachmentKind{
 	string(AttachmentKindImageJPEG): AttachmentKindImageJPEG,
 	string(AttachmentKindImageJPG):  AttachmentKindImageJPG,
 	string(AttachmentKindImagePNG):  AttachmentKindImagePNG,
+	string(AttachmentKindVideoMP4):  AttachmentKindVideoMP4,
+	string(AttachmentKindVideoMOV):  AttachmentKindVideoMOV,
 }
 
 var AttachmentMap = map[string]AttachmentKind{
@@ -63,6 +67,14 @@ var AttachmentMap = map[string]AttachmentKind{
 	"jpg":  AttachmentKindImageJPG,
 	"png":  AttachmentKindImagePNG,
 	"doc":  AttachmentKindDoc,
+}
+
+var MediaTypeMap = map[string]string{
+	"mov":  "video",
+	"mp4":  "video",
+	"jpeg": "image",
+	"jpg":  "image",
+	"png":  "image",
 }
 
 // // SetAttachments sets Multiple FileAttachments

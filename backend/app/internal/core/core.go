@@ -17,6 +17,7 @@ import (
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -43,11 +44,41 @@ type Operations interface {
 	SendResetPasswordToken(ctx context.Context, email string) *dtos.ResponseObject
 	ResetPassword(ctx context.Context, data *dtos.ResetPassword) *dtos.ResponseObject
 
+	// blocked
+	BlockUser(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+	GetBlockedUser(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+	GetAllBlockedUsers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
+	UnBlockUser(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+
+	// celebration
+	CreateCelebrationDto(ctx context.Context, user *models.User, data *dtos.CreateCelebrationDto) *dtos.ResponseObject
+	GetAllCelebrations(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
+	GetSingleCelebration(ctx context.Context, celebrationId uuid.UUID) *dtos.ResponseObject
+	DeclineCelebration(ctx context.Context, celebrationId uuid.UUID, user *models.User) *dtos.ResponseObject
+	AcceptCelebration(ctx context.Context, celebrationId uuid.UUID, user *models.User) *dtos.ResponseObject
+
+	// follower
+	FollowUser(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+	UnFollowUser(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+	GetAllFollowers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
+	GetSingleFollower(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
+	GetFriends(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
+
 	// settings
 	ChangePassword(ctx context.Context, data *dtos.ChangePassword, user *models.User) *dtos.ResponseObject
 	AddAreaOfInterests(ctx context.Context, data *dtos.AreaOfInterest, user *models.User) *dtos.ResponseObject
 	AddPreferredLanguage(ctx context.Context, data *dtos.Language, user *models.User) *dtos.ResponseObject
 	AddNotificationPreference(ctx context.Context, data *dtos.NotificationPreference, user *models.User) *dtos.ResponseObject
+	TogglePushNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleLikesNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleCommentsNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleTagsAndMentionsNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleRepostNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleDirectMessageNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleLiveNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	ToggleNewFollowerNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
+	SetContentSettings(ctx context.Context, user *models.User, data *dtos.ContentSettingsDto) *dtos.ResponseObject
+	SetBannedWords(ctx context.Context, data *dtos.SetBannedWordsDto, user *models.User) *dtos.ResponseObject
 
 	// profile
 	UploadUserProfileImage(ctx context.Context, user *models.User, data *dtos.UploadImage) *dtos.ResponseObject

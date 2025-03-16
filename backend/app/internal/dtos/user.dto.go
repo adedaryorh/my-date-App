@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"backend.app/common/constants"
-	"backend.app/internal/models"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -82,41 +81,40 @@ type UserInfo struct {
 	ProfileImage *string   `json:"profile_image"`
 }
 
+// UserProfile is the user profile object
 type UserProfile struct {
-	UserID             uuid.UUID      `json:"user_id"`
-	FirstName          string         `json:"first_name"`
-	LastName           string         `json:"last_name"`
-	Username           string         `json:"username"`
-	CountryCode        *string        `json:"country_code"`
-	PhoneNumber        *string        `json:"phone_number"`
-	Email              string         `json:"email"`
-	DateOfBirth        time.Time      `json:"dob"`
-	Gender             *string        `json:"gender"`
-	RelationshipStatus *string        `json:"relationship_status"`
-	Interests          pq.StringArray `json:"interests"`
-	AccountType        AccountType    `json:"account_type"`
-	ContentsCount      int            `json:"contents_count"`
-	CelebrationsCount  int            `json:"celebrations_count"`
-	LovedOnesCount     int            `json:"loved_ones_count"`
-	BusinessesCount    int            `json:"businesses_count"`
-	CustomersCount     int            `json:"customers_count"`
-	Bio                *string        `json:"bio"`
-	IsVerified         bool           `json:"is_verified"`
-	ProfileImage       *string        `json:"profile_image"`
-	Location           *string        `json:"location"`
+	ID                     uuid.UUID       `json:"id"`
+	FirstName              string          `json:"first_name"`
+	LastName               *string         `json:"last_name,omitempty"`
+	Username               string          `json:"username"`
+	CountryCode            string          `json:"country_code,omitempty"`
+	PhoneNumber            string          `json:"phone_number,omitempty"`
+	Email                  string          `json:"email,omitempty"`
+	DateOfBirth            *time.Time      `json:"date_of_birth,omitempty"`
+	Gender                 *string         `json:"gender,omitempty"`
+	RelationshipStatus     *string         `json:"relationship_status"`
+	Interests              *pq.StringArray `json:"interests,omitempty"`
+	Language               *string         `json:"language,omitempty"`
+	NotificationPreference *pq.StringArray `json:"notification_preference,omitempty"`
+	AccountType            string          `json:"account_type,omitempty"`
+	ContentsCount          int64           `json:"contents_count,omitempty"`
+	CelebrationsCount      int64           `json:"celebrations_count,omitempty"`
+	LovedOnesCount         *int64          `json:"loved_ones_count,omitempty"`
+	BusinessesCount        *int64          `json:"businesses_count,omitempty"`
+	CustomersCount         *int64          `json:"customers_count,omitempty"`
+	Bio                    *string         `json:"bio,omitempty"`
+	VerificationStatus     string          `json:"verification_status,omitempty"`
+	ProfileImageUrl        *string         `json:"profile_image_url,omitempty"`
+	Location               *string         `json:"location,omitempty"`
+	Followers              *int64          `json:"followers,omitempty"`
+	Following              *int64          `json:"following,omitempty"`
+	Blocked                *int64          `json:"blocked,omitempty"`
+	BlockedYou             bool            `json:"blocked_you"`
+	DateJoined             time.Time       `json:"date_joined"`
 }
 
-type AccountType struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type IndustryType struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
+// UsersResponse the user's response object with pagination
 type UsersResponse struct {
-	Users      []*models.User `json:"users"`
+	Users      []*UserProfile `json:"users"`
 	PagingInfo PagingInfo     `json:"paging_info"`
 }

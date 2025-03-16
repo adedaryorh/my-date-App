@@ -24,6 +24,10 @@ const (
 	WalletsTable  = "wallets"
 	BalancesTable = "balances"
 	UsersTable    = "users"
+	Followers     = "followers"
+	Blocked       = "blocked"
+	Celebrations  = "celebrations"
+	Media         = "media"
 )
 
 type Operations interface {
@@ -32,10 +36,36 @@ type Operations interface {
 	GetBalanceByField(ctx context.Context, filter map[string]interface{}) (*models.Balance, error)
 	GetBalanceHistory(ctx context.Context, filter map[string]interface{}, sort string, limit int) ([]*models.BalanceHistory, error)
 
+	// blocked
+	CreateBlock(ctx context.Context, blocked *models.Blocked) (*models.Blocked, error)
+	GetBlockedUserByField(ctx context.Context, filter map[string]interface{}) (*dtos.Blocked, error)
+	DeleteBlocked(ctx context.Context, fields helpers.Map) error
+	GetAllBlocked(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.BlockedResponse, error)
+
+	// celebration
+	CreateCelebration(ctx context.Context, celebration *models.Celebration) (*models.Celebration, error)
+	GetCelebrationByField(ctx context.Context, filter map[string]interface{}) (*dtos.Celebration, error)
+	DeleteCelebration(ctx context.Context, fields helpers.Map) error
+	GetAllCelebrations(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.CelebrationsResponse, error)
+	UpdateCelebration(ctx context.Context, Id uuid.UUID, user *models.User, fields map[string]interface{}) error
+
+	// follower
+	CreateFollower(ctx context.Context, follower *models.Follower) (*models.Follower, error)
+	GetFollowerByField(ctx context.Context, filter map[string]interface{}) (*dtos.Follower, error)
+	DeleteFollower(ctx context.Context, fields helpers.Map) error
+	GetAllFollowers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.FollowersResponse, error)
+	GetAllFriends(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.FollowersResponse, error)
+
+	// media
+	CreateMedia(ctx context.Context, media *models.Media) (*models.Media, error)
+	DeleteMedia(ctx context.Context, fields helpers.Map) error
+
 	// user
 	CreateUser(ctx context.Context, c *models.User) (*models.User, error)
 	GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error)
 	UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
+	GetAllUsers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.UsersResponse, error)
+	IncrementUserFields(ctx context.Context, Id uuid.UUID, fields []*models.Incrementor) error
 
 	// wallet
 	CreateWallet(ctx context.Context, wallet *models.Wallet) error

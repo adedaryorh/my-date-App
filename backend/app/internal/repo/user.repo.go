@@ -13,6 +13,7 @@ import (
 	"backend.app/common/helpers"
 	"backend.app/common/messages"
 	"backend.app/internal/dtos"
+	"backend.app/internal/mappers"
 	"backend.app/internal/models"
 )
 
@@ -20,8 +21,8 @@ import (
 func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
 		Insert("users").
-		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type").
-		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType).
+		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type,banned_words").
+		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType, user.BannedWords).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 
@@ -44,7 +45,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 // GetUserByField -.
 func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
-		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at").
+		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at,push_notification_settings,banned_words").
 		From("users u").
 		Where(squirrel.Eq(filter)).
 		ToSql()
@@ -84,6 +85,8 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.NextLoginAt,
+		&u.PushNotificationSettings,
+		&u.BannedWords,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -96,15 +99,13 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 }
 
 // GetAllUsers Gets all Users with pagination from DB
-func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos.UsersResponse, error) {
-
+func (r *Repo) GetAllUsers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.UsersResponse, error) {
 	isFirstPage := query.Cursor == ""
 	pointsNext := false
-
 	builder := r.postgres.Builder.
-		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+		Select("u.id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name,  u.account_type_id, u.password_hash, u.status").
 		From("users u").
-		LeftJoin("industries i ON i.id = industry_id")
+		Join("followers f ON f.follower_id = u.id")
 
 	whereMap := getFilterFromQuery(query.Filter)
 	builder = buildWhere(builder, whereMap)
@@ -118,7 +119,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 		pointsNext = decodedCursor["points_next"] == true
 
 		operator, order := getPaginationOperator(pointsNext, query.Direction)
-		whereStr := fmt.Sprintf("(u.created_at %s ? OR (u.created_at = ? AND user_id %s ?))", operator, operator)
+		whereStr := fmt.Sprintf("(u.created_at %s ? OR (u.created_at = ? AND u.id %s ?))", operator, operator)
 		builder = builder.Where(whereStr, decodedCursor["created_at"], decodedCursor["created_at"], decodedCursor["id"])
 		if order != "" {
 			query.Direction = order
@@ -145,8 +146,6 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 
 	users := make([]*models.User, 0)
 	for rows.Next() {
-		var industryID *int
-		var industryName *string
 
 		u := models.User{}
 		err = rows.Scan(
@@ -158,10 +157,9 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 			&u.PhoneNumber,
 			&u.Email,
 			&u.DateOfBirth,
-			&industryID,
 			&u.PasswordHash,
 			&u.Status,
-			&industryName)
+		)
 
 		if err != nil {
 			return nil, fmt.Errorf("rows.Scan: %w", err)
@@ -188,9 +186,15 @@ func (r *Repo) GetAllUsers(ctx context.Context, query *dtos.APIPagingDto) (*dtos
 	}
 
 	pageInfo := calculatePagination(isFirstPage, hasPagination, cursorData, pointsNext)
+	var profile mappers.DtoUserMapper
+	var userProfiles []*dtos.UserProfile
 
+	for _, user := range users {
+		u := profile.MapUserProfileDto(user)
+		userProfiles = append(userProfiles, u)
+	}
 	return &dtos.UsersResponse{
-		Users: users,
+		Users: userProfiles,
 		PagingInfo: dtos.PagingInfo{
 			NextCursor: pageInfo.NextCursor,
 			PrevCursor: pageInfo.PrevCursor,
@@ -263,6 +267,30 @@ func (r *Repo) UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]i
 	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
 	if err != nil {
 		r.log.Debug("UserPostgresRepo - UpdateUser - r.Pool.Exec: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	return nil
+}
+
+// IncrementUserFields increases or decreases fields passed
+func (r *Repo) IncrementUserFields(ctx context.Context, Id uuid.UUID, fields []*models.Incrementor) error {
+	builder := r.postgres.Builder.Update("users")
+	for _, column := range fields {
+		expr := fmt.Sprintf("%s%s%s", column.Field, column.Operator, column.Value)
+		builder = builder.Set(column.Field, squirrel.Expr(expr))
+	}
+	builder = builder.Where(squirrel.Eq{"id": Id})
+	sql, args, err := builder.ToSql()
+
+	if err != nil {
+		r.log.Debug("IncrementUserFields - UpdateUser - r.Builder: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		r.log.Debug("IncrementUserFields - UpdateUser - r.Pool.Exec: %w", err)
 		return errors.New("something went wrong")
 	}
 

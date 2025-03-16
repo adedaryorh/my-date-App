@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"strconv"
 
 	"backend.app/configs"
@@ -16,6 +17,10 @@ type DB struct {
 
 func ConnectDB(config *configs.Config, log *logger.Logger) DB {
 	redis := redisservice.NewConnection(config)
+	if !redisservice.IsOpen(context.Background(), redis) {
+		log.Fatal("redis connection failed ")
+	}
+
 	poolMax, _ := strconv.Atoi(config.PgPoolMax)
 	pg, err := postgres.New(config, postgres.MaxPoolSize(poolMax))
 	if err != nil {

@@ -2,7 +2,6 @@ package redisservice
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -21,14 +20,12 @@ func NewConnection(config *configs.Config) Redis {
 	var r Redis
 	credentials := helpers.ExtractURICredentials(config.RedisUri, "redis://")
 	conn := redis.NewClient(&redis.Options{
-		Addr:      credentials.BaseUrl,
-		Password:  credentials.Secret,
-		TLSConfig: &tls.Config{InsecureSkipVerify: true},
-		DB:        0, // use default DB
+		Addr:     credentials.BaseUrl,
+		Password: credentials.Secret,
+		DB:       0, // use default DB
 	})
 
 	r.Client = conn
-
 	return r
 }
 
