@@ -62,6 +62,9 @@ func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations)
 	ProfileRoutes(version, handler)
 	WebSocketRoutes(version, handler)
 	SettingsRoutes(version, handler)
+	BlockRoutes(version, handler)
+	FollowerRoutes(version, handler)
+	CelebrationRoutes(version, handler)
 }
 func CheckRoutes(r *gin.Engine) {
 	r.GET("/v1", func(c *gin.Context) {

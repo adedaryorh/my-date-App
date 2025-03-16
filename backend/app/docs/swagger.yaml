@@ -77,6 +77,29 @@ definitions:
     x-enum-varnames:
     - NotificationTypeEmail
     - NotificationTypePush
+  dtos.APIPagingDto:
+    properties:
+      cursor:
+        type: string
+      direction:
+        type: string
+      filter:
+        type: string
+      limit:
+        type: integer
+      math:
+        type: string
+      page:
+        type: integer
+      range:
+        type: string
+      select:
+        items:
+          type: string
+        type: array
+      sort:
+        type: string
+    type: object
   dtos.AreaOfInterest:
     properties:
       areas_of_interest:
@@ -277,6 +300,8 @@ definitions:
     properties:
       account_type:
         type: string
+      blocked:
+        type: integer
       business_name:
         type: string
       completion_state:
@@ -293,6 +318,10 @@ definitions:
         type: string
       first_name:
         type: string
+      followers:
+        type: integer
+      following:
+        type: integer
       id:
         type: string
       industry_type:
@@ -499,6 +528,132 @@ paths:
       summary: Signs user up
       tags:
       - Auth
+  /block:
+    get:
+      consumes:
+      - application/json
+      description: Gets Blocked Users
+      parameters:
+      - description: 'data to query for all '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.APIPagingDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Blocked Users
+      tags:
+      - Block
+  /block/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Gets Blocked User
+      parameters:
+      - description: The Id of the blocked user
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Blocked User
+      tags:
+      - Block
+  /followers:
+    get:
+      consumes:
+      - application/json
+      description: Get All Followers
+      parameters:
+      - description: 'data to query for all '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.APIPagingDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get All Followers
+      tags:
+      - Followers
+  /followers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Gets Single Follower
+      parameters:
+      - description: The Id of the blocked user
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Single Follower
+      tags:
+      - Followers
   /profile:
     patch:
       consumes:
@@ -529,6 +684,130 @@ paths:
             additionalProperties: true
             type: object
       summary: Update user information
+      tags:
+      - Profile
+  /profile/{id}/block:
+    patch:
+      consumes:
+      - application/json
+      description: Blocks User
+      parameters:
+      - description: The Id of the User to be blocked
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Block User
+      tags:
+      - Profile
+  /profile/{id}/follow:
+    patch:
+      consumes:
+      - application/json
+      description: Follows User
+      parameters:
+      - description: The Id of the User to be followed
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Follow User
+      tags:
+      - Profile
+  /profile/{id}/unblock:
+    patch:
+      consumes:
+      - application/json
+      description: Un Blocks User
+      parameters:
+      - description: The Id of the User to be un blocked
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Un Block User
+      tags:
+      - Profile
+  /profile/{id}/unfollow:
+    patch:
+      consumes:
+      - application/json
+      description: UnFollows User
+      parameters:
+      - description: The Id of the User to be unollowed
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            $ref: '#/definitions/dtos.ResponseObject'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: UnFollow User
       tags:
       - Profile
   /profile/add-profile-image:
