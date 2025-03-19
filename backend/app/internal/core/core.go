@@ -1,6 +1,7 @@
 package core
 
 import (
+	"backend.app/database/postgres"
 	"context"
 	"errors"
 
@@ -31,6 +32,7 @@ type Core struct {
 	repo          repo.Operations
 	phoneService  map[string]sms.PhoneService
 	mixPanel      *mixpanel.MixPanel
+	postgres      *postgres.Postgres
 }
 
 type Operations interface {
@@ -63,6 +65,8 @@ type Operations interface {
 	GetAllFollowers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
 	GetSingleFollower(ctx context.Context, userId uuid.UUID, user *models.User) *dtos.ResponseObject
 	GetFriends(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.ResponseObject
+
+	// notification
 
 	// settings
 	ChangePassword(ctx context.Context, data *dtos.ChangePassword, user *models.User) *dtos.ResponseObject

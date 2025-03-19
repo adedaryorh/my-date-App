@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 
 	"backend.app/internal/models"
 )
@@ -65,7 +66,6 @@ func (c *Core) SendNotification(ctx context.Context, user *models.User, template
 func (c *Core) sendToPhone(user *models.User, template string, content map[string]interface{}, channel string) error {
 	// provider would later be set to be dynamic
 	provider := "twilio"
-
 	// build notification job
 	job := models.NotificationJob{
 		To:       []string{user.PhoneNumber},
@@ -77,6 +77,60 @@ func (c *Core) sendToPhone(user *models.User, template string, content map[strin
 	if err != nil {
 		return err
 	}
-
 	return nil
+}
+
+// createNotification
+func (c *Core) CreateNotification(ctx context.Context, user *models.User, template string, content map[string]interface{}, opts ...models.NotificationOpts) (*models.Notification, error) {
+	var opt models.NotificationOpts
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	title := opt.Title
+	if title == "" {
+		title = string(models.NotificationTitleScholarshipUpdate)
+	}
+	message := opt.Message
+	if message == "" && content != nil {
+		if msg, ok := content["message"].(string); ok {
+			message = msg
+		}
+	}
+	notificationType := opt.NotificationType
+	if notificationType == "" {
+		notificationType = template
+	}
+	notification := &models.Notification{
+		Id:               uuid.New(),
+		Owner:            user.Username,
+		OwnerId:          user.ID,
+		Status:           models.NotificationStatusSent,
+		Template:         template,
+		Title:            title,
+		NotificationType: notificationType,
+		Content:          message,
+		MetaData: models.NotificationMetaData{
+			Action:    opt.Action,
+			ObjectRef: opt.ObjectRef,
+			ObjectId:  opt.ObjectId,
+		},
+	}
+	newNotification, err := c.repo.CreateNotification(ctx, notification)
+	if err != nil {
+		return nil, err
+	}
+	return newNotification, nil
+}
+
+// CreateAndSendNotification
+func (c *Core) CreateAndSendNotification(ctx context.Context, user *models.User, template string, content map[string]interface{}, opts ...models.NotificationOpts) (*models.Notification, error) {
+	err := c.SendNotification(ctx, user, template, content, opts...)
+	if err != nil {
+		return nil, err
+	}
+	notification, err := c.CreateNotification(ctx, user, template, content, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create notification record: %w", err)
+	}
+	return notification, nil
 }

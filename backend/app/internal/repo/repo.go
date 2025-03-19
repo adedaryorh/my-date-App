@@ -1,12 +1,12 @@
 package repo
 
 import (
+	"backend.app/database"
 	"context"
 	"strings"
 	"time"
 
 	"backend.app/common/helpers"
-	"backend.app/database"
 	"backend.app/database/postgres"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
@@ -60,6 +60,13 @@ type Operations interface {
 	CreateMedia(ctx context.Context, media *models.Media) (*models.Media, error)
 	DeleteMedia(ctx context.Context, fields helpers.Map) error
 
+	// notification
+	CreateNotification(ctx context.Context, notification *models.Notification) (*models.Notification, error)
+	GetNotificationById(ctx context.Context, notificationId uuid.UUID) (*models.Notification, error)
+	GetAllNotifications(ctx context.Context, query *dtos.APIPagingDto) (*dtos.NotificationsResponse, error)
+	UpdateNotification(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
+	GetSingleNotification(ctx context.Context, filter map[string]interface{}) (*models.Notification, error)
+
 	// user
 	CreateUser(ctx context.Context, c *models.User) (*models.User, error)
 	GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error)
@@ -75,9 +82,10 @@ type Operations interface {
 func NewRepo(db *database.DB, log *logger.Logger) Operations {
 	repo := Repo{db.Postgres, log}
 	op := Operations(&repo)
-
 	return op
 }
+
+//WHy are we casting Opn
 
 type WhereObj struct {
 	field     string

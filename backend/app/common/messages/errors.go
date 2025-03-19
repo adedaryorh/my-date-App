@@ -54,6 +54,7 @@ var (
 	ErrUserNotSuccessfullyActivated = errors.New("user not successfully activated")
 	ErrInactiveUser                 = errors.New("user not activated")
 	ErrIncorrectPassword            = errors.New("incorrect password")
+	ErrNotificationNotFound         = errors.New("notification not found")
 	ErrPushNotificationNotEnabled   = errors.New("push notification is not enabled")
 	ErrPasswordResetEmailNotSent    = errors.New("password reset email not successfully sent")
 	ErrPasswordResetNotSuccessfull  = errors.New("password reset not successful")

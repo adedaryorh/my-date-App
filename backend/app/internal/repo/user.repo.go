@@ -38,7 +38,6 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 		r.log.Error("UserPostgresRepo - CreateUser - r.Pool.Scan: %w", err)
 		return nil, errors.New("something went wrong")
 	}
-
 	return user, nil
 }
 
@@ -244,10 +243,8 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 		r.log.Debug("row.Scan: %w", err)
 		return nil, errors.New("something went wrong")
 	}
-
 	if industryID != nil {
 	}
-
 	return &u, nil
 }
 

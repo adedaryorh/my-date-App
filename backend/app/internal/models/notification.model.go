@@ -1,22 +1,31 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type NotificationTitle string
+type (
+	NotificationTitle  string
+	NotificationStatus string
+)
 
 const (
-	NotificationTitleScholarshipUpdate NotificationTitle = "Scholarship Update"
+	NotificationTitleScholarshipUpdate NotificationTitle  = "Scholarship Update"
+	NotificationStatusSent             NotificationStatus = "sent"
+	NotificationStatusDelivered        NotificationStatus = "delivered"
+	NotificationStatusFailed           NotificationStatus = "failed"
 )
 
 type Notification struct {
 	Id               uuid.UUID            `json:"id" gorm:"column:id;PRIMARY_KEY;type:uuid;default:gen_random_uuid()"`
 	Owner            string               `json:"owner,omitempty"`
 	OwnerId          uuid.UUID            `json:"owner_id,omitempty"`
-	Status           string               `json:"status,omitempty"`
+	Status           NotificationStatus   `json:"status,omitempty"`
 	Template         string               `json:"template"`
 	Title            string               `json:"title"`
 	NotificationType string               `json:"notification_type"`
@@ -30,6 +39,18 @@ type NotificationMetaData struct {
 	Action    string    `json:"action,omitempty"`
 	ObjectRef string    `json:"object_ref,omitempty"`
 	ObjectId  uuid.UUID `json:"object_id,omitempty"`
+}
+
+func (n NotificationMetaData) Value() (driver.Value, error) {
+	return json.Marshal(n)
+}
+
+func (n *NotificationMetaData) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to byte failed")
+	}
+	return json.Unmarshal(b, &n)
 }
 
 var NotificationChannels = struct {
