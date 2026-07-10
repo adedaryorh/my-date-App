@@ -13,7 +13,7 @@ import (
 	_ "backend.app/docs"
 
 	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	ginSwagger   "github.com/swaggo/gin-swagger"
 
 	"net/http"
 )
@@ -49,9 +49,14 @@ func NewAppRouter(server *gin.Engine, handler handlers.Operations, cfg *configs.
 	server.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	// Prometheus metrics
-	//handler.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// handler.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	return Routes{Handler: handler, Server: server}
+}
+
+// RegisterMetrics registers the Prometheus metrics endpoint
+func (ro *Routes) RegisterMetrics(server *gin.Engine) {
+	server.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 
 func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations) {
@@ -65,7 +70,9 @@ func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations)
 	BlockRoutes(version, handler)
 	FollowerRoutes(version, handler)
 	CelebrationRoutes(version, handler)
+	AIRoutes(version, handler) // Add AI routes
 }
+
 func CheckRoutes(r *gin.Engine) {
 	r.GET("/v1", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

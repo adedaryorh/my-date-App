@@ -1,21 +1,3 @@
-package app
-
-import (
-	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-
-	"backend.app/configs"
-	"backend.app/database"
-	v1 "backend.app/internal/controller/http/v1"
-	"backend.app/internal/controller/http/v1/handlers"
-	"backend.app/pkg/httpserver"
-	"backend.app/pkg/logger"
-	"github.com/gin-gonic/gin"
-)
-
 // Run creates objects via constructors.
 func Run(cfg *configs.Config) {
 	l := logger.New(cfg.LogLevel)
@@ -34,15 +16,23 @@ func Run(cfg *configs.Config) {
 
 	// TODO: Use config
 	server.MaxMultipartMemory = 8 << 20
+
+	// Add observability middleware (tracing + metrics)
+	server.Use(middleware.ObservabilityMiddleware())
+
 	handler := handlers.NewHandler(l, cfg, &db)
 	routesWithServer := v1.NewAppRouter(server, handler, cfg)
 	routesWithServer.RegisterRoutes(server, handler)
 
+	// Add health check endpoint
 	routesWithServer.Server.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to Celebut Application",
 		})
 	})
+
+	// Add metrics endpoint for Prometheus
+	routesWithServer.Server.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	httpServer := httpserver.New(routesWithServer.Server, cfg.Port)
 
