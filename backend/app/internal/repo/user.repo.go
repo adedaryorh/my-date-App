@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 // GetUserByField -.
 func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
-		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at,push_notification_settings,banned_words, u.role").
+		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at,push_notification_settings,banned_words, u.role, u.google_id").
 		From("users u").
 		Where(squirrel.Eq(filter)).
 		ToSql()
@@ -89,7 +90,8 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		&u.NextLoginAt,
 		&u.PushNotificationSettings,
 		&u.BannedWords,
-		&u.Role)
+		&u.Role,
+		&u.GoogleID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, messages.ErrUserNotFound
@@ -297,4 +299,98 @@ func (r *Repo) IncrementUserFields(ctx context.Context, Id uuid.UUID, fields []*
 	}
 
 	return nil
+}
+
+// UpdateUserRole updates a user's role by user_id
+func (r *Repo) UpdateUserRole(ctx context.Context, userID string, role string) error {
+	sql, args, err := r.postgres.Builder.
+		Update("users").
+		Set("role", role).
+		Where(squirrel.Eq{"user_id": userID}).
+		ToSql()
+
+	if err != nil {
+		r.log.Debug("UserPostgresRepo - UpdateUserRole - r.Builder: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		r.log.Debug("UserPostgresRepo - UpdateUserRole - r.Pool.Exec: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	return nil
+}
+
+// DeleteUser deletes a user by user_id
+func (r *Repo) DeleteUser(ctx context.Context, userID string) error {
+	sql, args, err := r.postgres.Builder.
+		Delete("users").
+		Where(squirrel.Eq{"user_id": userID}).
+		ToSql()
+
+	if err != nil {
+		r.log.Debug("UserPostgresRepo - DeleteUser - r.Builder: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		r.log.Debug("UserPostgresRepo - DeleteUser - r.Pool.Exec: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	return nil
+}
+
+// GetUserByEmail -.
+func (r *Repo) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	return r.GetUserByField(ctx, map[string]interface{}{"email": email})
+}
+
+// CreateUserFromGoogle -.
+func (r *Repo) CreateUserFromGoogle(ctx context.Context, email string, firstName string, lastName string, picture string, googleID string) (*models.User, error) {
+	// Generate username from email (part before @)
+	username := strings.Split(email, "@")[0]
+	// If username is empty, use a fallback
+	if username == "" {
+		username = "user"
+	}
+
+	user := &models.User{
+		Email:          email,
+		FirstName:      firstName,
+		LastName:       lastName,
+		Username:       username,
+		ProfileImageURL: &picture,
+		GoogleID:       googleID,
+	}
+
+	// Set default role if empty
+	if user.Role == "" {
+		user.Role = "user"
+	}
+
+	// Insert the user into the database
+	sql, args, err := r.postgres.Builder.
+		Insert("users").
+		Columns("first_name, last_name, username, country_code, phone_number, completion_state, verification_status, email, date_of_birth, account_type, password_hash, status, business_name, industry_type, banned_words, role, google_id").
+		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType, user.BannedWords, user.Role, user.GoogleID).
+		Suffix("RETURNING \"id\"").
+		ToSql()
+
+	if err != nil {
+		r.log.Error("UserPostgresRepo - CreateUserFromGoogle - r.Builder: %w", err)
+		return nil, errors.New("something went wrong")
+	}
+
+	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
+
+	err = row.Scan(&user.ID)
+	if err != nil {
+		r.log.Error("UserPostgresRepo - CreateUserFromGoogle - r.Pool.Scan: %w", err)
+		return nil, errors.New("something went wrong")
+	}
+	return user, nil
 }

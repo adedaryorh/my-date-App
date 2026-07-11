@@ -78,6 +78,10 @@ type Operations interface {
 	// DeleteUser deletes user by user_id (UUID string)
 	DeleteUser(ctx context.Context, userID string) error
 
+	// OAuth
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	CreateUserFromGoogle(ctx context.Context, email string, firstName string, lastName string, picture string, googleID string) (*models.User, error)
+
 	// wallet
 	CreateWallet(ctx context.Context, wallet *models.Wallet) error
 	GetWalletByField(ctx context.Context, filter map[string]interface{}) (*dtos.Wallet, error)

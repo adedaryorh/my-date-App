@@ -1,23 +1,38 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"strconv"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"golang.org/oauth2"
+	"golang.org/oauth2/google"
+	"golang.org/x/crypto/bcrypt"
 
 	"backend.app/configs"
+    "backend.app/constants"
 	"backend.app/database"
 	"backend.app/internal/core"
 	"backend.app/internal/dtos"
+    "backend.app/internal/helpers"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
 	"backend.app/pkg/response"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pq"
+	"go.uber.org/zap"
 )
 
 type Handler struct {
 	core   core.Operations
 	log    *logger.Logger
 	config *configs.Config
+	oauthConfig *oauth2.Config
 }
 
 type Operations interface {
@@ -84,6 +99,15 @@ type Operations interface {
 
 	// Wallet
 	GetUserWallet(c *gin.Context)
+
+	// RBAC
+	GetAllUsers(c *gin.Context)
+	UpdateUserRole(c *gin.Context)
+	DeleteUser(c *gin.Context)
+
+	// OAuth
+	GoogleLogin(c *gin.Context)
+	GoogleCallback(c *gin.Context)
 }
 
 func NewHandler(log *logger.Logger, config *configs.Config, db *database.DB) Operations {
@@ -97,6 +121,13 @@ func NewHandler(log *logger.Logger, config *configs.Config, db *database.DB) Ope
 		config: config,
 		log:    log,
 		core:   core.NewCore(config, log, db, newMiddleware),
+		oauthConfig: &oauth2.Config{
+			ClientID:     config.GoogleClientID,
+			ClientSecret: config.GoogleClientSecret,
+			RedirectURL:  config.AppHost + ":" + config.Port + "/v1/auth/google/callback",
+			Scopes:       []string{"openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
+			Endpoint:     google.Endpoint,
+		},
 	}
 	op := Operations(&h)
 	return op
@@ -113,6 +144,55 @@ func getPagingInfo(c *gin.Context) dtos.APIPagingDto {
 	paging.Limit = limit
 	paging.Page = page
 	return paging
+}
+
+const oauthStateCookieName = "oauth_state"
+
+func generateStateOauthCookie() string {
+	var b []byte
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+	state := base64.URLEncoding.EncodeToString(b)
+	return state
+}
+
+func setStateOauthCookie(c *gin.Context, state string) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     oauthStateCookieName,
+		Value:    state,
+		Path:     "/",
+		HttpOnly: true,
+		// Secure:   true, // Uncomment when serving via HTTPS
+		MaxAge:   3600,
+	})
+}
+
+func getStateOauthCookie(c *gin.Context) (string, error) {
+	cookie, err := c.Cookie(oauthStateCookieName)
+	if err != nil {
+		return "", err
+	}
+	return cookie, nil
+}
+
+func decodeGoogleIDToken(idToken string) (string, error) {
+	parts := strings.Split(idToken, ".")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("invalid ID token")
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", fmt.Errorf("failed to decode payload: %w", err)
+	}
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return "", fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+	if sub, ok := claims["sub"].(string); ok {
+		return sub, nil
+	}
+	return "", fmt.Errorf("sub claim not found")
 }
 
 // Implement the Operations interface by delegating to the core methods and handling responses
@@ -409,4 +489,193 @@ func (h *Handler) WebSocketHandler(c *gin.Context) {
 
 func (h *Handler) GetUserWallet(c *gin.Context) {
 	h.core.GetUserWallet(c)
+}
+
+func (h *Handler) GetAllUsers(c *gin.Context) {
+	query := getPagingInfo(c)
+	user := c.MustGet("authUser").(models.User)
+
+	result := h.core.GetAllUsers(c.Request.Context(), &user, &query)
+	if result != nil {
+		c.JSON(result.Code, result)
+		return
+	}
+
+	// Handle error case
+	result := response.ServerErrorResponse(fmt.Errorf("failed to get users"), "Failed to get users")
+	c.JSON(result.Code, result)
+}
+
+func (h *Handler) UpdateUserRole(c *gin.Context) {
+	var input struct {
+		UserID string `json:"user_id" binding:"required"`
+		Role   string `json:"role" binding:"required,oneof=user admin moderator"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+
+	if err := helpers.ValidateInput(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+
+	user := c.MustGet("authUser").(models.User)
+	if user.Role != "admin" {
+		result := response.ForbiddenResponse(fmt.Errorf("insufficient permissions"), "Access denied")
+		c.JSON(result.Code, result)
+		return
+	}
+
+	result := h.core.UpdateUserRole(c.Request.Context(), input.UserID, input.Role)
+	if result != nil {
+		c.JSON(result.Code, result)
+		return
+	}
+
+	// Handle error case
+	result := response.ServerErrorResponse(fmt.Errorf("failed to update user role"), "Failed to update user role")
+	c.JSON(result.Code, result)
+}
+
+func (h *Handler) DeleteUser(c *gin.Context) {
+	userID := c.Param("user_id")
+	if userID == "" {
+		result := response.BadRequestResponse(fmt.Errorf("user_id is required"), constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+
+	user := c.MustGet("authUser").(models.User)
+	if user.Role != "admin" {
+		result := response.ForbiddenResponse(fmt.Errorf("insufficient permissions"), "Access denied")
+		c.JSON(result.Code, result)
+		return
+	}
+
+	// Optional: prevent self-delete
+	if user.ID.String() == userID {
+		result := response.BadRequestResponse(fmt.Errorf("cannot delete yourself"), constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+
+	result := h.core.DeleteUser(c.Request.Context(), userID)
+	if result != nil {
+		c.JSON(result.Code, result)
+		return
+	}
+
+	// Handle error case
+	result := response.ServerErrorResponse(fmt.Errorf("failed to delete user"), "Failed to delete user")
+	c.JSON(result.Code, result)
+}
+
+// GoogleLogin handles the Google login request
+func (h *Handler) GoogleLogin(c *gin.Context) {
+	state := generateStateOauthCookie()
+	setStateOauthCookie(c, state)
+	url := h.oauthConfig.AuthCodeURL(state)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+// GoogleCallback handles Google callback
+func (h *Handler) GoogleCallback(c *gin.Context) {
+	state, err := getStateOauthCookie(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	if c.Query("state") != state {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	code := c.Query("code")
+	if code == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	token, err := h.oauthConfig.Exchange(c.Request.Context(), code)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// Extract Google ID from ID token
+	var googleID string
+	if token.Extra("id_token") != nil {
+		idToken := token.Extra("id_token").(string)
+		googleID, err = decodeGoogleIDToken(idToken)
+		if err != nil {
+			h.log.Error("Failed to decode Google ID token", zap.Error(err))
+			// Continue without Google ID - not critical for basic functionality
+		}
+	}
+
+	// Get user info from Google
+	client := &http.Client{}
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(token.AccessToken))
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	var userInfo struct {
+		Email    string `json:"email"`
+		FirstName string `json:"given_name"`
+		LastName  string `json:"family_name"`
+		Picture   string `json:"picture"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user already exists by email
+	existingUser, err := h.core.GetUserByEmail(c.Request.Context(), userInfo.Email)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	var user *models.User
+	if existingUser != nil {
+		// User exists, update GoogleID if not set
+		if existingUser.GoogleID == "" && googleID != "" {
+			// Update the user's GoogleID
+			updateErr := h.core.UpdateUser(c.Request.Context(), existingUser.ID.String(), map[string]interface{}{"google_id": googleID})
+			if updateErr != nil {
+				h.log.Warn("Failed to update GoogleID for existing user", zap.Error(updateErr), zap.String("user_id", existingUser.ID.String()))
+			}
+			// Refresh the user object with the updated GoogleID
+			existingUser.GoogleID = googleID
+		}
+		user = existingUser
+	} else {
+		// Create new user
+		user, err = h.core.CreateUserFromGoogle(c.Request.Context(), userInfo.Email, userInfo.FirstName, userInfo.LastName, userInfo.Picture, googleID)
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Generate JWT token for the user
+	tokenString, err := h.core.TokenService.GenerateToken(user.ID.String())
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// Return the token to the client
+	c.JSON(http.StatusOK, gin.H{
+		"token": tokenString,
+		"user":  user,
+	})
 }

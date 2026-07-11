@@ -15,5 +15,7 @@ func AuthRoutes(server *gin.RouterGroup, handler handlers.Operations) {
 		auth.POST("/reset-password", handler.SendResetPasswordToken)
 		auth.PATCH("/reset-password", handler.ResetPassword)
 		auth.GET("/self", handler.AuthenticatedUserMiddleware(), handler.Me)
+		auth.GET("/google/login", handler.GoogleLogin)
+		auth.GET("/google/callback", handler.GoogleCallback)
 	}
 }

@@ -23,6 +23,7 @@ require (
 	github.com/swaggo/swag v1.8.1
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e
 	golang.org/x/net v0.1.0
+	golang.org/oauth2 v0.10.0
 	golang.org/x/text v0.4.0
 )
 

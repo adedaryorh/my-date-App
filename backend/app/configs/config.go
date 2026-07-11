@@ -59,6 +59,9 @@ type Config struct {
 	AIServiceCircuitBreakerInterval  int    `validate:"required" yaml:"ai_service_circuit_breaker_interval" env:"AI_SERVICE_CIRCUIT_BREAKER_INTERVAL"` // Interval between state changes
 	AIServiceCircuitBreakerMaxRequests int   `validate:"required" yaml:"ai_service_circuit_breaker_max_requests" env:"AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS"` // Max requests in half-open state
 	AIServiceFailureRateThreshold    float64 `validate:"required" yaml:"ai_service_failure_rate_threshold" env:"AI_SERVICE_FAILURE_RATE_THRESHOLD"` // Failure rate to trip circuit (0.0-1.0)
+
+	GoogleClientID     string `validate:"required" yaml:"google_client_id" env:"GOOGLE_CLIENT_ID"`
+	GoogleClientSecret string `validate:"required" yaml:"google_client_secret" env:"GOOGLE_CLIENT_SECRET"`
 }
 
 func NewConfig() (*Config, error) {
@@ -115,6 +118,8 @@ func NewConfig() (*Config, error) {
 		AIServiceCircuitBreakerInterval:  helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_INTERVAL", 10),
 		AIServiceCircuitBreakerMaxRequests: helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS", 3),
 		AIServiceFailureRateThreshold:    helpers.GetenvAsFloat("AI_SERVICE_FAILURE_RATE_THRESHOLD", 0.5),
+		GoogleClientID:     helpers.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: helpers.Getenv("GOOGLE_CLIENT_SECRET"),
 	}
 
 	validate := validator.New()

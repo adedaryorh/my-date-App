@@ -31,6 +31,7 @@ type User struct {
 	ContentSettings          ContentSettings      `json:"content_settings,omitempty"`
 	BannedWords              *pq.StringArray      `json:"banned_words"`
 	Role                     string               `json:"role,omitempty" gorm:"default:'user'"`
+	GoogleID                 string               `json:"google_id,omitempty" gorm:"column:google_id"`
 	CreatedAt                time.Time            `json:"created_at,omitempty"`
 	UpdatedAt                *time.Time           `json:"updated_at,omitempty"`
 }

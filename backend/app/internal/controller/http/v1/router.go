@@ -71,6 +71,7 @@ func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations)
 	FollowerRoutes(version, handler)
 	CelebrationRoutes(version, handler)
 	AIRoutes(version, handler) // Add AI routes
+	AdminRoutes(version, handler)
 }
 
 func CheckRoutes(r *gin.Engine) {
