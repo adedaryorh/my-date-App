@@ -1,0 +1,26 @@
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 4317
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+
+compactor:
+  compaction:
+    compaction_window: 1h
+    blocked_shards_retention_period: 2h
+    retention_delete_delay: 2h
+    compacted_trace_retention_duration: 48h
+    sort_by_trace_id: false
+    use_traceid_index: true
+
+storage:
+  trace:
+    local:
+      wal:
+        path: /tmp/tempo/wal
+      block:
+        path: /tmp/turbo/blocks

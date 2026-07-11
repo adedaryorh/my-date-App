@@ -197,30 +197,13 @@ func (c *AIServiceClient) EmbedProfile(ctx context.Context, req *EmbedProfileReq
 		zap.String("user_id", req.UserID),
 		zap.String("endpoint", "/ai/embed-profile"))
 
-	url := fmt.Sprintf("%s/ai/embed-profile", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/embed-profile", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response EmbedProfileResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -233,30 +216,13 @@ func (c *AIServiceClient) RecommendUsers(ctx context.Context, req *RecommendUser
 		zap.String("user_id", req.UserID),
 		zap.String("endpoint", "/ai/recommend-users"))
 
-	url := fmt.Sprintf("%s/ai/recommend-users", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/recommend-users", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response RecommendUsersResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -268,30 +234,13 @@ func (c *AIServiceClient) ModerateCelebration(ctx context.Context, req *Moderate
 	c.logger.Info("Calling AI service to moderate celebration",
 		zap.String("endpoint", "/ai/moderate-celebration"))
 
-	url := fmt.Sprintf("%s/ai/moderate-celebration", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/moderate-celebration", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response ModerateCelebrationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -304,30 +253,13 @@ func (c *AIServiceClient) IndexCelebration(ctx context.Context, req *IndexCelebr
 		zap.String("celebration_id", req.CelebrationID),
 		zap.String("endpoint", "/ai/index-celebration"))
 
-	url := fmt.Sprintf("%s/ai/index-celebration", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/index-celebration", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response IndexCelebrationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -340,30 +272,13 @@ func (c *AIServiceClient) SearchCelebrations(ctx context.Context, req *SearchCel
 		zap.String("query", req.Query),
 		zap.String("endpoint", "/ai/search-celebrations"))
 
-	url := fmt.Sprintf("%s/ai/search-celebrations", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/search-celebrations", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response SearchCelebrationsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -378,30 +293,13 @@ func (c *AIServiceClient) LogInteraction(ctx context.Context, req *LogInteractio
 		zap.String("action", req.Action),
 		zap.String("endpoint", "/ai/log-interaction"))
 
-	url := fmt.Sprintf("%s/ai/log-interaction", c.baseURL)
-	jsonData, err := json.Marshal(req)
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/log-interaction", req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, byte(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call AI service: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("AI service returned non-OK status: %d", resp.StatusCode)
+		return nil, err
 	}
 
 	var response LogInteractionResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(responseBody)).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 

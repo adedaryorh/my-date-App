@@ -19,10 +19,13 @@ import (
 
 // CreateUser -.
 func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	if user.Role == "" {
+		user.Role = "user"
+	}
 	sql, args, err := r.postgres.Builder.
 		Insert("users").
-		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type,banned_words").
-		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType, user.BannedWords).
+		Columns("first_name, last_name, username, country_code, phone_number,completion_state,verification_status ,email, date_of_birth, account_type, password_hash, status,business_name,industry_type,banned_words, role").
+		Values(user.FirstName, user.LastName, user.Username, user.CountryCode, user.PhoneNumber, user.CompletionState, user.VerificationStatus, user.Email, user.DateOfBirth, user.AccountType, user.PasswordHash, user.Status, user.BusinessName, user.IndustryType, user.BannedWords, user.Role).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 
@@ -44,7 +47,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 // GetUserByField -.
 func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}) (*models.User, error) {
 	sql, args, err := r.postgres.Builder.
-		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at,push_notification_settings,banned_words").
+		Select("u.id,u.first_name, u.last_name, u.username,u.email,u.country_code,u.longitude,u.latitude, u.phone_number, u.completion_state, u.ip_address, u.device_type,u.date_of_birth,u.account_type,u.interests,u.notification_preference,u.language,u.profile_image_url,u.verification_status,u.password_hash, u.status,u.business_name,u.industry_type,u.created_at,u.updated_at,next_login_at,push_notification_settings,banned_words, u.role").
 		From("users u").
 		Where(squirrel.Eq(filter)).
 		ToSql()
@@ -86,7 +89,7 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		&u.NextLoginAt,
 		&u.PushNotificationSettings,
 		&u.BannedWords,
-	)
+		&u.Role)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, messages.ErrUserNotFound
@@ -102,7 +105,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, user *models.User, query *dtos.A
 	isFirstPage := query.Cursor == ""
 	pointsNext := false
 	builder := r.postgres.Builder.
-		Select("u.id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name,  u.account_type_id, u.password_hash, u.status").
+		Select("u.id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name,  u.account_type_id, u.password_hash, u.status, u.role").
 		From("users u").
 		Join("followers f ON f.follower_id = u.id")
 
@@ -158,6 +161,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, user *models.User, query *dtos.A
 			&u.DateOfBirth,
 			&u.PasswordHash,
 			&u.Status,
+			&u.Role,
 		)
 
 		if err != nil {
@@ -204,7 +208,7 @@ func (r *Repo) GetAllUsers(ctx context.Context, user *models.User, query *dtos.A
 // GetUserByID -.
 func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 	sql, _, err := r.postgres.Builder.
-		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, i.name").
+		Select("u.id, u.user_id, u.first_name, u.last_name, u.username, u.country_code, u.phone, u.email, u.dob, u.gender, u.relationship_status, u.business_name, u.industry_id, u.account_type_id, u.password_hash, u.status, u.role, i.name").
 		From("users u").
 		LeftJoin("industries i ON i.id = industry_id").
 		Where(squirrel.Eq{"u.id": userID}).
@@ -233,6 +237,7 @@ func (r *Repo) GetUserByID(ctx context.Context, userID int) (*models.User, error
 		&industryID,
 		&u.PasswordHash,
 		&u.Status,
+		&u.Role,
 		&industryName)
 
 	if err != nil {

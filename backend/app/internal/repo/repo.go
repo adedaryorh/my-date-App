@@ -73,6 +73,10 @@ type Operations interface {
 	UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
 	GetAllUsers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) (*dtos.UsersResponse, error)
 	IncrementUserFields(ctx context.Context, Id uuid.UUID, fields []*models.Incrementor) error
+	// UpdateUserRole updates user role by user_id (UUID string)
+	UpdateUserRole(ctx context.Context, userID string, role string) error
+	// DeleteUser deletes user by user_id (UUID string)
+	DeleteUser(ctx context.Context, userID string) error
 
 	// wallet
 	CreateWallet(ctx context.Context, wallet *models.Wallet) error
