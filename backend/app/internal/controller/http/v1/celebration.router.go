@@ -1,15 +1,25 @@
 package v1
 
 import (
+	"time"
+
 	"backend.app/internal/controller/http/v1/handlers"
+	"backend.app/pkg/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 // CelebrationRoutes stores all celebration routes
-func CelebrationRoutes(server *gin.RouterGroup, handler handlers.Operations) {
+func CelebrationRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *middleware.Middleware) {
 	celebration := server.Group("/celebrations", handler.AuthenticatedUserMiddleware())
 	{
-		celebration.POST("", handler.CreateCelebration)
-		celebration.GET("", handler.GetCelebrations)
+		// Rate limiting for celebration endpoints - higher limits as these are content creation/celebration events
+		celebrationLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 50,    // 50 requests
+			Window:   time.Minute, // per minute
+			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
+		})
+
+		celebration.POST("", celebrationLimiter, handler.CreateCelebration)
+		celebration.GET("", celebrationLimiter, handler.GetCelebrations)
 	}
 }

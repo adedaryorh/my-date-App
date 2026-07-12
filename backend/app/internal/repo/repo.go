@@ -65,6 +65,7 @@ type Operations interface {
 	GetNotificationById(ctx context.Context, notificationId uuid.UUID) (*models.Notification, error)
 	GetAllNotifications(ctx context.Context, query *dtos.APIPagingDto) (*dtos.NotificationsResponse, error)
 	UpdateNotification(ctx context.Context, Id uuid.UUID, fields map[string]interface{}) error
+	DeleteNotification(ctx context.Context, notificationId uuid.UUID) error
 	GetSingleNotification(ctx context.Context, filter map[string]interface{}) (*models.Notification, error)
 
 	// user

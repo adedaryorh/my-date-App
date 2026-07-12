@@ -243,3 +243,24 @@ func (r *Repo) GetSingleNotification(ctx context.Context, filter map[string]inte
 
 	return &n, nil
 }
+
+// DeleteNotification deletes a notification by its ID
+func (r *Repo) DeleteNotification(ctx context.Context, notificationId uuid.UUID) error {
+	sql, args, err := r.postgres.Builder.
+		Delete("notifications").
+		Where(squirrel.Eq{"id": notificationId}).
+		ToSql()
+
+	if err != nil {
+		r.log.Debug("Notification PostgresRepo - DeleteNotification - r.Builder: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	_, err = r.postgres.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		r.log.Debug("Notification PostgresRepo - DeleteNotification - r.Pool.Exec: %w", err)
+		return errors.New("something went wrong")
+	}
+
+	return nil
+}

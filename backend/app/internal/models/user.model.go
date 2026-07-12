@@ -1,3 +1,12 @@
+package models
+
+import (
+	"github.com/google/uuid"
+	"github.com/jackc/pq"
+	"gorm.io/gorm"
+	"time"
+)
+
 // User this is the user's model object
 type User struct {
 	ID                       uuid.UUID            `json:"id" gorm:"column:id;PRIMARY_KEY;type:uuid;default:gen_random_uuid()"`

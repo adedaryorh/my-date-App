@@ -21,7 +21,8 @@ func Run(cfg *configs.Config) {
 	server.Use(middleware.ObservabilityMiddleware())
 
 	handler := handlers.NewHandler(l, cfg, &db)
-	routesWithServer := v1.NewAppRouter(server, handler, cfg)
+	mw := middleware.NewMiddleware(&db, cfg, l)  // Create middleware instance
+	routesWithServer := v1.NewAppRouter(server, handler, mw, cfg)
 	routesWithServer.RegisterRoutes(server, handler)
 
 	// Add health check endpoint

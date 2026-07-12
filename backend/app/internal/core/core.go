@@ -77,6 +77,10 @@ type Operations interface {
 	HealthCheck(ctx context.Context) *dtos.ResponseObject
 
 	// notification
+	GetNotificationById(ctx context.Context, notificationId uuid.UUID) *dtos.ResponseObject
+	GetAllNotifications(ctx context.Context, query *dtos.APIPagingDto) *dtos.ResponseObject
+	MarkNotificationAsRead(ctx context.Context, notificationId uuid.UUID) *dtos.ResponseObject
+	DeleteNotification(ctx context.Context, notificationId uuid.UUID) *dtos.ResponseObject
 
 	// settings
 	ChangePassword(ctx context.Context, data *dtos.ChangePassword, user *models.User) *dtos.ResponseObject
@@ -269,49 +273,72 @@ func truncateString(s string, length int) string {
 
 // GetAllUsers returns all users with pagination
 func (c *Core) GetAllUsers(ctx context.Context, user *models.User, query *dtos.APIPagingDto) *dtos.UsersResponse {
-	c.log.Info("Getting all users",
+	c.log.Info("Retrieving users list",
+		zap.String("requester_id", user.ID.String()),
+		zap.String("requester_email", user.Email),
 		zap.Int("limit", query.Limit),
-		zap.Int("page", query.Page))
+		zap.Int("page", query.Page),
+		zap.String("action", "list_users"))
 
 	// Check if user has admin permissions
 	if user.Role != "admin" {
+		c.log.Warn("Unauthorized attempt to list users",
+			zap.String("requester_id", user.ID.String()),
+			zap.String("requester_role", user.Role))
 		return response.ForbiddenResponse(fmt.Errorf("insufficient permissions"), "Access denied")
 	}
 
 	result := c.repo.GetAllUsers(ctx, user, query)
 	if result != nil {
+		c.log.Info("Successfully retrieved users list",
+			zap.String("requester_id", user.ID.String()),
+			zap.Int("count", len(result.Users)),
+			zap.String("action", "list_users"))
 		return result
 	}
 
 	// Handle error case
+	c.log.Error("Failed to retrieve users list",
+		zap.String("requester_id", user.ID.String()),
+		zap.String("action", "list_users"))
 	return response.ServerErrorResponse(fmt.Errorf("failed to get users"), "Failed to get users")
 }
 
 // UpdateUserRole updates a user's role
 func (c *Core) UpdateUserRole(ctx context.Context, userID string, role string) *dtos.ResponseObject {
-	c.log.Info("Updating user role",
-		zap.String("user_id", userID),
-		zap.String("role", role))
-
-	// Check if user has admin permissions
-	// In a real implementation, we would get the current user from context
-	// For now, we'll assume the caller has validated permissions
+	c.log.Info("Attempting to update user role",
+		zap.String("target_user_id", userID),
+		zap.String("role", role),
+		zap.String("action", "update_user_role"))
 
 	// Validate role
 	validRoles := map[string]bool{
-		"user":   true,
-		"admin":  true,
-		"moderator": true,
+		"user":       true,
+		"admin":      true,
+		"moderator":  true,
 	}
 	if !validRoles[role] {
+		c.log.Warn("Invalid role specified for user update",
+			zap.String("target_user_id", userID),
+			zap.String("role", role),
+			zap.String("action", "update_user_role"))
 		return response.BadRequestResponse(fmt.Errorf("invalid role"), "Invalid role specified")
 	}
 
 	err := c.repo.UpdateUserRole(ctx, userID, role)
 	if err != nil {
+		c.log.Error("Failed to update user role",
+			zap.String("target_user_id", userID),
+			zap.String("role", role),
+			zap.Error(err),
+			zap.String("action", "update_user_role"))
 		return response.ServerErrorResponse(err, "Failed to update user role")
 	}
 
+	c.log.Info("Successfully updated user role",
+		zap.String("target_user_id", userID),
+		zap.String("role", role),
+		zap.String("action", "update_user_role"))
 	return response.SuccessResponse("User role updated successfully", map[string]string{
 		"user_id": userID,
 		"role":    role,
@@ -320,22 +347,29 @@ func (c *Core) UpdateUserRole(ctx context.Context, userID string, role string) *
 
 // DeleteUser deletes a user by ID
 func (c *Core) DeleteUser(ctx context.Context, userID string) *dtos.ResponseObject {
-	c.log.Info("Deleting user",
-		zap.String("user_id", userID))
+	c.log.Info("Attempting to delete user",
+		zap.String("target_user_id", userID),
+		zap.String("action", "delete_user"))
 
-	// Check if user has admin permissions
-	// In a real implementation, we would get the current user from context
-	// For now, we'll assume the caller has validated permissions
-
-	// Prevent self-deletion (in a real app, we'd compare with current user ID)
-	// For simplicity, we'll allow it but log a warning
-	c.log.Warn("Attempting to delete user", zap.String("user_id", userID))
+	// Prevent self-deletion warning (in a real app, we'd compare with current user ID from context)
+	// Since we don't have current user in this method signature, we log a warning to highlight
+	// that self-deletion prevention should happen at the API layer
+	c.log.Warn("Delete user requested - self-deletion prevention should be verified at API layer",
+		zap.String("target_user_id", userID),
+		zap.String("action", "delete_user"))
 
 	err := c.repo.DeleteUser(ctx, userID)
 	if err != nil {
+		c.log.Error("Failed to delete user",
+			zap.String("target_user_id", userID),
+			zap.Error(err),
+			zap.String("action", "delete_user"))
 		return response.ServerErrorResponse(err, "Failed to delete user")
 	}
 
+	c.log.Info("Successfully deleted user",
+		zap.String("target_user_id", userID),
+		zap.String("action", "delete_user"))
 	return response.SuccessResponse("User deleted successfully", map[string]string{
 		"user_id": userID,
 	})

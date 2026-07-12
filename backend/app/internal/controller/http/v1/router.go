@@ -21,10 +21,11 @@ import (
 type Routes struct {
 	Handler handlers.Operations
 	Server  *gin.Engine
+	MW      *middleware.Middleware
 }
 
 // NewAppRouter -.
-func NewAppRouter(server *gin.Engine, handler handlers.Operations, cfg *configs.Config) Routes {
+func NewAppRouter(server *gin.Engine, handler handlers.Operations, mw *middleware.Middleware, cfg *configs.Config) Routes {
 	// Options
 	server.Use(gin.Logger())
 	server.Use(gin.Recovery())
@@ -51,7 +52,19 @@ func NewAppRouter(server *gin.Engine, handler handlers.Operations, cfg *configs.
 	// Prometheus metrics
 	// handler.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	return Routes{Handler: handler, Server: server}
+	// Global rate limiting middleware - applied to all routes
+	// Generous limits for general API usage
+	server.Use(mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
+		Requests: 100,     // 100 requests
+		Window:   time.Minute, // per minute
+		KeyFunc:  middleware.KeyFuncs.IP, // Limit by IP address
+	}))
+
+	return Routes{
+		Handler: handler,
+		Server:  server,
+		MW:      mw,
+	}
 }
 
 // RegisterMetrics registers the Prometheus metrics endpoint
@@ -62,16 +75,17 @@ func (ro *Routes) RegisterMetrics(server *gin.Engine) {
 func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations) {
 	version := server.Group("/v1")
 
-	AuthRoutes(version, handler)
-	WalletRoutes(version, handler)
-	ProfileRoutes(version, handler)
-	WebSocketRoutes(version, handler)
-	SettingsRoutes(version, handler)
-	BlockRoutes(version, handler)
-	FollowerRoutes(version, handler)
-	CelebrationRoutes(version, handler)
-	AIRoutes(version, handler) // Add AI routes
-	AdminRoutes(version, handler)
+	AuthRoutes(version, handler, ro.MW)
+	WalletRoutes(version, handler, ro.MW)
+	ProfileRoutes(version, handler, ro.MW)
+	WebSocketRoutes(version, handler, ro.MW)
+	SettingsRoutes(version, handler, ro.MW)
+	BlockRoutes(version, handler, ro.MW)
+	FollowerRoutes(version, handler, ro.MW)
+	CelebrationRoutes(version, handler, ro.MW)
+	NotificationRoutes(version, handler, ro.MW) // Add notification routes
+	AIRoutes(version, handler, ro.MW) // Add AI routes
+	AdminRoutes(version, handler, ro.MW)
 }
 
 func CheckRoutes(r *gin.Engine) {

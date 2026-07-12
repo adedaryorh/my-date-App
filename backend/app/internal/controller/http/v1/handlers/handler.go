@@ -100,6 +100,12 @@ type Operations interface {
 	// Wallet
 	GetUserWallet(c *gin.Context)
 
+	// Notifications
+	GetNotificationById(c *gin.Context)
+	GetAllNotifications(c *gin.Context)
+	MarkNotificationAsRead(c *gin.Context)
+	DeleteNotification(c *gin.Context)
+
 	// RBAC
 	GetAllUsers(c *gin.Context)
 	UpdateUserRole(c *gin.Context)
@@ -678,4 +684,24 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 		"token": tokenString,
 		"user":  user,
 	})
+}
+
+// GetNotificationById returns a notification by its ID
+func (h *Handler) GetNotificationById(c *gin.Context) {
+	h.core.GetNotificationById(c)
+}
+
+// GetAllNotifications returns all notifications with pagination
+func (h *Handler) GetAllNotifications(c *gin.Context) {
+	h.core.GetAllNotifications(c)
+}
+
+// DeleteNotification deletes a notification by its ID
+func (h *Handler) DeleteNotification(c *gin.Context) {
+	h.core.DeleteNotification(c)
+}
+
+// MarkNotificationAsRead marks a notification as read
+func (h *Handler) MarkNotificationAsRead(c *gin.Context) {
+	h.core.MarkNotificationAsRead(c)
 }

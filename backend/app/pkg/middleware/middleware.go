@@ -39,6 +39,7 @@ type Middleware struct {
 	config       *configs.Config
 	tokenService tokenservice.TokenService
 	redis        redisservice.Redis
+	rateLimiter  *RateLimiter
 }
 
 func NewMiddleware(db *database.DB, config *configs.Config, log *logger.Logger) (*Middleware, error) {
