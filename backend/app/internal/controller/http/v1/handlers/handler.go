@@ -15,11 +15,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"backend.app/configs"
-    "backend.app/constants"
+    "backend.app/common/constants"
 	"backend.app/database"
 	"backend.app/internal/core"
 	"backend.app/internal/dtos"
-    "backend.app/internal/helpers"
+    "backend.app/common/helpers"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
 	"backend.app/pkg/response"

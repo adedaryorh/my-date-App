@@ -1,0 +1,23 @@
+../../../../go/pkg/mod/github.com/go-playground/validator/v10@v10.4.1/baked_in.go:20:2: missing go.sum entry for module providing package golang.org/x/crypto/sha3 (imported by github.com/go-playground/validator/v10); to add:
+	go get github.com/go-playground/validator/v10@v10.4.1
+internal/app/app.go:2:1: expected 'package', found 'func'
+../../../../go/pkg/mod/github.com/gin-gonic/gin@v1.7.7/binding/protobuf.go:11:2: missing go.sum entry for module providing package github.com/golang/protobuf/proto (imported by github.com/gin-gonic/gin/binding); to add:
+	go get github.com/gin-gonic/gin/binding@v1.7.7
+../../../../go/pkg/mod/github.com/mattn/go-isatty@v0.0.12/isatty_tcgets.go:6:8: missing go.sum entry for module providing package golang.org/x/sys/unix (imported by github.com/mattn/go-isatty); to add:
+	go get github.com/mattn/go-isatty@v0.0.12
+main.go:18:2: no required module provides package github.com/prometheus/client_golang/prometheus; to add it:
+	go get github.com/prometheus/client_golang/prometheus
+main.go:19:2: no required module provides package github.com/prometheus/client_golang/prometheus/promhttp; to add it:
+	go get github.com/prometheus/client_golang/prometheus/promhttp
+main.go:10:2: no required module provides package go.opentelemetry.io/otel; to add it:
+	go get go.opentelemetry.io/otel
+main.go:11:2: no required module provides package go.opentelemetry.io/otel/exporters/otlp/otlptrace; to add it:
+	go get go.opentelemetry.io/otel/exporters/otlp/otlptrace
+main.go:15:2: no required module provides package go.opentelemetry.io/otel/propagation; to add it:
+	go get go.opentelemetry.io/otel/propagation
+main.go:12:2: no required module provides package go.opentelemetry.io/otel/sdk/resource; to add it:
+	go get go.opentelemetry.io/otel/sdk/resource
+main.go:13:2: no required module provides package go.opentelemetry.io/otel/sdk/trace; to add it:
+	go get go.opentelemetry.io/otel/sdk/trace
+main.go:14:2: no required module provides package go.opentelemetry.io/otel/semconv/v1.17.0; to add it:
+	go get go.opentelemetry.io/otel/semconv/v1.17.0
