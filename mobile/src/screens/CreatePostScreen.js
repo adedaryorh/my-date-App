@@ -39,7 +39,7 @@ export default function CreatePostScreen({ navigation }) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      Alert.postedSuccessfully());
+      Alert.alert('Submitted', 'Your celebration was submitted successfully.');
       // Reset form
       setTitle('');
       setDescription('');

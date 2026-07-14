@@ -281,7 +281,7 @@ func (r *Repo) UpdateUser(ctx context.Context, Id uuid.UUID, fields map[string]i
 func (r *Repo) IncrementUserFields(ctx context.Context, Id uuid.UUID, fields []*models.Incrementor) error {
 	builder := r.postgres.Builder.Update("users")
 	for _, column := range fields {
-		expr := fmt.Sprintf("%s%s%s", column.Field, column.Operator, column.Value)
+		expr := fmt.Sprintf("%s%s%d", column.Field, column.Operator, column.Value)
 		builder = builder.Set(column.Field, squirrel.Expr(expr))
 	}
 	builder = builder.Where(squirrel.Eq{"id": Id})
@@ -359,12 +359,12 @@ func (r *Repo) CreateUserFromGoogle(ctx context.Context, email string, firstName
 	}
 
 	user := &models.User{
-		Email:          email,
-		FirstName:      firstName,
-		LastName:       lastName,
-		Username:       username,
+		Email:           email,
+		FirstName:       firstName,
+		LastName:        &lastName,
+		Username:        username,
 		ProfileImageURL: &picture,
-		GoogleID:       googleID,
+		GoogleID:        googleID,
 	}
 
 	// Set default role if empty

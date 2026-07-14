@@ -15,9 +15,8 @@ export default function DiscoverScreen({ navigation }) {
     try {
       setLoading(true);
       // In a real app, you would get the userId from auth context or storage
-      const userId = '123'; // Placeholder
-      const response = await aiService.getUserRecommendations(userId, 10);
-      setRecommendations(response.data || []); // Adjust based on actual response structure
+      const response = await aiService.getUserRecommendations(10);
+      setRecommendations(response.recommended_users || []);
     } catch (err) {
       setError(err.message);
       console.error('Failed to load recommendations:', err);
@@ -30,14 +29,14 @@ export default function DiscoverScreen({ navigation }) {
     <View style={styles.itemContainer}>
       {/* Assuming item has properties like id, name, avatar, etc. */}
       <Image
-        source={{ uri: item.avatar || 'https://via.placeholder.com/150' }}
+        source={{ uri: item.profile_image_url || 'https://via.placeholder.com/150' }}
         style={styles.avatar}
       />
       <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name || 'Unknown User'}</Text>
+        <Text style={styles.itemName}>{`${item.first_name || ''} ${item.last_name || ''}`.trim() || item.username}</Text>
         <Text style={styles.itemBio}>{item.bio || ''}</Text>
       </View>
-      <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.id)}>
+      <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.user_id)}>
         <Text>{item.isFollowing ? 'Following' : 'Follow'}</Text>
       </TouchableOpacity>
     </View>
@@ -46,14 +45,13 @@ export default function DiscoverScreen({ navigation }) {
   const handleFollow = async (userIdToFollow) => {
     try {
       await aiService.logInteraction(
-        '123', // current user id
         userIdToFollow,
         'follow'
       );
       // Update the item's state optimistically
       setRecommendations(prev =>
         prev.map(item =>
-          item.id === userIdToFollow ? { ...item, isFollowing: true } : item
+          item.user_id === userIdToFollow ? { ...item, isFollowing: true } : item
         )
       );
     } catch (err) {
@@ -87,7 +85,7 @@ export default function DiscoverScreen({ navigation }) {
       ) : (
         <FlatList
           data={recommendations}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.user_id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
         />

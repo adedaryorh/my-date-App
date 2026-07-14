@@ -1,9 +1,11 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
-	"github.com/jackc/pq"
-	"gorm.io/gorm"
+	"github.com/lib/pq"
 	"time"
 )
 
@@ -43,4 +45,50 @@ type User struct {
 	GoogleID                 string               `json:"google_id,omitempty" gorm:"column:google_id"`
 	CreatedAt                time.Time            `json:"created_at,omitempty"`
 	UpdatedAt                *time.Time           `json:"updated_at,omitempty"`
+}
+
+type PushNotificationData struct {
+	Enabled         bool `json:"push_enabled"`
+	Likes           bool `json:"likes"`
+	Comments        bool `json:"comments"`
+	TagsAndMentions bool `json:"tags_and_mentions"`
+	Repost          bool `json:"repost"`
+	DirectMessage   bool `json:"direct_message"`
+	Live            bool `json:"live"`
+	NewFollower     bool `json:"new_follower"`
+}
+
+type ContentSettings struct {
+	Enabled         string      `json:"enabled"`
+	SelectedFriends []uuid.UUID `json:"selected_friends"`
+}
+
+type AWSObjectUrl struct {
+	KeyName   string     `json:"key_name,omitempty"`
+	Url       string     `json:"url,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	Note      string     `json:"note,omitempty"`
+}
+
+type Incrementor struct {
+	Field    string
+	Operator string
+	Value    int64
+}
+
+func (p PushNotificationData) Value() (driver.Value, error) { return json.Marshal(p) }
+func (p *PushNotificationData) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(b, p)
+}
+func (c ContentSettings) Value() (driver.Value, error) { return json.Marshal(c) }
+func (c *ContentSettings) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(b, c)
 }

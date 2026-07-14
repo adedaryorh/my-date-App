@@ -149,6 +149,10 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       APP_HOST: 0.0.0.0
       PORT: 8000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-celebut}:${POSTGRES_PASSWORD:-celebut_password}@postgres:5432/${POSTGRES_DB:-celebut}
+      EMBEDDING_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
+      TOXICITY_MODEL_NAME: unitary/toxic-bert
+      TOXICITY_THRESHOLD: ${TOXICITY_THRESHOLD:-0.8}
 
       # AI Model configurations
       EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
@@ -166,6 +170,8 @@ services:
       - "8000:8000"
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     volumes:
       - ./ai-service:/app

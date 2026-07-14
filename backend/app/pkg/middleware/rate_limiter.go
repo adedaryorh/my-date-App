@@ -2,9 +2,7 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -81,7 +79,7 @@ func (r *RateLimiter) RateLimit(config RateLimiterConfig) gin.HandlerFunc {
 		// Check if limit exceeded
 		if count > int64(config.Requests) {
 			// Calculate retry after seconds
-			ttl := ttlFromRedis(c, r.redisClient, key, config.Window())
+			ttl := ttlFromRedis(c, r.redisClient, key, config.Window)
 			retryAfter := int64(0)
 			if ttl > 0 {
 				retryAfter = int64(ttl.Seconds())
@@ -111,7 +109,7 @@ func (r *RateLimiter) RateLimit(config RateLimiterConfig) gin.HandlerFunc {
 
 // Helper to get TTL from Redis (simplified - in real implementation would use TTL command)
 func ttlFromRedis(c *gin.Context, rc RedisClient, key string, d time.Duration) time.Duration {
-	val := rc.Get(c.Context(), key)
+	_ = rc.Get(c.Request.Context(), key)
 	// This is a simplification - real implementation would use Redis TTL command
 	// For now, we'll return the full window as approximation
 	return d
@@ -119,10 +117,10 @@ func ttlFromRedis(c *gin.Context, rc RedisClient, key string, d time.Duration) t
 
 // KeyFuncs provides common key functions for rate limiting
 var KeyFuncs = struct {
-	IP          func(*gin.Context) string
-	UserID      func(*gin.Context) string
-	Endpoint    func(*gin.Context) string
-	IPEndpoint  func(*gin.Context) string
+	IP           func(*gin.Context) string
+	UserID       func(*gin.Context) string
+	Endpoint     func(*gin.Context) string
+	IPEndpoint   func(*gin.Context) string
 	UserEndpoint func(*gin.Context) string
 }{
 	IP: func(c *gin.Context) string {

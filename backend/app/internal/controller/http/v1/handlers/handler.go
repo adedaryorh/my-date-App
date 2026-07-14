@@ -7,31 +7,33 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
-	"golang.org/oauth2"
-	"golang.org/oauth2/google"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
+	"backend.app/common/constants"
+	"backend.app/common/helpers"
 	"backend.app/configs"
-    "backend.app/common/constants"
 	"backend.app/database"
 	"backend.app/internal/core"
 	"backend.app/internal/dtos"
-    "backend.app/common/helpers"
+	"backend.app/internal/models"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
 	"backend.app/pkg/response"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pq"
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
 type Handler struct {
-	core   core.Operations
-	log    *logger.Logger
-	config *configs.Config
+	core        core.Operations
+	log         *logger.Logger
+	config      *configs.Config
 	oauthConfig *oauth2.Config
 }
 
@@ -170,7 +172,7 @@ func setStateOauthCookie(c *gin.Context, state string) {
 		Path:     "/",
 		HttpOnly: true,
 		// Secure:   true, // Uncomment when serving via HTTPS
-		MaxAge:   3600,
+		MaxAge: 3600,
 	})
 }
 
@@ -320,6 +322,8 @@ func (h *Handler) LogInteraction(c *gin.Context) {
 		c.JSON(result.Code, result)
 		return
 	}
+	user := c.MustGet("authUser").(models.User)
+	input.UserID = user.ID.String()
 
 	result := h.core.LogInteraction(c.Request.Context(), input.UserID, input.TargetID, input.Action, input.Metadata)
 	if result != nil {
@@ -379,14 +383,6 @@ func (h *Handler) GetAllBlockedUsers(c *gin.Context) {
 
 func (h *Handler) GetBlockedUser(c *gin.Context) {
 	h.core.GetBlockedUser(c)
-}
-
-func (h *Handler) CreateCelebration(c *gin.Context) {
-	h.core.CreateCelebration(c)
-}
-
-func (h *Handler) GetCelebrations(c *gin.Context) {
-	h.core.GetCelebrations(c)
 }
 
 func (h *Handler) GetAllFollowers(c *gin.Context) {
@@ -633,7 +629,7 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 	defer resp.Body.Close()
 
 	var userInfo struct {
-		Email    string `json:"email"`
+		Email     string `json:"email"`
 		FirstName string `json:"given_name"`
 		LastName  string `json:"family_name"`
 		Picture   string `json:"picture"`

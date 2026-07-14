@@ -12,17 +12,15 @@ import (
 	"github.com/sony/gobreaker"
 
 	"backend.app/configs"
-	"backend.app/internal/dtos"
 	"backend.app/pkg/logger"
-	"go.uber.org/zap"
 )
 
 // AIServiceClient handles communication with the Python AI service
 type AIServiceClient struct {
-	httpClient   *http.Client
-	config       *configs.Config
-	logger       *logger.Logger
-	baseURL      string
+	httpClient     *http.Client
+	config         *configs.Config
+	logger         *logger.Logger
+	baseURL        string
 	circuitBreaker *gobreaker.CircuitBreaker
 }
 
@@ -38,7 +36,7 @@ func NewAIServiceClient(config *configs.Config, logger *logger.Logger) *AIServic
 	// Configure circuit breaker settings
 	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        "AIService",
-		MaxRequests: config.AIServiceCircuitBreakerMaxRequests,
+		MaxRequests: uint32(config.AIServiceCircuitBreakerMaxRequests),
 		Interval:    time.Duration(config.AIServiceCircuitBreakerInterval) * time.Second,
 		Timeout:     time.Duration(config.AIServiceCircuitBreakerTimeout) * time.Second,
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
@@ -47,11 +45,7 @@ func NewAIServiceClient(config *configs.Config, logger *logger.Logger) *AIServic
 			return counts.Requests >= uint32(config.AIServiceCircuitBreakerThreshold) && failureRatio >= config.AIServiceFailureRateThreshold
 		},
 		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-			logger.Info("Circuit breaker state changed",
-				zap.String("name", name),
-				zap.String("from", string(from)),
-				zap.String("to", string(to)),
-			)
+			logger.Info("Circuit breaker %s changed from %s to %s", name, from.String(), to.String())
 		},
 	})
 
@@ -59,9 +53,9 @@ func NewAIServiceClient(config *configs.Config, logger *logger.Logger) *AIServic
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
-		config:   config,
-		logger:   logger,
-		baseURL:  config.AIServiceURL,
+		config:         config,
+		logger:         logger,
+		baseURL:        config.AIServiceURL,
 		circuitBreaker: cb,
 	}
 }
@@ -72,10 +66,11 @@ func (c *AIServiceClient) ExecuteRequest(ctx context.Context, method, path strin
 	result, err := c.circuitBreaker.Execute(func() (interface{}, error) {
 		// Prepare request body if provided
 		var jsonData []byte
+		var requestErr error
 		if body != nil {
-			jsonData, err = json.Marshal(body)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal request: %w", err)
+			jsonData, requestErr = json.Marshal(body)
+			if requestErr != nil {
+				return nil, fmt.Errorf("failed to marshal request: %w", requestErr)
 			}
 		}
 
@@ -83,12 +78,12 @@ func (c *AIServiceClient) ExecuteRequest(ctx context.Context, method, path strin
 		url := fmt.Sprintf("%s%s", c.baseURL, path)
 		var httpReq *http.Request
 		if body != nil {
-			httpReq, err = http.NewRequestWithContext(ctx, method, url, bytes.NewReader(jsonData))
+			httpReq, requestErr = http.NewRequestWithContext(ctx, method, url, bytes.NewReader(jsonData))
 		} else {
-			httpReq, err = http.NewRequestWithContext(ctx, method, url, nil)
+			httpReq, requestErr = http.NewRequestWithContext(ctx, method, url, nil)
 		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
+		if requestErr != nil {
+			return nil, fmt.Errorf("failed to create request: %w", requestErr)
 		}
 		if body != nil {
 			httpReq.Header.Set("Content-Type", "application/json")
@@ -124,17 +119,23 @@ func (c *AIServiceClient) ExecuteRequest(ctx context.Context, method, path strin
 
 // EmbedProfileResponse represents the response from embedding a user profile
 type EmbedProfileResponse struct {
-	UserID   string  `json:"user_id"`
+	UserID    string    `json:"user_id"`
 	Embedding []float64 `json:"embedding"`
-	TextUsed string   `json:"text_used,omitempty"`
+	TextUsed  string    `json:"text_used,omitempty"`
+}
+
+type EmbedProfileRequest struct {
+	UserID    string   `json:"user_id"`
+	Bio       string   `json:"bio"`
+	Interests []string `json:"interests"`
 }
 
 // RecommendUsersRequest represents the request for user recommendations
 type RecommendUsersRequest struct {
-	UserID         string `json:"user_id"`
-	Limit          int    `json:"limit,omitempty"`
+	UserID          string `json:"user_id"`
+	Limit           int    `json:"limit,omitempty"`
 	ExcludeFollowed bool   `json:"exclude_followed,omitempty"`
-	ExcludeBlocked bool   `json:"exclude_blocked,omitempty"`
+	ExcludeBlocked  bool   `json:"exclude_blocked,omitempty"`
 }
 
 // RecommendUsersResponse represents the response from user recommendations
@@ -168,8 +169,8 @@ type IndexCelebrationResponse struct {
 
 // SearchCelebrationsRequest represents the request to search celebrations
 type SearchCelebrationsRequest struct {
-	Query  string `json:"query"`
-	Limit  int    `json:"limit,omitempty"`
+	Query string `json:"query"`
+	Limit int    `json:"limit,omitempty"`
 }
 
 // SearchCelebrationsResponse represents the response from searching celebrations
@@ -179,9 +180,9 @@ type SearchCelebrationsResponse struct {
 
 // LogInteractionRequest represents the request to log a user interaction
 type LogInteractionRequest struct {
-	UserID   string            `json:"user_id"`
-	TargetID string            `json:"target_id"`
-	Action   string            `json:"action"` // follow, skip, like, report
+	UserID   string                 `json:"user_id"`
+	TargetID string                 `json:"target_id"`
+	Action   string                 `json:"action"` // follow, skip, like, report
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
@@ -193,9 +194,7 @@ type LogInteractionResponse struct {
 
 // EmbedProfile sends a user profile to be embedded by the AI service
 func (c *AIServiceClient) EmbedProfile(ctx context.Context, req *EmbedProfileRequest) (*EmbedProfileResponse, error) {
-	c.logger.Info("Calling AI service to embed profile",
-		zap.String("user_id", req.UserID),
-		zap.String("endpoint", "/ai/embed-profile"))
+	c.logger.Info("Calling AI service to embed profile for user %s", req.UserID)
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/embed-profile", req)
 	if err != nil {
@@ -212,9 +211,7 @@ func (c *AIServiceClient) EmbedProfile(ctx context.Context, req *EmbedProfileReq
 
 // RecommendUsers gets user recommendations from the AI service
 func (c *AIServiceClient) RecommendUsers(ctx context.Context, req *RecommendUsersRequest) (*RecommendUsersResponse, error) {
-	c.logger.Info("Calling AI service for user recommendations",
-		zap.String("user_id", req.UserID),
-		zap.String("endpoint", "/ai/recommend-users"))
+	c.logger.Info("Calling AI service for user recommendations: %s", req.UserID)
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/recommend-users", req)
 	if err != nil {
@@ -231,8 +228,7 @@ func (c *AIServiceClient) RecommendUsers(ctx context.Context, req *RecommendUser
 
 // ModerateCelebration checks celebration content for toxicity
 func (c *AIServiceClient) ModerateCelebration(ctx context.Context, req *ModerateCelebrationRequest) (*ModerateCelebrationResponse, error) {
-	c.logger.Info("Calling AI service to moderate celebration",
-		zap.String("endpoint", "/ai/moderate-celebration"))
+	c.logger.Info("Calling AI service to moderate celebration")
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/moderate-celebration", req)
 	if err != nil {
@@ -249,9 +245,7 @@ func (c *AIServiceClient) ModerateCelebration(ctx context.Context, req *Moderate
 
 // IndexCelebration indexes a celebration for semantic search
 func (c *AIServiceClient) IndexCelebration(ctx context.Context, req *IndexCelebrationRequest) (*IndexCelebrationResponse, error) {
-	c.logger.Info("Calling AI service to index celebration",
-		zap.String("celebration_id", req.CelebrationID),
-		zap.String("endpoint", "/ai/index-celebration"))
+	c.logger.Info("Calling AI service to index celebration %s", req.CelebrationID)
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/index-celebration", req)
 	if err != nil {
@@ -268,9 +262,7 @@ func (c *AIServiceClient) IndexCelebration(ctx context.Context, req *IndexCelebr
 
 // SearchCelebrations searches for celebrations using semantic similarity
 func (c *AIServiceClient) SearchCelebrations(ctx context.Context, req *SearchCelebrationsRequest) (*SearchCelebrationsResponse, error) {
-	c.logger.Info("Calling AI service to search celebrations",
-		zap.String("query", req.Query),
-		zap.String("endpoint", "/ai/search-celebrations"))
+	c.logger.Info("Calling AI service to search celebrations: %s", req.Query)
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/search-celebrations", req)
 	if err != nil {
@@ -287,11 +279,7 @@ func (c *AIServiceClient) SearchCelebrations(ctx context.Context, req *SearchCel
 
 // LogInteraction logs a user interaction for the feedback loop
 func (c *AIServiceClient) LogInteraction(ctx context.Context, req *LogInteractionRequest) (*LogInteractionResponse, error) {
-	c.logger.Info("Calling AI service to log interaction",
-		zap.String("user_id", req.UserID),
-		zap.String("target_id", req.TargetID),
-		zap.String("action", req.Action),
-		zap.String("endpoint", "/ai/log-interaction"))
+	c.logger.Info("Calling AI service to log %s interaction from %s to %s", req.Action, req.UserID, req.TargetID)
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/log-interaction", req)
 	if err != nil {

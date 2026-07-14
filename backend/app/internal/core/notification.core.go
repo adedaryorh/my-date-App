@@ -1,10 +1,12 @@
 package core
 
 import (
+	"backend.app/internal/dtos"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"backend.app/internal/models"
 )

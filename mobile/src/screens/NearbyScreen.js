@@ -29,7 +29,7 @@ export default function NearbyScreen({ navigation }) {
       // We'll create a query that includes the location for nearby search
       // For now, we'll use a simple query near the coordinates
       // In a real app, you might have a dedicated endpoint or use geosearch
-      const query = `near:${location.latitude},${location.longitude}`; // Example format
+      const query = `near:${location.coords.latitude},${location.coords.longitude}`;
       const response = await aiService.searchCelebrations(query, 10);
       setResults(response.data || []); // Adjust based on actual response structure
     } catch (err) {

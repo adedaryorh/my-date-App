@@ -6,6 +6,7 @@ import (
 	"backend.app/configs"
 	"backend.app/docs"
 	"backend.app/internal/controller/http/v1/handlers"
+	"backend.app/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 
@@ -13,9 +14,12 @@ import (
 	_ "backend.app/docs"
 
 	swaggerFiles "github.com/swaggo/files"
-	ginSwagger   "github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"net/http"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Routes struct {
@@ -55,8 +59,8 @@ func NewAppRouter(server *gin.Engine, handler handlers.Operations, mw *middlewar
 	// Global rate limiting middleware - applied to all routes
 	// Generous limits for general API usage
 	server.Use(mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-		Requests: 100,     // 100 requests
-		Window:   time.Minute, // per minute
+		Requests: 100,                    // 100 requests
+		Window:   time.Minute,            // per minute
 		KeyFunc:  middleware.KeyFuncs.IP, // Limit by IP address
 	}))
 
@@ -84,7 +88,7 @@ func (ro Routes) RegisterRoutes(server *gin.Engine, handler handlers.Operations)
 	FollowerRoutes(version, handler, ro.MW)
 	CelebrationRoutes(version, handler, ro.MW)
 	NotificationRoutes(version, handler, ro.MW) // Add notification routes
-	AIRoutes(version, handler, ro.MW) // Add AI routes
+	AIRoutes(version, handler, ro.MW)           // Add AI routes
 	AdminRoutes(version, handler, ro.MW)
 }
 

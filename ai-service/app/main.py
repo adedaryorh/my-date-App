@@ -8,20 +8,16 @@ import os
 import logging
 from contextlib import asynccontextmanager
 from typing import List, Optional, Dict, Any
-import numpy as np
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import torch
 from sentence_transformers import SentenceTransformer
 import faiss
-import numpy as np
 from transformers import pipeline
 from sklearn.metrics.pairwise import cosine_similarity
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import hashlib
 import json
 from datetime import datetime
 
@@ -38,7 +34,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/celebut")
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "./models")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
 TOXICITY_MODEL_NAME = os.getenv("TOXICITY_MODEL_NAME", "unitary/toxic-bert")
-FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "./faiss_index")
+FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "./faiss_index.bin")
 TOXICITY_THRESHOLD = float(os.getenv("TOXICITY_THRESHOLD", "0.8"))
 
 # Global variables for models and indexes
@@ -105,7 +101,7 @@ app.add_middleware(
 class ProfileEmbeddingRequest(BaseModel):
     user_id: str
     bio: Optional[str] = ""
-    interests: List[str] = []
+    interests: List[str] = Field(default_factory=list)
 
 class ProfileEmbeddingResponse(BaseModel):
     user_id: str
@@ -114,7 +110,7 @@ class ProfileEmbeddingResponse(BaseModel):
 
 class UserRecommendationRequest(BaseModel):
     user_id: str
-    limit: int = 10
+    limit: int = Field(default=10, ge=1, le=100)
     exclude_followed: bool = True
     exclude_blocked: bool = True
 
@@ -122,7 +118,7 @@ class UserRecommendationResponse(BaseModel):
     recommended_users: List[Dict[str, Any]]
 
 class ModerationRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=5000)
 
 class ModerationResponse(BaseModel):
     toxicity_score: float
@@ -131,15 +127,15 @@ class ModerationResponse(BaseModel):
 
 class CelebrationIndexRequest(BaseModel):
     celebration_id: str
-    text: str
+    text: str = Field(min_length=1, max_length=5000)
 
 class CelebrationIndexResponse(BaseModel):
     celebration_id: str
     indexed: bool
 
 class SearchRequest(BaseModel):
-    query: str
-    limit: int = 10
+    query: str = Field(min_length=1, max_length=500)
+    limit: int = Field(default=10, ge=1, le=100)
 
 class SearchResponse(BaseModel):
     results: List[Dict[str, Any]]
@@ -147,7 +143,7 @@ class SearchResponse(BaseModel):
 class InteractionLogRequest(BaseModel):
     user_id: str
     target_id: str
-    action: str  # follow, skip, like, report
+    action: str = Field(pattern="^(follow|skip|like|report)$")
     metadata: Optional[Dict[str, Any]] = None
 
 class InteractionLogResponse(BaseModel):
@@ -217,9 +213,9 @@ async def load_celebration_embeddings():
         # Try to get celebrations with their text content
         # Adjust table/column names based on actual schema
         cursor.execute("""
-            SELECT id, COALESCE(message, '') as message
-            FROM posts
-            WHERE message IS NOT NULL AND message != ''
+            SELECT id, trim(concat_ws(' ', caption, notes)) AS message
+            FROM celebrations
+            WHERE trim(concat_ws(' ', caption, notes)) != ''
         """)
 
         celebrations = cursor.fetchall()
@@ -270,8 +266,19 @@ async def embed_profile(request: ProfileEmbeddingRequest):
         # Cache the embedding
         user_embeddings_cache[request.user_id] = embedding
 
-        # Optionally store in database for persistence
-        # This would require a user_embeddings table
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO user_embeddings (user_id, embedding, profile_text)
+               VALUES (%s, %s, %s)
+               ON CONFLICT (user_id) DO UPDATE
+               SET embedding = EXCLUDED.embedding, profile_text = EXCLUDED.profile_text,
+                   updated_at = CURRENT_TIMESTAMP""",
+            (request.user_id, embedding.tolist(), profile_text),
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
 
         return ProfileEmbeddingResponse(
             user_id=request.user_id,
@@ -293,7 +300,7 @@ async def recommend_users(request: UserRecommendationRequest):
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT bio, interests FROM users WHERE id = %s
+                SELECT concat_ws(' ', first_name, last_name, username) AS bio, interests FROM users WHERE id = %s
                 """,
                 (request.user_id,)
             )
@@ -318,7 +325,8 @@ async def recommend_users(request: UserRecommendationRequest):
 
         # Exclude current user and potentially followed/blocked users
         query = """
-            SELECT id, bio, interests, username, first_name, last_name, profile_image_url
+            SELECT id, concat_ws(' ', first_name, last_name, username) AS bio,
+                   interests, username, first_name, last_name, profile_image_url
             FROM users
             WHERE id != %s
         """
@@ -328,7 +336,7 @@ async def recommend_users(request: UserRecommendationRequest):
             # Exclude users that the current user already follows
             query += """
                 AND id NOT IN (
-                    SELECT followed_id FROM followers WHERE follower_id = %s
+                    SELECT user_id FROM followers WHERE follower_id = %s
                 )
             """
             params.append(request.user_id)
@@ -337,7 +345,7 @@ async def recommend_users(request: UserRecommendationRequest):
             # Exclude users that the current user has blocked
             query += """
                 AND id NOT IN (
-                    SELECT blocked_id FROM blocks WHERE blocker_id = %s
+                    SELECT blocked_user_id FROM blocked WHERE user_id = %s
                 )
             """
             params.append(request.user_id)
@@ -518,7 +526,7 @@ async def search_celebrations(request: SearchRequest):
 
         # Search in FAISS index
         k = min(request.limit, celebration_index.ntotal)
-        scores, indices = celebrity_index.search(
+        scores, indices = celebration_index.search(
             query_embedding.reshape(1, -1).astype('float32'), k
         )
 
@@ -541,17 +549,17 @@ async def search_celebrations(request: SearchRequest):
         # Using ANY for efficient querying
         cursor.execute(
             """
-            SELECT id, message, user_id, created_at,
-                   (SELECT json_build_object(
+            SELECT c.id, trim(concat_ws(' ', c.caption, c.notes)) AS message,
+                   c.created_by AS user_id, c.created_at,
+                   json_build_object(
                         'id', u.id,
                         'username', u.username,
                         'first_name', u.first_name,
                         'last_name', u.last_name
-                       ) as user
-            FROM posts p
-            JOIN users u ON p.user_id = u.id
-            WHERE id = ANY(%s)
-            ORDER BY created_at DESC
+                       ) AS user
+            FROM celebrations c
+            JOIN users u ON c.created_by = u.id
+            WHERE c.id = ANY(%s::uuid[])
             """,
             (celebration_ids,)
         )
@@ -585,6 +593,8 @@ async def search_celebrations(request: SearchRequest):
             })
 
         return SearchResponse(results=results)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error searching celebrations: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,12 +1,13 @@
 package v1
 
 import (
-	"github.com/gin-gonic/gin"
 	"backend.app/internal/controller/http/v1/handlers"
+	"backend.app/pkg/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 // AdminRoutes registers admin-related routes
-func AdminRoutes(v *gin.RouterGroup, handler handlers.Operations) {
+func AdminRoutes(v *gin.RouterGroup, handler handlers.Operations, _ *middleware.Middleware) {
 	admin := v.Group("/admin")
 	// Optional: add middleware for admin auth, e.g., adminAuthMiddleware()
 	admin.GET("/users", handler.GetAllUsers)

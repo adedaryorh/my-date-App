@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"net/http"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -11,7 +11,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+)
+
+var (
+	httpRequestsDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "celebut_http_request_duration_seconds", Help: "HTTP request duration."}, []string{"method", "path", "status"})
+	httpRequestsTotal    = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "celebut_http_requests_total", Help: "HTTP requests."}, []string{"method", "path", "status"})
+	httpRequestSize      = prometheus.NewSummaryVec(prometheus.SummaryOpts{Name: "celebut_http_request_size_bytes", Help: "HTTP request size."}, []string{"method", "path"})
 )
 
 // ObservabilityMiddleware adds tracing and metrics to HTTP requests
@@ -30,7 +36,7 @@ func ObservabilityMiddleware() gin.HandlerFunc {
 		ctx, span := otel.Tracer("http-server").Start(
 			c.Request.Context(),
 			fmt.Sprintf("HTTP %s", method),
-			otel.WithAttributes(
+			trace.WithAttributes(
 				semconv.HTTPMethodKey.String(method),
 				semconv.HTTPURLKey.String(c.Request.URL.Path),
 			),

@@ -17,7 +17,7 @@ export default function ExploreScreen({ navigation }) {
     try {
       setLoading(true);
       const response = await aiService.searchCelebrations(query, 10);
-      setResults(response.data || []); // Adjust based on actual response structure
+      setResults(response.results || []);
     } catch (err) {
       setError(err.message);
       console.error('Search failed:', err);
@@ -34,8 +34,8 @@ export default function ExploreScreen({ navigation }) {
         style={styles.thumb}
       />
       <View style={styles.itemDetails}>
-        <Text style={styles.itemTitle}>{item.title || 'Untitled'}</Text>
-        <Text style={styles.itemDescription}>{item.description || ''}</Text>
+        <Text style={styles.itemTitle}>{item.message || 'Celebration'}</Text>
+        <Text style={styles.itemDescription}>{Math.round((item.similarity_score || 0) * 100)}% semantic match</Text>
       </View>
     </View>
   );
@@ -83,7 +83,7 @@ export default function ExploreScreen({ navigation }) {
       ) : (
         <FlatList
           data={results}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.celebration_id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
         />

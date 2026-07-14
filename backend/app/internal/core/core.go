@@ -5,20 +5,24 @@ import (
 	"fmt"
 
 	"backend.app/configs"
+	"backend.app/database"
 	"backend.app/database/postgres"
+	"backend.app/integrations/analytics/mix-panel"
+	"backend.app/integrations/sms"
 	"backend.app/internal/dtos"
+	"backend.app/internal/models"
+	"backend.app/internal/repo"
 	"backend.app/internal/services/aiclient"
 	"backend.app/internal/services/redisservice"
 	"backend.app/internal/services/tokenservice"
 	"backend.app/internal/services/upload"
-	"backend.app/internal/repo"
-	"backend.app/integrations/analytics/mix-panel"
-	"backend.app/integrations/sms"
 	"backend.app/pkg/logger"
 	"backend.app/pkg/middleware"
+	"backend.app/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 // Add AI service client to the Core struct
@@ -88,7 +92,7 @@ type Operations interface {
 	AddPreferredLanguage(ctx context.Context, data *dtos.Language, user *models.User) *dtos.ResponseObject
 	AddNotificationPreference(ctx context.Context, data *dtos.NotificationPreference, user *models.User) *dtos.ResponseObject
 	TogglePushNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
-	ToggleLikesNotification(ctx context.Context, user *models.Var) *dtos.ResponseObject
+	ToggleLikesNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
 	ToggleCommentsNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
 	ToggleTagsAndMentionsNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
 	ToggleRepostNotification(ctx context.Context, user *models.User) *dtos.ResponseObject
@@ -108,10 +112,10 @@ type Operations interface {
 	// OAuth
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	CreateUserFromGoogle(ctx context.Context, email string, firstName string, lastName string, picture string, googleID string) (*models.User, error)
-	UpdateUser(ctx context.Context, userID string, fields map[string]interface{}) error
+	UpdateUser(ctx context.Context, userID string, fields map[string]interface{}) *dtos.ResponseObject
 
 	// websocket
-	HandleWebsocketConnection(ctx *gin.Context, conn *websocket.Conn)(ctx *gin.Context, conn *websocket.Conn)
+	HandleWebsocketConnection(ctx *gin.Context, conn *websocket.Conn)
 }
 
 // Update the NewCore function to initialize the AI client
@@ -155,14 +159,14 @@ func (c *Core) GetUserRecommendations(ctx context.Context, userID string, limit 
 		zap.Int("limit", limit))
 
 	// Call AI service for recommendations
-	result := c.aiClient.RecommendUsers(ctx, &aiclient.RecommendUsersRequest{
-		UserID:         userID,
-		Limit:          limit,
+	result, err := c.aiClient.RecommendUsers(ctx, &aiclient.RecommendUsersRequest{
+		UserID:          userID,
+		Limit:           limit,
 		ExcludeFollowed: true,
 		ExcludeBlocked:  true,
 	})
 
-	if result != nil {
+	if err == nil {
 		return response.SuccessResponse("User recommendations retrieved successfully", result)
 	}
 
@@ -176,11 +180,11 @@ func (c *Core) ModerateCelebration(ctx context.Context, text string) *dtos.Respo
 		zap.String("text_preview", truncateString(text, 50)))
 
 	// Call AI service for content moderation
-	result := c.aiClient.ModerateCelebration(ctx, &aiclient.ModerateCelebrationRequest{
+	result, err := c.aiClient.ModerateCelebration(ctx, &aiclient.ModerateCelebrationRequest{
 		Text: text,
 	})
 
-	if result != nil {
+	if err == nil {
 		return response.SuccessResponse("Content moderation completed", result)
 	}
 
@@ -195,12 +199,12 @@ func (c *Core) IndexCelebration(ctx context.Context, celebrationID string, text 
 		zap.String("text_preview", truncateString(text, 50)))
 
 	// Call AI service to index celebration
-	result := c.aiClient.IndexCelebration(ctx, &aiclient.IndexCelebrationRequest{
+	result, err := c.aiClient.IndexCelebration(ctx, &aiclient.IndexCelebrationRequest{
 		CelebrationID: celebrationID,
 		Text:          text,
 	})
 
-	if result != nil {
+	if err == nil {
 		return response.SuccessResponse("Celebrity indexed successfully", result)
 	}
 
@@ -215,12 +219,12 @@ func (c *Core) SearchCelebrations(ctx context.Context, query string, limit int) 
 		zap.Int("limit", limit))
 
 	// Call AI service to search celebrations
-	result := c.aiClient.SearchCelebrations(ctx, &aiclient.SearchCelebrationsRequest{
-		Query:  query,
-		Limit:  limit,
+	result, err := c.aiClient.SearchCelebrations(ctx, &aiclient.SearchCelebrationsRequest{
+		Query: query,
+		Limit: limit,
 	})
 
-	if result != nil {
+	if err == nil {
 		return response.SuccessResponse("Celebrity search completed", result)
 	}
 
@@ -236,14 +240,14 @@ func (c *Core) LogInteraction(ctx context.Context, userID string, targetID strin
 		zap.String("action", action))
 
 	// Call AI service to log interaction
-	result := c.aiClient.LogInteraction(ctx, &aiclient.LogInteractionRequest{
+	result, err := c.aiClient.LogInteraction(ctx, &aiclient.LogInteractionRequest{
 		UserID:   userID,
 		TargetID: targetID,
 		Action:   action,
 		Metadata: metadata,
 	})
 
-	if result != nil {
+	if err == nil {
 		return response.SuccessResponse("Interaction logged successfully", result)
 	}
 
@@ -313,9 +317,9 @@ func (c *Core) UpdateUserRole(ctx context.Context, userID string, role string) *
 
 	// Validate role
 	validRoles := map[string]bool{
-		"user":       true,
-		"admin":      true,
-		"moderator":  true,
+		"user":      true,
+		"admin":     true,
+		"moderator": true,
 	}
 	if !validRoles[role] {
 		c.log.Warn("Invalid role specified for user update",

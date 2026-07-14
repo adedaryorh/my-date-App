@@ -1,3 +1,23 @@
+package app
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"backend.app/configs"
+	"backend.app/database"
+	v1 "backend.app/internal/controller/http/v1"
+	"backend.app/internal/controller/http/v1/handlers"
+	"backend.app/pkg/httpserver"
+	"backend.app/pkg/logger"
+	"backend.app/pkg/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
 // Run creates objects via constructors.
 func Run(cfg *configs.Config) {
 	l := logger.New(cfg.LogLevel)
@@ -21,7 +41,7 @@ func Run(cfg *configs.Config) {
 	server.Use(middleware.ObservabilityMiddleware())
 
 	handler := handlers.NewHandler(l, cfg, &db)
-	mw := middleware.NewMiddleware(&db, cfg, l)  // Create middleware instance
+	mw := middleware.NewMiddleware(&db, cfg, l) // Create middleware instance
 	routesWithServer := v1.NewAppRouter(server, handler, mw, cfg)
 	routesWithServer.RegisterRoutes(server, handler)
 

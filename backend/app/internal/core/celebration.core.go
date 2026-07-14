@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"backend.app/common/constants"
 	"backend.app/common/helpers"
 	"backend.app/internal/dtos"
 	"backend.app/internal/models"
+	"backend.app/internal/services/aiclient"
 	"backend.app/internal/services/upload"
 	"backend.app/pkg/response"
 	"github.com/google/uuid"
@@ -24,6 +26,20 @@ func (c *Core) CreateCelebrationDto(ctx context.Context, user *models.User, data
 		status = constants.CelebrationStatusPending
 		if data.OwnerId != nil {
 			ownerId = *data.OwnerId
+		}
+	}
+
+	content := strings.TrimSpace(strings.Join([]string{data.Caption, data.Notes}, " "))
+	var moderation *aiclient.ModerateCelebrationResponse
+	if content != "" {
+		result, moderationErr := c.aiClient.ModerateCelebration(ctx, &aiclient.ModerateCelebrationRequest{Text: content})
+		if moderationErr != nil {
+			c.log.Warn("AI moderation unavailable; continuing with normal creation: %v", moderationErr)
+		} else {
+			moderation = result
+			if result.IsFlagged {
+				status = constants.CelebrationStatusPending
+			}
 		}
 	}
 	key := fmt.Sprintf("%s:%s:%s", models.RedisKeys.GeneralCelebration, ownerId, data.CelebrationDate)
@@ -65,12 +81,32 @@ func (c *Core) CreateCelebrationDto(ctx context.Context, user *models.User, data
 		return response.ServerErrorResponse(err)
 	}
 
+	if moderation != nil && moderation.IsFlagged {
+		_, err = c.postgres.Pool.Exec(ctx, `
+			INSERT INTO moderation_queue
+				(celebration_id, user_id, toxicity_score, flagged_content)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (celebration_id) DO NOTHING`,
+			celebration.ID, user.ID, moderation.ToxicityScore, content,
+		)
+		if err != nil {
+			return response.ServerErrorResponse(fmt.Errorf("queue flagged celebration: %w", err))
+		}
+	}
+
 	if err = c.uploadCelebrationMedia(ctx, celebration.ID, ownerId, data); err != nil {
 		return response.ServerErrorResponse(err)
 	}
 
 	// add celebration to redis
 	c.redisService.Set(ctx, key, true, expiresAt.Sub(time.Now()))
+	if content != "" && (moderation == nil || !moderation.IsFlagged) {
+		if _, indexErr := c.aiClient.IndexCelebration(ctx, &aiclient.IndexCelebrationRequest{
+			CelebrationID: celebration.ID.String(), Text: content,
+		}); indexErr != nil {
+			c.log.Warn("Celebration created but semantic indexing failed: %v", indexErr)
+		}
+	}
 
 	return response.SuccessResponse(constants.CelebrationCreatedSuccessfully, celebration)
 }
