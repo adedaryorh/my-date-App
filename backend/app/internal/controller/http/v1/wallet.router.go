@@ -12,8 +12,8 @@ func WalletRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *midd
 	wallet := server.Group("/wallets", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for wallet endpoints - moderate limits as these are typically accessed infrequently
-		walletLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 30,    // 30 requests
+		walletLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 30,          // 30 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

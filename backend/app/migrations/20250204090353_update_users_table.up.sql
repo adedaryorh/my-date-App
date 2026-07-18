@@ -1,0 +1,4 @@
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS business_name varchar(256) DEFAULT NULL;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS industry_type varchar(256) DEFAULT NULL;
+ALTER TABLE "users" ALTER COLUMN date_of_birth DROP NOT NULL;
+

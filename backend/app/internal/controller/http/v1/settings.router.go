@@ -12,8 +12,8 @@ func SettingsRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *mi
 	settings := server.Group("/settings", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for settings endpoints - modify user data, so moderate limits
-		settingsLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 20,    // 20 requests
+		settingsLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 20,          // 20 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

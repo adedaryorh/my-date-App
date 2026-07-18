@@ -1,163 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, Alert, Image } from 'react-native';
-import { aiService } from '../services/api';
+import React, { useEffect, useRef, useState } from 'react';
+import { Linking, Platform, StyleSheet, Text, View } from 'react-native'; import * as Location from 'expo-location'; import * as SecureStore from 'expo-secure-store';
+import { celebrationService } from '../services/api'; import { useAuth } from '../auth/AuthContext';
+import { Button, Field, Heading, Screen, StatusBanner } from '../components/ui/app-ui'; import { Spacing, Type } from '../constants/theme'; import { useAppTheme } from '../hooks/use-app-theme';
 
-export default function CreatePostScreen({ navigation }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState(''); // In a real app, you'd have image upload
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async () => {
-    if (!title.trim() && !description.trim()) {
-      setError('Please enter a title or description');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      // First, moderate the content (title + description)
-      const contentToCheck = `${title} ${description}`.trim();
-      if (contentToCheck) {
-        const moderationResult = await aiService.moderateCelebration(contentToCheck);
-        
-        // Assuming the moderation result has a flag indicating if it's safe
-        // Adjust based on actual response from your AI service
-        if (moderationResult.data && moderationResult.data.isToxic) { // Example field
-          throw new Error('Content contains inappropriate language and cannot be posted.');
-        }
-      }
-
-      // If we get here, content is approved. Now create the post.
-      // This is a placeholder for the actual API call to create a celebration
-      // You would replace this with a call to your backend's celebration creation endpoint
-      console.log('Creating post with:', { title, description, imageUrl });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      Alert.alert('Submitted', 'Your celebration was submitted successfully.');
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setImageUrl('');
-      navigation.goBack(); // Go back to previous screen
-    } catch (err) {
-      setError(err.message || 'Failed to create post');
-      console.error('Create post error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create a Celebration</Text>
-      
-      {error && (
-        <View style={styles.error}>
-          <Text>{error}</Text>
-        </View>
-      )}
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        autoCapitalize="words"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        autoCapitalize="sentences"
-        multiline
-        minHeight={80}
-      />
-      
-      {/* In a real app, you'd have an image picker here */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Image URL (optional):</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="https://example.com/image.jpg"
-          value={imageUrl}
-          onChangeText={setImageUrl}
-        />
-      </View>
-      
-      <Button
-        title="Post Celebration"
-        onPress={handleSubmit}
-        disabled={loading}
-        color="#007aff"
-      />
-      
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007aff" />
-          <Text style={styles.loadingText}>Posting...</Text>
-        </View>
-      )}
-    </View>
-  );
+const KEY = 'celebut.celebration-draft';
+async function saveDraft(value) { const raw = JSON.stringify(value); if (Platform.OS === 'web') localStorage.setItem(KEY, raw); else await SecureStore.setItemAsync(KEY, raw); }
+async function readDraft() { const raw = Platform.OS === 'web' ? localStorage.getItem(KEY) : await SecureStore.getItemAsync(KEY); return raw ? JSON.parse(raw) : null; }
+async function clearDraft() { if (Platform.OS === 'web') localStorage.removeItem(KEY); else await SecureStore.deleteItemAsync(KEY); }
+export default function CreatePostScreen() {
+  const { token } = useAuth(); const { colors } = useAppTheme(); const captionRef = useRef(null);
+  const [caption, setCaption] = useState(''); const [notes, setNotes] = useState(''); const [date, setDate] = useState(new Date().toISOString().slice(0,10)); const [loading, setLoading] = useState(false); const [errors, setErrors] = useState({}); const [notice, setNotice] = useState(null); const [restored, setRestored] = useState(false); const [locationDenied, setLocationDenied] = useState(false);
+  useEffect(() => { readDraft().then(draft => { if (draft) { setCaption(draft.caption || ''); setNotes(draft.notes || ''); setDate(draft.date || new Date().toISOString().slice(0,10)); setRestored(true); } }).catch(() => {}); }, []);
+  useEffect(() => { const timer = setTimeout(() => { if (caption || notes) saveDraft({ caption, notes, date }).catch(() => {}); }, 450); return () => clearTimeout(timer); }, [caption, notes, date]);
+  const validate = () => { const next = {}; if (caption.trim().length < 2) next.caption = 'Write at least 2 characters so people know what you’re celebrating.'; if (notes.trim().length < 3) next.notes = 'Add a short description with at least 3 characters.'; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) next.date = 'Use the format YYYY-MM-DD, for example 2026-07-14.'; setErrors(next); if (next.caption) captionRef.current?.focus(); return !Object.keys(next).length; };
+  const submit = async () => { if (!validate()) return; setLoading(true); setNotice(null); setLocationDenied(false); try { const servicesEnabled = await Location.hasServicesEnabledAsync(); if (!servicesEnabled) { setLocationDenied(true); throw new Error('Location services are switched off on this device'); } const permission = await Location.requestForegroundPermissionsAsync(); if (permission.status !== 'granted') { setLocationDenied(true); throw new Error('Location access is off. Allow location while using Celebut, then submit again'); } const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }); const result = await celebrationService.create({ audience: 'everyone', celebration_kind: 'birthday', owner: 'self', frequency: 'one-time', celebration_date: date, longitude: coords.longitude, latitude: coords.latitude, notes: notes.trim(), caption: caption.trim() }, token); const pending = result?.status === 'pending'; setNotice({ tone: pending ? 'warning' : 'success', title: pending ? 'Submitted for review' : 'Your celebration is live', message: pending ? 'A person will review it for community safety. This is a neutral check—not a penalty—and it will not appear publicly until approved.' : 'Thanks for adding a joyful moment to the community.' }); setCaption(''); setNotes(''); setErrors({}); setRestored(false); await clearDraft(); } catch (err) { setNotice({ tone: 'error', title: 'Your draft is safe', message: `${err.message || 'We could not submit this celebration'}. Nothing was lost—fix the issue and try again.` }); } finally { setLoading(false); } };
+  const discard = async () => { setCaption(''); setNotes(''); setDate(new Date().toISOString().slice(0,10)); setRestored(false); await clearDraft(); };
+  return <Screen scroll><Heading eyebrow="Create" title="Share a moment" description="A little context helps the right people find and celebrate it with you." />{restored ? <StatusBanner tone="info" title="Draft restored" message="We saved what you were writing on this device." /> : null}{notice ? <StatusBanner tone={notice.tone} title={notice.title} message={notice.message} /> : null}{locationDenied ? <View style={styles.permissionAction}><Button label="Open location settings" variant="secondary" onPress={() => Linking.openSettings()} icon={{ ios: 'gear', android: 'settings', web: 'settings' }} /></View> : null}<View style={[styles.progress, { backgroundColor: colors.primarySoft }]}><Text style={[styles.progressText, { color: colors.primary }]}>Celebration details</Text><Text style={[styles.progressMeta, { color: colors.textSecondary }]}>Draft saves automatically</Text></View><Field ref={captionRef} label="Caption *" value={caption} onChangeText={setCaption} onBlur={validate} placeholder="For example, Amara’s graduation" helper="A short, specific headline. Maximum 200 characters." error={errors.caption} maxLength={200} returnKeyType="next" /><Field label="What makes this special? *" value={notes} onChangeText={setNotes} onBlur={validate} placeholder="Share the story, plans, or what support would mean" helper={`${notes.length}/200 characters. Avoid sharing private addresses or phone numbers.`} error={errors.notes} maxLength={200} multiline style={styles.multiline} textAlignVertical="top" /><Field label="Celebration date *" value={date} onChangeText={setDate} onBlur={validate} placeholder="YYYY-MM-DD" helper="We use this to keep nearby results timely." error={errors.date} keyboardType="numbers-and-punctuation" /><StatusBanner tone="info" title="About location and review" message="When you submit, Celebut requests your current location once for approximate nearby discovery. Some posts receive a neutral human safety review before appearing." /><Button label="Submit celebration" onPress={submit} loading={loading} icon={{ ios: 'paperplane', android: 'send', web: 'send' }} />{caption || notes ? <View style={styles.discard}><Button label="Discard saved draft" variant="danger" onPress={discard} /></View> : null}</Screen>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    backgroundColor: '#fff',
-  },
-  inputContainer: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#555',
-  },
-  error: {
-    backgroundColor: '#ffebee',
-    borderColor: '#f44336',
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#c62828',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  loadingText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#666',
-  },
-});
+const styles = StyleSheet.create({ permissionAction: { marginBottom: Spacing.md }, progress: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.md, borderRadius: 12, marginBottom: Spacing.lg, gap: Spacing.sm }, progressText: { fontSize: Type.label, fontWeight: '800' }, progressMeta: { fontSize: Type.caption }, multiline: { minHeight: 128, paddingTop: 14 }, discard: { marginTop: Spacing.lg } });

@@ -32,18 +32,27 @@ type Config struct {
 	JwtSecret       string `validate:"required" yaml:"jwt_secret" env:"JWT_SECRET"`
 	JwtSecretExpiry string `validate:"required" yaml:"jwt_secret_expiry" env:"JWT_SECRET_EXPIRY"`
 
-	ServiceAddress string `validate:"required" yaml:"service_address" env:"SERVICE_ADDRESS"`
+	ServiceAddress string `yaml:"service_address" env:"SERVICE_ADDRESS"`
 
-	AwsAccessKeyID     string `validate:"required" yaml:"access_key_id" env:"AWS_ACCESS_KEY_ID"`
-	AwsSecretAccessKey string `validate:"required" yaml:"secret_id" env:"AWS_SECRET_ID"`
-	AwsRegion          string `validate:"required" yaml:"region" env:"AWS_REGION"`
-	AwsS3Bucket        string `validate:"required" yaml:"aws_s3_bucket" env:"AWS_S3_BUCKET"`
+	AwsAccessKeyID     string `yaml:"access_key_id" env:"AWS_ACCESS_KEY_ID"`
+	AwsSecretAccessKey string `yaml:"secret_id" env:"AWS_SECRET_ID"`
+	AwsRegion          string `yaml:"region" env:"AWS_REGION"`
+	AwsS3Bucket        string `yaml:"aws_s3_bucket" env:"AWS_S3_BUCKET"`
 
 	EnableSwagger            string `validate:"required"`
-	SendGridApiKey           string `validate:"required"`
-	TwilioAccountSid         string `validate:"required"`
-	TwilioAuthToken          string `validate:"required"`
-	TwilioMessagingServiceId string `validate:"required"`
+	SendGridApiKey           string
+	VerificationProvider     string `validate:"required,oneof=mailtrap resend twilio"`
+	MailMailer               string
+	MailHost                 string
+	MailPort                 string
+	MailUsername             string
+	MailPassword             string
+	MailEncryption           string
+	MailFromAddress          string
+	MailFromName             string
+	TwilioAccountSid         string
+	TwilioAuthToken          string
+	TwilioMessagingServiceId string
 	MixPanelProjectToken     string `validate:"required"`
 	MixPanelApiSecret        string `validate:"required"`
 	MixPanelProjectId        int    `validate:"required"`
@@ -52,26 +61,26 @@ type Config struct {
 	AIServiceURL                     string `validate:"required" yaml:"ai_service_url" env:"AI_SERVICE_URL"`
 	AIServiceTimeout                 string `validate:"required" yaml:"ai_service_timeout" env:"AI_SERVICE_TIMEOUT"` // e.g., "5s"
 	AIServiceMaxRetries              int    `validate:"required" yaml:"ai_service_max_retries" env:"AI_SERVICE_MAX_RETRIES"`
-	AIServiceCircuitBreakerThreshold int    `validate:"validate:"required" yaml:"ai_service_circuit_breaker_threshold" env:"AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD"` // Number of consecutive failures before opening circuit
+	AIServiceCircuitBreakerThreshold int    `validate:"required" yaml:"ai_service_circuit_breaker_threshold" env:"AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD"` // Number of consecutive failures before opening circuit
 
 	// Additional circuit breaker settings
-	AIServiceCircuitBreakerTimeout   int    `validate:"required" yaml:"ai_service_circuit_breaker_timeout" env:"AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT"` // Seconds before trying half-open state
-	AIServiceCircuitBreakerInterval  int    `validate:"required" yaml:"ai_service_circuit_breaker_interval" env:"AI_SERVICE_CIRCUIT_BREAKER_INTERVAL"` // Interval between state changes
-	AIServiceCircuitBreakerMaxRequests int   `validate:"required" yaml:"ai_service_circuit_breaker_max_requests" env:"AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS"` // Max requests in half-open state
-	AIServiceFailureRateThreshold    float64 `validate:"required" yaml:"ai_service_failure_rate_threshold" env:"AI_SERVICE_FAILURE_RATE_THRESHOLD"` // Failure rate to trip circuit (0.0-1.0)
+	AIServiceCircuitBreakerTimeout     int     `validate:"required" yaml:"ai_service_circuit_breaker_timeout" env:"AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT"`           // Seconds before trying half-open state
+	AIServiceCircuitBreakerInterval    int     `validate:"required" yaml:"ai_service_circuit_breaker_interval" env:"AI_SERVICE_CIRCUIT_BREAKER_INTERVAL"`         // Interval between state changes
+	AIServiceCircuitBreakerMaxRequests int     `validate:"required" yaml:"ai_service_circuit_breaker_max_requests" env:"AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS"` // Max requests in half-open state
+	AIServiceFailureRateThreshold      float64 `validate:"required" yaml:"ai_service_failure_rate_threshold" env:"AI_SERVICE_FAILURE_RATE_THRESHOLD"`             // Failure rate to trip circuit (0.0-1.0)
 
-	GoogleClientID     string `validate:"required" yaml:"google_client_id" env:"GOOGLE_CLIENT_ID"`
-	GoogleClientSecret string `validate:"required" yaml:"google_client_secret" env:"GOOGLE_CLIENT_SECRET"`
+	GoogleClientID     string `yaml:"google_client_id" env:"GOOGLE_CLIENT_ID"`
+	GoogleClientSecret string `yaml:"google_client_secret" env:"GOOGLE_CLIENT_SECRET"`
 }
 
 func NewConfig() (*Config, error) {
 
 	if os.Getenv("APP_ENV") != "prod" && os.Getenv("APP_ENV") != "stg" && os.Getenv("APP_ENV") != "beta" {
-		if err := godotenv.Load(".env"); err != nil {
+		if err := godotenv.Load("../.env"); err != nil {
 			log.Fatalf("env file error: %s", err.Error())
 		}
 	}
-	mixPanelProjectId, err := strconv.Atoi(helpers.Getenv("MIX_PANEL_PROJECT_ID"))
+	mixPanelProjectId, err := strconv.Atoi(helpers.Getenv("MIX_PANEL_PROJECT_ID", "0"))
 	if err != nil {
 		log.Fatalf("mix panel project id error: %s", err.Error())
 	}
@@ -88,6 +97,7 @@ func NewConfig() (*Config, error) {
 		PGUser:     os.Getenv("PG_USER"),
 		PGPassword: os.Getenv("PG_PASSWORD"),
 		PGDatabase: os.Getenv("PG_DATABASE"),
+		PGSSlMode:  helpers.Getenv("PG_SSL_MODE", "disable"),
 		//RedisPort:               helpers.Getenv("REDIS_PORT"),
 		EnableSwagger:            helpers.Getenv("ENABLE_SWAGGER", "true"),
 		AwsRegion:                helpers.Getenv("AWS_REGION"),
@@ -100,6 +110,15 @@ func NewConfig() (*Config, error) {
 		JwtSecretExpiry:          helpers.Getenv("JWT_SECRET_EXPIRY"),
 		GinMode:                  helpers.Getenv("GIN_MODE"),
 		SendGridApiKey:           helpers.Getenv("SEND_GRID_API_KEY"),
+		VerificationProvider:     helpers.Getenv("VERIFICATION_PROVIDER", "twilio"),
+		MailMailer:               helpers.Getenv("MAIL_MAILER", "smtp"),
+		MailHost:                 helpers.Getenv("MAIL_HOST", helpers.Getenv("MAILTRAP_SMTP_HOST", "sandbox.smtp.mailtrap.io")),
+		MailPort:                 helpers.Getenv("MAIL_PORT", helpers.Getenv("MAILTRAP_SMTP_PORT", "2525")),
+		MailUsername:             helpers.Getenv("MAIL_USERNAME", helpers.Getenv("MAILTRAP_SMTP_USERNAME")),
+		MailPassword:             helpers.Getenv("MAIL_PASSWORD", helpers.Getenv("MAILTRAP_SMTP_PASSWORD")),
+		MailEncryption:           helpers.Getenv("MAIL_ENCRYPTION", "tls"),
+		MailFromAddress:          helpers.Getenv("MAIL_FROM_ADDRESS", "no-reply@celebut.app"),
+		MailFromName:             helpers.Getenv("MAIL_FROM_NAME", "Celebut"),
 		TwilioAccountSid:         helpers.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:          helpers.Getenv("TWILIO_AUTH_TOKEN"),
 		TwilioMessagingServiceId: helpers.Getenv("TWILIO_MESSAGING_SERVICE_ID"),
@@ -114,17 +133,23 @@ func NewConfig() (*Config, error) {
 		AIServiceCircuitBreakerThreshold: helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD", 5),
 
 		// Additional circuit breaker settings with defaults
-		AIServiceCircuitBreakerTimeout:   helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT", 60),
-		AIServiceCircuitBreakerInterval:  helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_INTERVAL", 10),
+		AIServiceCircuitBreakerTimeout:     helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT", 60),
+		AIServiceCircuitBreakerInterval:    helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_INTERVAL", 10),
 		AIServiceCircuitBreakerMaxRequests: helpers.GetenvAsInt("AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS", 3),
-		AIServiceFailureRateThreshold:    helpers.GetenvAsFloat("AI_SERVICE_FAILURE_RATE_THRESHOLD", 0.5),
-		GoogleClientID:     helpers.Getenv("GOOGLE_CLIENT_ID"),
-		GoogleClientSecret: helpers.Getenv("GOOGLE_CLIENT_SECRET"),
+		AIServiceFailureRateThreshold:      helpers.GetenvAsFloat("AI_SERVICE_FAILURE_RATE_THRESHOLD", 0.5),
+		GoogleClientID:                     helpers.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret:                 helpers.Getenv("GOOGLE_CLIENT_SECRET"),
 	}
 
 	validate := validator.New()
 	if err = validate.Struct(config); err != nil {
 		log.Fatalf("env validation error: %s", err.Error())
+	}
+	if config.VerificationProvider != "twilio" && (config.MailHost == "" || config.MailPort == "" || config.MailUsername == "" || config.MailPassword == "") {
+		log.Fatal("env validation error: MAIL_HOST, MAIL_PORT, MAIL_USERNAME and MAIL_PASSWORD are required for email verification")
+	}
+	if config.VerificationProvider == "twilio" && (config.TwilioAccountSid == "" || config.TwilioAuthToken == "" || config.TwilioMessagingServiceId == "") {
+		log.Fatal("env validation error: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_MESSAGING_SERVICE_ID are required when VERIFICATION_PROVIDER=twilio")
 	}
 
 	return &config, nil

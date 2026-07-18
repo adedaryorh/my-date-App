@@ -78,17 +78,33 @@ type Incrementor struct {
 
 func (p PushNotificationData) Value() (driver.Value, error) { return json.Marshal(p) }
 func (p *PushNotificationData) Scan(value interface{}) error {
+	if value == nil {
+		*p = PushNotificationData{}
+		return nil
+	}
 	b, ok := value.([]byte)
 	if !ok {
-		return errors.New("type assertion to []byte failed")
+		if text, isString := value.(string); isString {
+			b = []byte(text)
+		} else {
+			return errors.New("push notification settings must be JSON")
+		}
 	}
 	return json.Unmarshal(b, p)
 }
 func (c ContentSettings) Value() (driver.Value, error) { return json.Marshal(c) }
 func (c *ContentSettings) Scan(value interface{}) error {
+	if value == nil {
+		*c = ContentSettings{}
+		return nil
+	}
 	b, ok := value.([]byte)
 	if !ok {
-		return errors.New("type assertion to []byte failed")
+		if text, isString := value.(string); isString {
+			b = []byte(text)
+		} else {
+			return errors.New("content settings must be JSON")
+		}
 	}
 	return json.Unmarshal(b, c)
 }

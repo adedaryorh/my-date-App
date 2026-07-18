@@ -39,7 +39,7 @@ type Middleware struct {
 	config       *configs.Config
 	tokenService tokenservice.TokenService
 	redis        redisservice.Redis
-	rateLimiter  *RateLimiter
+	RateLimiter  *RateLimiter
 }
 
 func NewMiddleware(db *database.DB, config *configs.Config, log *logger.Logger) (*Middleware, error) {
@@ -58,6 +58,7 @@ func NewMiddleware(db *database.DB, config *configs.Config, log *logger.Logger) 
 		repo:         repo,
 		tokenService: tokenService,
 		redis:        redis,
+		RateLimiter:  NewRateLimiter(redis, log),
 	}
 
 	return m, nil
@@ -123,7 +124,7 @@ func (m *Middleware) getUserFromToken(ctx context.Context, verified *Payload, re
 	if err != nil {
 		return nil, err
 	}
-	m.logger.Info("%s", user.Status)
+	m.logger.Info(user.Status)
 	if user.Status != string(constants.StatusActive) {
 		return nil, messages.ErrInactiveUser
 	}

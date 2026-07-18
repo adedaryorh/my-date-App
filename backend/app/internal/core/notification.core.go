@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"backend.app/internal/models"
+	"backend.app/pkg/response"
 )
 
 func (c *Core) SendNotification(ctx context.Context, user *models.User, template string, content map[string]interface{}, opts ...models.NotificationOpts) error {
@@ -24,12 +25,12 @@ func (c *Core) SendNotification(ctx context.Context, user *models.User, template
 		zap.String("action", "send_notification"))
 
 	for _, channel := range channels {
-		// if channel == models.NotificationChannels.Email {
-		// 	err = c.sendEmail(user, template, content)
-		// 	if err != nil {
-		// 		errString = err.Error()
-		// 	}
-		// }
+		if channel == models.NotificationChannels.Email {
+			err = c.sendEmail(user, template, content)
+			if err != nil {
+				errString = err.Error()
+			}
+		}
 
 		if channel == models.NotificationChannels.SMS {
 			err = c.sendToPhone(user, template, content, channel)
@@ -57,7 +58,7 @@ func (c *Core) SendNotification(ctx context.Context, user *models.User, template
 			zap.String("user_id", user.ID.String()),
 			zap.String("template", template),
 			zap.String("channels", fmt.Sprintf("%v", channels)),
-			zap.Error(fmt.Errorf(errString)),
+			zap.Error(errors.New(errString)),
 			zap.String("action", "send_notification"))
 		return errors.New(errString)
 	}
@@ -70,19 +71,10 @@ func (c *Core) SendNotification(ctx context.Context, user *models.User, template
 	return nil
 }
 
-// func (c *Core) sendEmail(user *models.User, template string, content map[string]interface{}) error {
-// 	// provider would later be set to be dynamic
-// 	provider := "sendgrid"
-
-//		// build notification job
-//		job := models.NotificationJob{
-//			From:     "info@secur.education",
-//			To:       []string{user.Email},
-//			Template: template,
-//			Content:  content,
-//		}
-//		return c.emailService[provider].SendEmail(job)
-//	}
+func (c *Core) sendEmail(user *models.User, template string, content map[string]interface{}) error {
+	job := models.NotificationJob{From: c.config.MailFromAddress, FromName: c.config.MailFromName, To: []string{user.Email}, Template: template, Content: content}
+	return c.emailService["smtp"].SendEmail(job)
+}
 func (c *Core) sendToPhone(user *models.User, template string, content map[string]interface{}, channel string) error {
 	// provider would later be set to be dynamic
 	provider := "twilio"

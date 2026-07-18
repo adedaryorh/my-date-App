@@ -16,7 +16,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.10.9
 	github.com/mixpanel/mixpanel-go v1.2.1
-	github.com/pressly/goose v2.7.0+incompatible
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rs/zerolog v1.26.1
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
@@ -26,13 +25,10 @@ require (
 	github.com/swaggo/swag v1.8.1
 	github.com/twilio/twilio-go v1.23.11
 	go.opentelemetry.io/otel v1.44.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0
-	go.opentelemetry.io/otel/sdk v1.44.0
+	go.opentelemetry.io/otel/trace v1.44.0
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.48.0
-	golang.org/x/net v0.50.0
 	golang.org/x/oauth2 v0.30.0
-	gorm.io/gorm v1.31.2
 )
 
 require (
@@ -61,8 +57,6 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
-	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -82,12 +76,11 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
-	go.opentelemetry.io/otel/trace v1.44.0 // indirect
-	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/lint v0.0.0-20190930215403-16217165b5de // indirect
+	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect

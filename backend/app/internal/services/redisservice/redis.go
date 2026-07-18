@@ -39,6 +39,13 @@ func (r Redis) GetIntValue(ctx context.Context, key string) int {
 func (r Redis) KeyExists(ctx context.Context, key string) int64 {
 	return r.Client.Exists(ctx, key).Val()
 }
+func (r Redis) Incr(ctx context.Context, key string) (int64, error) {
+	return r.Client.Incr(ctx, key).Result()
+}
+func (r Redis) Expire(ctx context.Context, key string, expiration time.Duration) bool {
+	return r.Client.Expire(ctx, key, expiration).Val()
+}
+func (r Redis) Get(ctx context.Context, key string) string   { return r.Client.Get(ctx, key).Val() }
 func (r Redis) Delete(ctx context.Context, key string) error { return r.Client.Del(ctx, key).Err() }
 func (r Redis) DeleteByPattern(ctx context.Context, pattern string) error {
 	keys, err := r.Client.Keys(ctx, pattern).Result()

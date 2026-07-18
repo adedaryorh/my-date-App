@@ -7,7 +7,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
+	"io"
 	"math/rand"
+	"mime/multipart"
 	"os"
 	"strconv"
 	"strings"
@@ -68,6 +70,15 @@ func GetFileType(filename, separator string) string {
 	return strings.ToLower(parts[len(parts)-1])
 }
 
+func MultipartHeaderToBytes(fileHeader *multipart.FileHeader) ([]byte, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return io.ReadAll(file)
+}
+
 func GetenvAsFloat(key string, defaultValue float64) float64 {
 	if value, err := strconv.ParseFloat(Getenv(key), 64); err == nil {
 		return value
@@ -82,6 +93,35 @@ func Reverse[T any](values []T) []T {
 		values[left], values[right] = values[right], values[left]
 	}
 	return values
+}
+
+func RemoveDuplicates[T comparable](values []T) []T {
+	seen := make(map[T]struct{}, len(values))
+	result := make([]T, 0, len(values))
+	for _, value := range values {
+		if _, exists := seen[value]; exists {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
+}
+
+func BytesToBase64(value []byte) string { return base64.StdEncoding.EncodeToString(value) }
+func StructToBase64(value interface{}) (string, error) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+func Base64ToStruct(target interface{}, encoded string) error {
+	data, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, target)
 }
 
 func ParseTemplate(path string, data interface{}) (*string, error) {

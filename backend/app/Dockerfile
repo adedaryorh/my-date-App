@@ -19,7 +19,7 @@ WORKDIR /app
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
-COPY  backend/app/database/goose/migrations database/goose/migrations
+COPY  backend/app/migrations ./migrations
 COPY  backend/app/docs/swagger.json ./docs/swagger.json
 
 USER golang

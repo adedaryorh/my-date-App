@@ -37,6 +37,11 @@ type ConfirmPhoneNumber struct {
 	Token       string `json:"token" validate:"required,len=6"`
 }
 
+type ConfirmEmail struct {
+	Email string `json:"email" validate:"required,email"`
+	Token string `json:"token" validate:"required,len=6"`
+}
+
 // UpdateUserProfile data object to update the user profile
 type UpdateUserProfile struct {
 	FullName    *string `json:"full_name" validate:"omitempty,min=3,max=100"`

@@ -45,7 +45,7 @@ func NewAIServiceClient(config *configs.Config, logger *logger.Logger) *AIServic
 			return counts.Requests >= uint32(config.AIServiceCircuitBreakerThreshold) && failureRatio >= config.AIServiceFailureRateThreshold
 		},
 		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-			logger.Info("Circuit breaker %s changed from %s to %s", name, from.String(), to.String())
+			logger.Info(fmt.Sprintf("Circuit breaker %s changed from %s to %s", name, from.String(), to.String()))
 		},
 	})
 
@@ -124,6 +124,12 @@ type EmbedProfileResponse struct {
 	TextUsed  string    `json:"text_used,omitempty"`
 }
 
+type HealthCheckResponse struct {
+	Status    string `json:"status"`
+	Timestamp string `json:"timestamp"`
+	Version   string `json:"version"`
+}
+
 type EmbedProfileRequest struct {
 	UserID    string   `json:"user_id"`
 	Bio       string   `json:"bio"`
@@ -194,7 +200,7 @@ type LogInteractionResponse struct {
 
 // EmbedProfile sends a user profile to be embedded by the AI service
 func (c *AIServiceClient) EmbedProfile(ctx context.Context, req *EmbedProfileRequest) (*EmbedProfileResponse, error) {
-	c.logger.Info("Calling AI service to embed profile for user %s", req.UserID)
+	c.logger.Info(fmt.Sprintf("Calling AI service to embed profile for user %s", req.UserID))
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/embed-profile", req)
 	if err != nil {
@@ -209,9 +215,21 @@ func (c *AIServiceClient) EmbedProfile(ctx context.Context, req *EmbedProfileReq
 	return &response, nil
 }
 
+func (c *AIServiceClient) HealthCheck(ctx context.Context) (*HealthCheckResponse, error) {
+	responseBody, err := c.ExecuteRequest(ctx, http.MethodGet, "/ai/health", nil)
+	if err != nil {
+		return nil, err
+	}
+	var response HealthCheckResponse
+	if err := json.Unmarshal(responseBody, &response); err != nil {
+		return nil, fmt.Errorf("failed to decode health response: %w", err)
+	}
+	return &response, nil
+}
+
 // RecommendUsers gets user recommendations from the AI service
 func (c *AIServiceClient) RecommendUsers(ctx context.Context, req *RecommendUsersRequest) (*RecommendUsersResponse, error) {
-	c.logger.Info("Calling AI service for user recommendations: %s", req.UserID)
+	c.logger.Info(fmt.Sprintf("Calling AI service for user recommendations: %s", req.UserID))
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/recommend-users", req)
 	if err != nil {
@@ -245,7 +263,7 @@ func (c *AIServiceClient) ModerateCelebration(ctx context.Context, req *Moderate
 
 // IndexCelebration indexes a celebration for semantic search
 func (c *AIServiceClient) IndexCelebration(ctx context.Context, req *IndexCelebrationRequest) (*IndexCelebrationResponse, error) {
-	c.logger.Info("Calling AI service to index celebration %s", req.CelebrationID)
+	c.logger.Info(fmt.Sprintf("Calling AI service to index celebration %s", req.CelebrationID))
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/index-celebration", req)
 	if err != nil {
@@ -262,7 +280,7 @@ func (c *AIServiceClient) IndexCelebration(ctx context.Context, req *IndexCelebr
 
 // SearchCelebrations searches for celebrations using semantic similarity
 func (c *AIServiceClient) SearchCelebrations(ctx context.Context, req *SearchCelebrationsRequest) (*SearchCelebrationsResponse, error) {
-	c.logger.Info("Calling AI service to search celebrations: %s", req.Query)
+	c.logger.Info(fmt.Sprintf("Calling AI service to search celebrations: %s", req.Query))
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/search-celebrations", req)
 	if err != nil {
@@ -279,7 +297,7 @@ func (c *AIServiceClient) SearchCelebrations(ctx context.Context, req *SearchCel
 
 // LogInteraction logs a user interaction for the feedback loop
 func (c *AIServiceClient) LogInteraction(ctx context.Context, req *LogInteractionRequest) (*LogInteractionResponse, error) {
-	c.logger.Info("Calling AI service to log %s interaction from %s to %s", req.Action, req.UserID, req.TargetID)
+	c.logger.Info(fmt.Sprintf("Calling AI service to log %s interaction from %s to %s", req.Action, req.UserID, req.TargetID))
 
 	responseBody, err := c.ExecuteRequest(ctx, http.MethodPost, "/ai/log-interaction", req)
 	if err != nil {

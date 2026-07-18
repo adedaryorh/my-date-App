@@ -28,11 +28,8 @@ func ObservabilityMiddleware() gin.HandlerFunc {
 		if path == "" {
 			path = c.Request.URL.Path
 		}
-
-		// Extract method
 		method := c.Request.Method
 
-		// Start span
 		ctx, span := otel.Tracer("http-server").Start(
 			c.Request.Context(),
 			fmt.Sprintf("HTTP %s", method),

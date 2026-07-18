@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -34,7 +33,7 @@ func (c *Core) CreateCelebrationDto(ctx context.Context, user *models.User, data
 	if content != "" {
 		result, moderationErr := c.aiClient.ModerateCelebration(ctx, &aiclient.ModerateCelebrationRequest{Text: content})
 		if moderationErr != nil {
-			c.log.Warn("AI moderation unavailable; continuing with normal creation: %v", moderationErr)
+			c.log.Warn(fmt.Sprintf("AI moderation unavailable; continuing with normal creation: %v", moderationErr))
 		} else {
 			moderation = result
 			if result.IsFlagged {
@@ -42,11 +41,6 @@ func (c *Core) CreateCelebrationDto(ctx context.Context, user *models.User, data
 			}
 		}
 	}
-	key := fmt.Sprintf("%s:%s:%s", models.RedisKeys.GeneralCelebration, ownerId, data.CelebrationDate)
-	if c.redisService.KeyExists(ctx, key) > 0 {
-		return response.BadRequestResponse(errors.New("one time general celebration already created for this user"))
-	}
-
 	// check expiry
 	expiry := 24
 	if data.ExpiresIn != nil {
@@ -98,13 +92,11 @@ func (c *Core) CreateCelebrationDto(ctx context.Context, user *models.User, data
 		return response.ServerErrorResponse(err)
 	}
 
-	// add celebration to redis
-	c.redisService.Set(ctx, key, true, expiresAt.Sub(time.Now()))
 	if content != "" && (moderation == nil || !moderation.IsFlagged) {
 		if _, indexErr := c.aiClient.IndexCelebration(ctx, &aiclient.IndexCelebrationRequest{
 			CelebrationID: celebration.ID.String(), Text: content,
 		}); indexErr != nil {
-			c.log.Warn("Celebration created but semantic indexing failed: %v", indexErr)
+			c.log.Warn(fmt.Sprintf("Celebration created but semantic indexing failed: %v", indexErr))
 		}
 	}
 

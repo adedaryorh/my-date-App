@@ -12,8 +12,8 @@ func AuthRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *middle
 	auth := server.Group("/auth")
 	{
 		// Rate limiting for auth endpoints - stricter limits
-		authLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 5,     // 5 requests
+		authLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 5,           // 5 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})
@@ -22,12 +22,13 @@ func AuthRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *middle
 		auth.POST("/sign-up/business", authLimiter, handler.SignUpBusiness)
 		auth.POST("/login", authLimiter, handler.Login)
 		auth.PATCH("/confirm-phone", authLimiter, handler.ConfirmPhone)
+		auth.PATCH("/confirm-email", authLimiter, handler.ConfirmEmail)
 		auth.POST("/reset-password", authLimiter, handler.SendResetPasswordToken)
 		auth.PATCH("/reset-password", authLimiter, handler.ResetPassword)
 		auth.GET("/self", handler.AuthenticatedUserMiddleware(), handler.Me)
 		// Google OAuth - slightly higher limit as it's less frequent but still needs protection
-		authGETLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 10,    // 10 requests
+		authGETLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 10,          // 10 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

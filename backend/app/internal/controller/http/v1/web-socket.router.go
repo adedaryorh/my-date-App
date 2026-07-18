@@ -12,9 +12,9 @@ func WebSocketRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *m
 	socket := server.Group("/ws")
 	{
 		// Rate limiting for websocket connection attempts - prevent abuse of connection attempts
-		wsLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 10,    // 10 connection attempts
-			Window:   time.Minute, // per minute
+		wsLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 10,                     // 10 connection attempts
+			Window:   time.Minute,            // per minute
 			KeyFunc:  middleware.KeyFuncs.IP, // Limit by IP for connection attempts
 		})
 

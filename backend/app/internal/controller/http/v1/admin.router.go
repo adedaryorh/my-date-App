@@ -8,9 +8,10 @@ import (
 
 // AdminRoutes registers admin-related routes
 func AdminRoutes(v *gin.RouterGroup, handler handlers.Operations, _ *middleware.Middleware) {
-	admin := v.Group("/admin")
-	// Optional: add middleware for admin auth, e.g., adminAuthMiddleware()
+	admin := v.Group("/admin", handler.AuthenticatedUserMiddleware())
 	admin.GET("/users", handler.GetAllUsers)
 	admin.PUT("/users/:user_id/role", handler.UpdateUserRole)
 	admin.DELETE("/users/:user_id", handler.DeleteUser)
+	admin.GET("/moderation-queue", handler.GetModerationQueue)
+	admin.POST("/moderation-queue/:id/resolve", handler.ResolveModeration)
 }

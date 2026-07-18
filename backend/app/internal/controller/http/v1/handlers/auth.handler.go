@@ -125,6 +125,23 @@ func (h *Handler) ConfirmPhone(c *gin.Context) {
 	c.JSON(result.Code, result)
 }
 
+func (h *Handler) ConfirmEmail(c *gin.Context) {
+	var input dtos.ConfirmEmail
+	if err := c.BindJSON(&input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
+	if err := helpers.ValidateInput(input); err != nil {
+		result := response.BadRequestResponse(err, constants.HttpStatusBadRequest)
+		c.JSON(result.Code, result)
+		return
+	}
+	result := h.core.ConfirmEmail(c, &input)
+	c.JSON(result.Code, result)
+}
+
 // @Tags Auth
 // @Summary Send Password Reset Token
 // @Schemes

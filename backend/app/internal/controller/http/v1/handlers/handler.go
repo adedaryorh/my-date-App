@@ -9,9 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
@@ -26,7 +24,7 @@ import (
 	"backend.app/pkg/middleware"
 	"backend.app/pkg/response"
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -43,6 +41,7 @@ type Operations interface {
 	SignUpBusiness(c *gin.Context)
 	Login(c *gin.Context)
 	ConfirmPhone(c *gin.Context)
+	ConfirmEmail(c *gin.Context)
 	SendResetPasswordToken(c *gin.Context)
 	ResetPassword(c *gin.Context)
 	Me(c *gin.Context)
@@ -112,6 +111,9 @@ type Operations interface {
 	GetAllUsers(c *gin.Context)
 	UpdateUserRole(c *gin.Context)
 	DeleteUser(c *gin.Context)
+	GetNearbyCelebrations(c *gin.Context)
+	GetModerationQueue(c *gin.Context)
+	ResolveModeration(c *gin.Context)
 
 	// OAuth
 	GoogleLogin(c *gin.Context)
@@ -230,7 +232,7 @@ func (h *Handler) GetUserRecommendations(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to get user recommendations"), "Failed to get user recommendations")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to get user recommendations"), "Failed to get user recommendations")
 	c.JSON(result.Code, result)
 }
 
@@ -255,7 +257,7 @@ func (h *Handler) ModerateCelebration(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to moderate celebration"), "Failed to moderate celebration")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to moderate celebration"), "Failed to moderate celebration")
 	c.JSON(result.Code, result)
 }
 
@@ -280,7 +282,7 @@ func (h *Handler) IndexCelebration(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to index celebration"), "Failed to index celebration")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to index celebration"), "Failed to index celebration")
 	c.JSON(result.Code, result)
 }
 
@@ -305,7 +307,7 @@ func (h *Handler) SearchCelebrations(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to search celebrations"), "Failed to search celebrations")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to search celebrations"), "Failed to search celebrations")
 	c.JSON(result.Code, result)
 }
 
@@ -332,7 +334,7 @@ func (h *Handler) LogInteraction(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to log interaction"), "Failed to log interaction")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to log interaction"), "Failed to log interaction")
 	c.JSON(result.Code, result)
 }
 
@@ -344,153 +346,8 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to check health"), "Failed to check health")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to check health"), "Failed to check health")
 	c.JSON(result.Code, result)
-}
-
-// Delegate other methods to core handler (keeping existing functionality)
-func (h *Handler) SignUpUser(c *gin.Context) {
-	h.core.SignUpUser(c)
-}
-
-func (h *Handler) SignUpBusiness(c *gin.Context) {
-	h.core.SignUpBusiness(c)
-}
-
-func (h *Handler) Login(c *gin.Context) {
-	h.core.Login(c)
-}
-
-func (h *Handler) ConfirmPhone(c *gin.Context) {
-	h.core.ConfirmPhone(c)
-}
-
-func (h *Handler) SendResetPasswordToken(c *gin.Context) {
-	h.core.SendResetPasswordToken(c)
-}
-
-func (h *Handler) ResetPassword(c *gin.Context) {
-	h.core.ResetPassword(c)
-}
-
-func (h *Handler) Me(c *gin.Context) {
-	h.core.Me(c)
-}
-
-func (h *Handler) GetAllBlockedUsers(c *gin.Context) {
-	h.core.GetAllBlockedUsers(c)
-}
-
-func (h *Handler) GetBlockedUser(c *gin.Context) {
-	h.core.GetBlockedUser(c)
-}
-
-func (h *Handler) GetAllFollowers(c *gin.Context) {
-	h.core.GetAllFollowers(c)
-}
-
-func (h *Handler) GetSingleFollower(c *gin.Context) {
-	h.core.GetSingleFollower(c)
-}
-
-func (h *Handler) GetFriends(c *gin.Context) {
-	h.core.GetFriends(c)
-}
-
-func (h *Handler) AuthenticatedUserMiddleware() gin.HandlerFunc {
-	return h.core.AuthenticatedUserMiddleware()
-}
-
-func (h *Handler) UpdateUserProfile(c *gin.Context) {
-	h.core.UpdateUserProfile(c)
-}
-
-func (h *Handler) UploadUserProfilePicture(c *gin.Context) {
-	h.core.UploadUserProfilePicture(c)
-}
-
-func (h *Handler) BlockUser(c *gin.Context) {
-	h.core.BlockUser(c)
-}
-
-func (h *Handler) UnBlockUser(c *gin.Context) {
-	h.core.UnBlockUser(c)
-}
-
-func (h *Handler) FollowUser(c *gin.Context) {
-	h.core.FollowUser(c)
-}
-
-func (h *Handler) UnFollowUser(c *gin.Context) {
-	h.core.UnFollowUser(c)
-}
-
-func (h *Handler) LogoutMiddleware() gin.HandlerFunc {
-	return h.core.LogoutMiddleware()
-}
-
-func (h *Handler) ChangePrice(c *gin.Context) {
-	h.core.ChangePrice(c)
-}
-
-func (h *Handler) AddAreaOfInterests(c *gin.Context) {
-	h.core.AddAreaOfInterests(c)
-}
-
-func (h *Handler) AddPreferredLanguage(c *gin.Context) {
-	h.core.AddPreferredLanguage(c)
-}
-
-func (h *Handler) AddNotificationPreference(c *gin.Context) {
-	h.core.AddNotificationPreference(c)
-}
-
-func (h *Handler) TogglePushNotification(c *gin.Context) {
-	h.core.TogglePushNotification(c)
-}
-
-func (h *Handler) ToggleLikesNotification(c *gin.Context) {
-	h.core.ToggleLikesNotification(c)
-}
-
-func (h *Handler) ToggleCommentsNotification(c *gin.Context) {
-	h.core.ToggleCommentsNotification(c)
-}
-
-func (h *Handler) ToggleTagsAndMentionNotification(c *gin.Context) {
-	h.core.ToggleTagsAndMentionNotification(c)
-}
-
-func (h *Handler) ToggleRepostNotification(c *gin.Context) {
-	h.core.ToggleRepostNotification(c)
-}
-
-func (h *Handler) ToggleDirectMessageNotification(c *gin.Context) {
-	h.core.ToggleDirectMessageNotification(c)
-}
-
-func (h *Handler) ToggleLiveNotification(c *gin.Context) {
-	h.core.ToggleLiveNotification(c)
-}
-
-func (h *Handler) ToggleNewFollower(c *gin.Context) {
-	h.core.ToggleNewFollower(c)
-}
-
-func (h *Handler) SetContentSettings(c *gin.Context) {
-	h.core.SetContentSettings(c)
-}
-
-func (h *Handler) SetBannedWords(c *gin.Context) {
-	h.core.SetBannedWords(c)
-}
-
-func (h *Handler) WebSocketHandler(c *gin.Context) {
-	h.core.WebSocket(c)
-}
-
-func (h *Handler) GetUserWallet(c *gin.Context) {
-	h.core.GetUserWallet(c)
 }
 
 func (h *Handler) GetAllUsers(c *gin.Context) {
@@ -504,7 +361,7 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to get users"), "Failed to get users")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to get users"), "Failed to get users")
 	c.JSON(result.Code, result)
 }
 
@@ -539,7 +396,7 @@ func (h *Handler) UpdateUserRole(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to update user role"), "Failed to update user role")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to update user role"), "Failed to update user role")
 	c.JSON(result.Code, result)
 }
 
@@ -572,7 +429,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	}
 
 	// Handle error case
-	result := response.ServerErrorResponse(fmt.Errorf("failed to delete user"), "Failed to delete user")
+	result = response.ServerErrorResponse(fmt.Errorf("failed to delete user"), "Failed to delete user")
 	c.JSON(result.Code, result)
 }
 
@@ -652,8 +509,8 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 		if existingUser.GoogleID == "" && googleID != "" {
 			// Update the user's GoogleID
 			updateErr := h.core.UpdateUser(c.Request.Context(), existingUser.ID.String(), map[string]interface{}{"google_id": googleID})
-			if updateErr != nil {
-				h.log.Warn("Failed to update GoogleID for existing user", zap.Error(updateErr), zap.String("user_id", existingUser.ID.String()))
+			if updateErr != nil && updateErr.Code >= http.StatusBadRequest {
+				h.log.Warn("Failed to update GoogleID for existing user", zap.String("user_id", existingUser.ID.String()))
 			}
 			// Refresh the user object with the updated GoogleID
 			existingUser.GoogleID = googleID
@@ -669,7 +526,7 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 	}
 
 	// Generate JWT token for the user
-	tokenString, err := h.core.TokenService.GenerateToken(user.ID.String())
+	authenticated, err := h.core.AuthenticateUser(c.Request.Context(), user)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -677,27 +534,51 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 
 	// Return the token to the client
 	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
-		"user":  user,
+		"access_token":  authenticated.AccessToken,
+		"refresh_token": authenticated.RefreshToken,
+		"user":          authenticated.User,
 	})
 }
 
 // GetNotificationById returns a notification by its ID
 func (h *Handler) GetNotificationById(c *gin.Context) {
-	h.core.GetNotificationById(c)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		result := response.BadRequestResponse(err)
+		c.JSON(result.Code, result)
+		return
+	}
+	result := h.core.GetNotificationById(c.Request.Context(), id)
+	c.JSON(result.Code, result)
 }
 
 // GetAllNotifications returns all notifications with pagination
 func (h *Handler) GetAllNotifications(c *gin.Context) {
-	h.core.GetAllNotifications(c)
+	query := getPagingInfo(c)
+	result := h.core.GetAllNotifications(c.Request.Context(), &query)
+	c.JSON(result.Code, result)
 }
 
 // DeleteNotification deletes a notification by its ID
 func (h *Handler) DeleteNotification(c *gin.Context) {
-	h.core.DeleteNotification(c)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		result := response.BadRequestResponse(err)
+		c.JSON(result.Code, result)
+		return
+	}
+	result := h.core.DeleteNotification(c.Request.Context(), id)
+	c.JSON(result.Code, result)
 }
 
 // MarkNotificationAsRead marks a notification as read
 func (h *Handler) MarkNotificationAsRead(c *gin.Context) {
-	h.core.MarkNotificationAsRead(c)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		result := response.BadRequestResponse(err)
+		c.JSON(result.Code, result)
+		return
+	}
+	result := h.core.MarkNotificationAsRead(c.Request.Context(), id)
+	c.JSON(result.Code, result)
 }

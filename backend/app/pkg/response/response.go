@@ -53,3 +53,19 @@ func BadRequestResponse(err error, status ...constants.HttpStatus) *dtos.Respons
 	fmt.Println(err)
 	return failureResponse(http.StatusBadRequest, stat, err.Error(), err)
 }
+
+func ForbiddenResponse(err error, message ...string) *dtos.ResponseObject {
+	responseMessage := "Access denied"
+	if len(message) > 0 {
+		responseMessage = message[0]
+	}
+	return failureResponse(http.StatusForbidden, constants.HttpStatusForbidden, responseMessage, err)
+}
+
+func NotFoundResponse(err error, message ...string) *dtos.ResponseObject {
+	responseMessage := "Resource not found"
+	if len(message) > 0 {
+		responseMessage = message[0]
+	}
+	return failureResponse(http.StatusNotFound, constants.HttpStatusResourceNotFound, responseMessage, err)
+}

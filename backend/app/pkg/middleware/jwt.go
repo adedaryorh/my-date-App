@@ -62,12 +62,11 @@ func (j JwtMaker) createToken(ctx context.Context, user models.User, duration ti
 	payload, _ := NewPayload(user, duration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	// Create the JWT string
 	tokenString, err := token.SignedString(j.secretKey)
 	if err != nil {
 		return "", err
 	}
-	// save token on redis
+
 	j.redis.Set(ctx, fmt.Sprintf("%s:%s:%s", redisKey, payload.UserID, payload.RegisteredClaims.ID), "", duration)
 	return tokenString, nil
 }

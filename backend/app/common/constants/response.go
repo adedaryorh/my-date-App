@@ -7,6 +7,7 @@ const (
 	HttpStatusServerError      HttpStatus = "server-error"
 	HttpStatusSuccess          HttpStatus = "success"
 	HttpStatusResourceNotFound HttpStatus = "resource-not-found"
+	HttpStatusForbidden        HttpStatus = "forbidden"
 	HttpStatusInvalidToken     HttpStatus = "invalid-token"
 	HttpStatusTokenExpired     HttpStatus = "token-expired"
 	HttpStatusTokenNotFound    HttpStatus = "token-not-found"

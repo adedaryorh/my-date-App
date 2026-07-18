@@ -19,14 +19,27 @@ from sklearn.metrics.pairwise import cosine_similarity
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
+import numpy as np
 from datetime import datetime
+from app.scoring import INTERACTION_WEIGHTS, score_candidate
 
 # Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        })
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper(), handlers=[handler], force=True)
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -215,7 +228,8 @@ async def load_celebration_embeddings():
         cursor.execute("""
             SELECT id, trim(concat_ws(' ', caption, notes)) AS message
             FROM celebrations
-            WHERE trim(concat_ws(' ', caption, notes)) != ''
+            WHERE status = 'active' AND expires_at > CURRENT_TIMESTAMP
+              AND trim(concat_ws(' ', caption, notes)) != ''
         """)
 
         celebrations = cursor.fetchall()
@@ -392,8 +406,7 @@ async def recommend_users(request: UserRecommendationRequest):
             for i, user in enumerate(other_users):
                 user_interests = set(user.get('interests') or [])
                 shared = len(curr_interests.intersection(user_interests))
-                interest_boost = 0.05 * shared  # small boost per shared interest
-                similarities[i] += interest_boost
+                similarities[i] = score_candidate(similarities[i], shared)
 
         # Adjust scores based on interaction history (follow, like, skip, report)
         # Get interactions where current user is the actor
@@ -419,18 +432,12 @@ async def recommend_users(request: UserRecommendationRequest):
             # Compute adjustment per target
             adjustment_dict = {}
             # Define weights
-            weights = {
-                'follow': 0.2,
-                'like': 0.1,
-                'skip': -0.15,
-                'report': -0.25
-            }
             for row in interaction_rows:
-                target_id = row['target_id']
+                target_id = str(row['target_id'])
                 action = row['action_type']
                 count = row['count']
                 # Cap count to avoid excessive boost
-                weight = weights.get(action, 0.0) * min(count, 5)  # cap at 5 occurrences
+                weight = INTERACTION_WEIGHTS.get(action, 0.0) * min(count, 5)
                 adjustment_dict[target_id] = adjustment_dict.get(target_id, 0.0) + weight
 
             # Apply adjustments
@@ -464,6 +471,8 @@ async def recommend_users(request: UserRecommendationRequest):
 
         return UserRecommendationResponse(recommended_users=recommended_users)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error generating user recommendations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -532,12 +541,12 @@ async def search_celebrations(request: SearchRequest):
 
         # Get celebration IDs from indices
         celebration_ids = []
-        valid_indices = []
+        score_by_id = {}
 
         for i, idx in enumerate(indices[0]):
             if idx != -1 and idx in celebration_id_map:  # FAISS uses -1 for empty slots
                 celebration_ids.append(celebration_id_map[int(idx)])
-                valid_indices.append(i)
+                score_by_id[celebration_id_map[int(idx)]] = float(scores[0][i])
 
         if not celebration_ids:
             return SearchResponse(results=[])
@@ -559,7 +568,8 @@ async def search_celebrations(request: SearchRequest):
                        ) AS user
             FROM celebrations c
             JOIN users u ON c.created_by = u.id
-            WHERE c.id = ANY(%s::uuid[])
+            WHERE c.id = ANY(%s::uuid[]) AND c.status = 'active'
+              AND c.expires_at > CURRENT_TIMESTAMP
             """,
             (celebration_ids,)
         )
@@ -570,18 +580,8 @@ async def search_celebrations(request: SearchRequest):
 
         # Format results with similarity scores
         results = []
-        score_idx = 0
-
         for celeb in celebrations:
-            # Find the corresponding score
-            while score_idx < len(indices[0]) and int(indices[0][score_idx]) not in celebration_id_map:
-                score_idx += 1
-
-            if score_idx < len(indices[0]):
-                similarity_score = float(scores[0][score_idx])
-                score_idx += 1
-            else:
-                similarity_score = 0.0
+            similarity_score = score_by_id.get(str(celeb['id']), 0.0)
 
             results.append({
                 "celebration_id": str(celeb['id']),
@@ -591,6 +591,8 @@ async def search_celebrations(request: SearchRequest):
                 "user": celeb['user'],
                 "similarity_score": similarity_score
             })
+
+        results.sort(key=lambda item: item["similarity_score"], reverse=True)
 
         return SearchResponse(results=results)
     except HTTPException:
@@ -642,6 +644,8 @@ async def log_interaction(request: InteractionLogRequest):
             logged=True,
             interaction_id=str(interaction_id)
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error logging interaction: {e}")
         raise HTTPException(status_code=500, detail=str(e))

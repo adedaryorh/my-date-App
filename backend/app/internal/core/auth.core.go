@@ -30,11 +30,11 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 
 	// phone number previously submitted but not confirmed yet
 	if existingPhoneUser != nil && existingPhoneUser.CompletionState < 2 {
-		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
+		if err = c.sendSignUpVerificationToken(ctx, existingPhoneUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
-		return response.SuccessResponse(constants.UserTokenSuccessfullySent, nil)
+		return response.SuccessResponse(constants.UserTokenSuccessfullySent, c.verificationResponse())
 	}
 
 	err = c.isUnique(ctx, data.Email, data.PhoneNumber, data.Username)
@@ -72,13 +72,13 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 		}
 
 		// generate and send otp
-		if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, &newUser); err != nil {
+		if err = c.sendSignUpVerificationToken(ctx, &newUser); err != nil {
 			c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 			return response.ServerErrorResponse(err, "user token not successfully sent")
 		}
 		c.mixPanel.TrackEvent(ctx, user, constants.AppEventSignUpStarted)
 
-		return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
+		return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, c.verificationResponse())
 	}
 
 	// update user
@@ -89,12 +89,12 @@ func (c *Core) SignUpUser(ctx context.Context, data *dtos.UserSignUp) *dtos.Resp
 		}
 	}
 	//generate and send otp
-	if err = c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, existingPhoneUser); err != nil {
+	if err = c.sendSignUpVerificationToken(ctx, existingPhoneUser); err != nil {
 		c.log.Debug(">>>>> SEND TOKEN ERROR %v", err)
 		return response.ServerErrorResponse(err, "user token not successfully sent")
 	}
 	c.mixPanel.TrackEvent(ctx, existingPhoneUser, constants.AppEventSignUpStarted)
-	return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, nil)
+	return response.CreatedSuccessResponse(constants.UserTokenSuccessfullySent, c.verificationResponse())
 
 }
 
@@ -120,7 +120,7 @@ func (c *Core) getUpdateFields(user *models.User, data *dtos.UserSignUp) helpers
 }
 
 func (c *Core) sendConfirmPhoneToken(ctx context.Context, redisKey string, user *models.User) error {
-	key := fmt.Sprintf("%s:%s", models.RedisKeys.ConfirmPhone, user.PhoneNumber)
+	key := fmt.Sprintf("%s:%s", redisKey, user.PhoneNumber)
 	duration := helpers.GetDurationFromTimeString(constants.AUTH_TOKEN_TTL)
 	token := c.TokenService.SetToken(ctx, key, &duration)
 	content := map[string]interface{}{
@@ -130,6 +130,26 @@ func (c *Core) sendConfirmPhoneToken(ctx context.Context, redisKey string, user 
 		"subject":    "Confirm Phone",
 	}
 	return c.SendNotification(ctx, user, models.NotificationTemplate.ConfirmPhone, content)
+}
+
+func (c *Core) verificationResponse() helpers.Map {
+	channel := "sms"
+	if c.config.VerificationProvider != "twilio" {
+		channel = "email"
+	}
+	return helpers.Map{"verification_channel": channel}
+}
+
+func (c *Core) sendSignUpVerificationToken(ctx context.Context, user *models.User) error {
+	if c.config.VerificationProvider != "twilio" {
+		key := fmt.Sprintf("%s:%s", models.RedisKeys.ConfirmEmail, strings.ToLower(user.Email))
+		duration := helpers.GetDurationFromTimeString(constants.AUTH_TOKEN_TTL)
+		token := c.TokenService.SetToken(ctx, key, &duration)
+		return c.SendNotification(ctx, user, models.NotificationTemplate.ConfirmEmail, map[string]interface{}{
+			"token": token, "first_name": user.FirstName, "email": user.Email, "subject": "Your Celebut verification code",
+		})
+	}
+	return c.sendConfirmPhoneToken(ctx, models.RedisKeys.ConfirmPhone, user)
 }
 
 func (c *Core) isUnique(ctx context.Context, email, phoneNumber, username string) error {
@@ -229,7 +249,7 @@ func (c *Core) ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) 
 	if existingUser == nil {
 		return response.BadRequestResponse(messages.ErrUserDoesNotExist, constants.HttpStatusResourceNotFound)
 	}
-	if existingUser.CompletionState > 2 {
+	if existingUser.CompletionState >= int(constants.CompletionStateTwo) {
 		return response.BadRequestResponse(fmt.Errorf("%s already confirmed", data.PhoneNumber))
 	}
 
@@ -254,6 +274,32 @@ func (c *Core) ConfirmPhone(ctx context.Context, data *dtos.ConfirmPhoneNumber) 
 	c.mixPanel.SetProfile(ctx, existingUser)
 	c.mixPanel.TrackEvent(ctx, existingUser, constants.AppEventSignUpCompleted)
 	return response.SuccessResponse(constants.PhoneNumberConfirmedSuccessFully, nil)
+}
+
+func (c *Core) ConfirmEmail(ctx context.Context, data *dtos.ConfirmEmail) *dtos.ResponseObject {
+	email := strings.ToLower(strings.TrimSpace(data.Email))
+	existingUser, err := c.repo.GetUserByField(ctx, helpers.Map{"email": email})
+	if err != nil && err != messages.ErrUserDoesNotExist && err != messages.ErrUserNotFound {
+		return response.ServerErrorResponse(err)
+	}
+	if existingUser == nil {
+		return response.BadRequestResponse(messages.ErrUserDoesNotExist, constants.HttpStatusResourceNotFound)
+	}
+	if existingUser.CompletionState >= int(constants.CompletionStateTwo) {
+		return response.BadRequestResponse(fmt.Errorf("%s already confirmed", email))
+	}
+	if !c.TokenService.ValidateToken(ctx, fmt.Sprintf("%s:%s", models.RedisKeys.ConfirmEmail, email), data.Token) {
+		return response.BadRequestResponse(messages.ErrInvalidToken, constants.HttpStatusInvalidToken)
+	}
+	if err = c.CreateWallet(ctx, existingUser, constants.CurrencyUSD); err != nil {
+		return response.ServerErrorResponse(err)
+	}
+	if err = c.repo.UpdateUser(ctx, existingUser.ID, helpers.Map{"status": constants.AccountStatusActive, "completion_state": constants.CompletionStateTwo, "updated_at": time.Now().UTC()}); err != nil {
+		return response.ServerErrorResponse(err)
+	}
+	c.mixPanel.SetProfile(ctx, existingUser)
+	c.mixPanel.TrackEvent(ctx, existingUser, constants.AppEventSignUpCompleted)
+	return response.SuccessResponse("Email confirmed successfully", nil)
 }
 
 // Login method that handles logs user in
@@ -385,6 +431,10 @@ func (c *Core) generateTokens(ctx context.Context, user *models.User) (*models.A
 
 	// return user with token
 	return &authAdmin, nil
+}
+
+func (c *Core) AuthenticateUser(ctx context.Context, user *models.User) (*models.AuthenticatedUser, error) {
+	return c.generateTokens(ctx, user)
 }
 
 func splitFullName(fullname string) (string, *string) {

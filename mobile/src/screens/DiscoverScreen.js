@@ -1,154 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { aiService } from '../services/api';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { aiService, profileService } from '../services/api';
+import { useAuth } from '../auth/AuthContext';
+import { AppIcon, Button, Card, Heading, Screen, StatePanel, StatusBanner } from '../components/ui/app-ui';
+import { Radius, Spacing, Type } from '../constants/theme';
+import { useAppTheme } from '../hooks/use-app-theme';
 
-export default function DiscoverScreen({ navigation }) {
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    loadRecommendations();
-  }, []);
-
-  const loadRecommendations = async () => {
-    try {
-      setLoading(true);
-      // In a real app, you would get the userId from auth context or storage
-      const response = await aiService.getUserRecommendations(10);
-      setRecommendations(response.recommended_users || []);
-    } catch (err) {
-      setError(err.message);
-      console.error('Failed to load recommendations:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      {/* Assuming item has properties like id, name, avatar, etc. */}
-      <Image
-        source={{ uri: item.profile_image_url || 'https://via.placeholder.com/150' }}
-        style={styles.avatar}
-      />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{`${item.first_name || ''} ${item.last_name || ''}`.trim() || item.username}</Text>
-        <Text style={styles.itemBio}>{item.bio || ''}</Text>
-      </View>
-      <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.user_id)}>
-        <Text>{item.isFollowing ? 'Following' : 'Follow'}</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const handleFollow = async (userIdToFollow) => {
-    try {
-      await aiService.logInteraction(
-        userIdToFollow,
-        'follow'
-      );
-      // Update the item's state optimistically
-      setRecommendations(prev =>
-        prev.map(item =>
-          item.user_id === userIdToFollow ? { ...item, isFollowing: true } : item
-        )
-      );
-    } catch (err) {
-      console.error('Failed to follow user:', err);
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text>Error: {error}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Discover People</Text>
-      {recommendations.length === 0 ? (
-        <View style={styles.centered}>
-          <Text>No recommendations available</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={recommendations}
-          keyExtractor={item => item.user_id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-    </View>
-  );
+export default function DiscoverScreen() {
+  const { token, user } = useAuth(); const { colors } = useAppTheme();
+  const [recommendations, setRecommendations] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [busyId, setBusyId] = useState('');
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const response = await aiService.getUserRecommendations(20, token); setRecommendations(response.recommended_users || []); } catch (err) { setError(err.message || 'Recommendations could not be loaded'); } finally { setLoading(false); } }, [token]);
+  useEffect(() => { let active = true; Promise.resolve().then(() => active && load()); return () => { active = false; }; }, [load]);
+  const follow = async (id, name) => { setBusyId(id); setMessage(''); try { await profileService.follow(id, token); await aiService.logInteraction(id, 'follow', { source: 'discover' }, token); setRecommendations(current => current.map(item => item.user_id === id ? { ...item, isFollowing: true } : item)); setMessage(`You’re now following ${name}.`); } catch (err) { setError(`${err.message || 'Follow failed'}. Try again.`); } finally { setBusyId(''); } };
+  const skip = async id => { setRecommendations(current => current.filter(item => item.user_id !== id)); try { await aiService.logInteraction(id, 'skip', { source: 'discover' }, token); } catch {} };
+  const safety = (item) => Alert.alert('Safety options', `Choose an action for ${item.first_name || item.username}.`, [
+    { text: 'Cancel', style: 'cancel' }, { text: 'Report', onPress: () => confirmReport(item) }, { text: 'Block', style: 'destructive', onPress: () => confirmBlock(item) },
+  ]);
+  const confirmReport = item => Alert.alert('Report this person?', 'Your report is private. It helps the safety team review concerning behavior.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Send report', onPress: async () => { await aiService.logInteraction(item.user_id, 'report', { source: 'discover' }, token); setRecommendations(v => v.filter(x => x.user_id !== item.user_id)); setMessage('Report sent. This person is no longer shown here.'); } }]);
+  const confirmBlock = item => Alert.alert('Block this person?', 'You will no longer see each other. They will not be notified.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Block', style: 'destructive', onPress: async () => { try { await profileService.block(item.user_id, token); setRecommendations(v => v.filter(x => x.user_id !== item.user_id)); setMessage('Person blocked. You can manage blocked accounts in You > Safety.'); } catch (err) { setError(`${err.message || 'Block failed'}. Try again.`); } } }]);
+  const renderItem = ({ item }) => { const name = `${item.first_name || ''} ${item.last_name || ''}`.trim() || item.username || 'Community member'; const initials = name.split(' ').map(v => v[0]).join('').slice(0,2).toUpperCase(); const shared = Array.isArray(item.interests) ? item.interests.slice(0,3) : []; return <Card accessible label={`${name}. Suggested person to follow.`}><View style={styles.top}><View style={[styles.avatar, { backgroundColor: colors.primarySoft }]}><Text style={[styles.initials, { color: colors.primary }]}>{initials}</Text></View><View style={styles.identity}><Text style={[styles.name, { color: colors.text }]}>{name}</Text><Text style={[styles.username, { color: colors.textSecondary }]}>@{item.username || 'member'}</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`Safety options for ${name}`} hitSlop={8} onPress={() => safety(item)} style={({ pressed }) => [styles.more, { opacity: pressed ? .5 : 1 }]}><AppIcon name={{ ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz' }} color={colors.textSecondary} /></Pressable></View>{item.bio ? <Text style={[styles.bio, { color: colors.textSecondary }]}>{item.bio}</Text> : <Text style={[styles.bio, { color: colors.textSecondary }]}>A fellow member of the Celebut community.</Text>}{shared.length ? <View style={styles.chips}>{shared.map(value => <View key={value} style={[styles.chip, { backgroundColor: colors.accentSoft }]}><Text style={[styles.chipText, { color: colors.accent }]}>{value}</Text></View>)}</View> : null}<Text style={[styles.why, { color: colors.textSubtle }]}>Suggested from shared interests and community activity</Text><View style={styles.actions}><View style={styles.action}><Button label="Not now" variant="quiet" onPress={() => skip(item.user_id)} /></View><View style={styles.action}><Button label={item.isFollowing ? 'Following' : 'Follow'} disabled={item.isFollowing} loading={busyId === item.user_id} onPress={() => follow(item.user_id, name)} icon={{ ios: 'person.badge.plus', android: 'person_add', web: 'person_add' }} /></View></View></Card>; };
+  return <Screen><Heading eyebrow={`Welcome${user?.first_name ? `, ${user.first_name}` : ''}`} title="People worth celebrating" description="Thoughtful suggestions based on shared interests—not popularity alone." />{message ? <StatusBanner tone="success" title="Done" message={message} /> : null}{error && !loading ? <StatePanel icon={{ ios: 'wifi.exclamationmark', android: 'wifi_off', web: 'wifi_off' }} title="We couldn’t refresh suggestions" message={`${error}. Your account is safe; try again when you’re connected.`} action={<Button label="Try again" onPress={load} />} /> : loading ? <StatePanel busy icon={{ ios: 'person.2', android: 'group', web: 'group' }} title="Finding good matches" message="Looking for people who share what matters to you…" /> : <FlatList data={recommendations} keyExtractor={item => item.user_id} renderItem={renderItem} contentContainerStyle={styles.list} initialNumToRender={6} windowSize={7} removeClippedSubviews ListEmptyComponent={<StatePanel icon={{ ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' }} title="You’re all caught up" message="New suggestions will appear as the community grows and your interests evolve." action={<Button label="Refresh" variant="secondary" onPress={load} />} />} />}</Screen>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    marginVertical: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  itemBio: {
-    fontSize: 14,
-    color: '#666',
-  },
-  followButton: {
-    backgroundColor: '#007aff',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-});
+const styles = StyleSheet.create({ list: { paddingBottom: 120 }, top: { flexDirection: 'row', alignItems: 'center' }, avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' }, initials: { fontSize: 18, fontWeight: '800' }, identity: { flex: 1, marginLeft: Spacing.md }, name: { fontSize: Type.heading, fontWeight: '700' }, username: { fontSize: Type.caption, marginTop: 2 }, more: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: Radius.pill }, bio: { fontSize: Type.body, lineHeight: 24, marginTop: Spacing.md }, chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md }, chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.pill }, chipText: { fontSize: Type.caption, fontWeight: '700' }, why: { fontSize: Type.caption, lineHeight: 19, marginTop: Spacing.md }, actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md }, action: { flex: 1 } });

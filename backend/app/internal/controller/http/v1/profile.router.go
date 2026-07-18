@@ -13,8 +13,8 @@ func ProfileRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *mid
 	profile := server.Group("/profile", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for profile endpoints - moderate limits as these modify user data
-		profileLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 30,    // 30 requests
+		profileLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 30,          // 30 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

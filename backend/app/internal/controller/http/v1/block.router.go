@@ -13,13 +13,13 @@ func BlockRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *middl
 	block := server.Group("/block", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for block endpoints - moderate limits as these modify user relationships
-		blockLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 30,    // 30 requests
+		blockLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 30,          // 30 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})
 
-		block.GET("", blockLimiter, handler.getAllBlockedUsers)
+		block.GET("", blockLimiter, handler.GetAllBlockedUsers)
 		block.GET("/:id", blockLimiter, handler.GetBlockedUser)
 	}
 }

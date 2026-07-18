@@ -13,8 +13,8 @@ func NotificationRoutes(server *gin.RouterGroup, handler handlers.Operations, mw
 	notification := server.Group("/notifications", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for notification endpoints - moderate limits
-		notificationLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 30,    // 30 requests
+		notificationLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 30,          // 30 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

@@ -58,7 +58,7 @@ func NewAppRouter(server *gin.Engine, handler handlers.Operations, mw *middlewar
 
 	// Global rate limiting middleware - applied to all routes
 	// Generous limits for general API usage
-	server.Use(mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
+	server.Use(mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
 		Requests: 100,                    // 100 requests
 		Window:   time.Minute,            // per minute
 		KeyFunc:  middleware.KeyFuncs.IP, // Limit by IP address

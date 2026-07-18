@@ -13,8 +13,8 @@ func FollowerRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *mi
 	follower := server.Group("/followers", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for follower endpoints - moderate limits as these are frequently accessed
-		followerLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 50,    // 50 requests
+		followerLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 50,          // 50 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

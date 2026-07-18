@@ -1,43 +1,37 @@
-version: '3.8'
+name: celebut
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: celebut-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-celebut}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celebut_password}
-      POSTGRES_DB: ${POSTGRES_DB:-celebut}
+      POSTGRES_USER: ${PG_USER:-celebut}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-celebut_local_password}
+      POSTGRES_DB: ${PG_DATABASE:-celebut_db}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/goose/migrations:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # Redis for caching and session storage
   redis:
     image: redis:7-alpine
-    container_name: celebut-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  # RabbitMQ for message queuing
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: celebut-rabbitmq
@@ -52,176 +46,160 @@ services:
       - "5672:5672"   # AMQP protocol port
       - "15672:15672" # Management UI
     healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
+      test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Go Backend Service
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: celebut-backend
-    restart: unless-stopped
-    env_file:
-      - ./backend/.env
-    environment:
-      # Database connection
-      PG_HOST: postgres
-      PG_PORT: 5432
-      PG_USER: ${POSTGRES_USER:-celebut}
-      PG_PASSWORD: ${POSTGRES_PASSWORD:-celebut_password}
-      PG_DATABASE: ${POSTGRES_DB:-celebut}
-
-      # Redis connection
-      REDIS_URI: redis://redis:6379
-
-      # RabbitMQ connection (if used)
-      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672/
-
-      # AI Service configuration
-      AI_SERVICE_URL: http://ai-service:8000
-      AI_SERVICE_TIMEOUT: 5s
-      AI_SERVICE_MAX_RETRIES: 3
-      AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD: 5
-      AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT: 60
-      AI_SERVICE_CIRCUIT_BREAKER_INTERVAL: 10
-      AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS: 3
-      AI_SERVICE_FAILURE_RATE_THRESHOLD: 0.5
-
-      # Other configurations
-      APP_ENV: ${APP_ENV:-local}
-      APP_HOST: 0.0.0.0
-      PORT: 7070
-      GIN_MODE: ${GIN_MODE:-debug}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-key-change-in-production}
-      JWT_SECRET_EXPIRY: ${JWT_SECRET_EXPIRY:-24h}
-
-      # AWS/S3 (if used)
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-celebut-bucket}
-
-      # Email/SMS services
-      SEND_GRID_API_KEY: ${SEND_GRID_API_KEY:-}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
-      TWILIO_MESSAGING_SERVICE_ID: ${TWILIO_MESSAGING_SERVICE_ID:-}
-
-      # Analytics
-      MIX_PANEL_PROJECT_TOKEN: ${MIX_PANEL_PROJECT_TOKEN:-}
-      MIX_PANEL_API_SECRET: ${MIX_PANEL_API_SECRET:-}
-      MIX_PANEL_USERNAME: ${MIX_PANEL_USERNAME:-}
-      MIX_PANEL_PROJECT_ID: ${MIX_PANEL_PROJECT_ID:-}
-
-      # Monitoring
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
-    ports:
-      - "7070:7070"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - ./backend/go/pkg/mod:/go/pkg/mod
-    command: go run main.go
-
-  # AI Service (Python/FastAPI)
   ai-service:
     build:
-      context: ./ai-service
+      context: ../ai-service
       dockerfile: Dockerfile
-    container_name: celebut-ai-service
     restart: unless-stopped
-    env_file:
-      - ./ai-service/.env
     environment:
-      # Service configuration
-      APP_NAME: celebut-ai-service
-      APP_VERSION: 1.0.0
-      APP_ENV: ${APP_ENV:-local}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      APP_HOST: 0.0.0.0
-      PORT: 8000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-celebut}:${POSTGRES_PASSWORD:-celebut_password}@postgres:5432/${POSTGRES_DB:-celebut}
-      EMBEDDING_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
-      TOXICITY_MODEL_NAME: unitary/toxic-bert
+      DATABASE_URL: postgresql://${PG_USER:-celebut}:${PG_PASSWORD:-celebut_local_password}@postgres:5432/${PG_DATABASE:-celebut_db}?sslmode=disable
+      LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
+      MODEL_CACHE_DIR: /app/models
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-all-MiniLM-L6-v2}
+      TOXICITY_MODEL_NAME: ${TOXICITY_MODEL_NAME:-unitary/toxic-bert}
+      FAISS_INDEX_PATH: /app/data/faiss_index.bin
       TOXICITY_THRESHOLD: ${TOXICITY_THRESHOLD:-0.8}
-
-      # AI Model configurations
-      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
-      TOXICITY_MODEL: unitary/toxic-bert
-
-      # Redis for caching embeddings (optional)
-      REDIS_URI: redis://redis:6379
-
-      # File upload limits
-      MAX_CONTENT_LENGTH: 16777216  # 16MB
-
-      # Monitoring
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
     ports:
-      - "8000:8000"
+      - "${AI_HOST_PORT:-8000}:8000"
+    volumes:
+      - ai_models:/app/models
+      - ai_data:/app/data
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-    volumes:
-      - ./ai-service:/app
-      - ./ai-service/models:/app/models  # For caching downloaded models
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ai/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
 
-  # Optional: Tempo for tracing (if using Jaeger/Tempo)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-Celebut API}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+      APP_ENV: ${APP_ENV:-prod}
+      APP_HOST: 0.0.0.0
+      PORT: 7070
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      GIN_MODE: ${GIN_MODE:-release}
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-true}
+      SERVICE_ADDRESS: ${SERVICE_ADDRESS:-http://localhost:7070}
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-celebut}
+      PG_PASSWORD: ${PG_PASSWORD:-celebut_local_password}
+      PG_DATABASE: ${PG_DATABASE:-celebut_db}
+      PG_SSL_MODE: disable
+      PG_POOL_MAX: ${PG_POOL_MAX:-10}
+      REDIS_URI: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+      JWT_SECRET_EXPIRY: ${JWT_SECRET_EXPIRY:-24h}
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_TIMEOUT: ${AI_SERVICE_TIMEOUT:-10s}
+      AI_SERVICE_MAX_RETRIES: ${AI_SERVICE_MAX_RETRIES:-3}
+      AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD: ${AI_SERVICE_CIRCUIT_BREAKER_THRESHOLD:-5}
+      AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT: ${AI_SERVICE_CIRCUIT_BREAKER_TIMEOUT:-60}
+      AI_SERVICE_CIRCUIT_BREAKER_INTERVAL: ${AI_SERVICE_CIRCUIT_BREAKER_INTERVAL:-10}
+      AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS: ${AI_SERVICE_CIRCUIT_BREAKER_MAX_REQUESTS:-3}
+      AI_SERVICE_FAILURE_RATE_THRESHOLD: ${AI_SERVICE_FAILURE_RATE_THRESHOLD:-0.5}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-local-placeholder}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-local-placeholder}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-celebut-local}
+      SEND_GRID_API_KEY: ${SEND_GRID_API_KEY:-local-placeholder}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-local-placeholder}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-local-placeholder}
+      TWILIO_MESSAGING_SERVICE_ID: ${TWILIO_MESSAGING_SERVICE_ID:-local-placeholder}
+      MIX_PANEL_PROJECT_TOKEN: ${MIX_PANEL_PROJECT_TOKEN:-local-placeholder}
+      MIX_PANEL_API_SECRET: ${MIX_PANEL_API_SECRET:-local-placeholder}
+      MIX_PANEL_PROJECT_ID: ${MIX_PANEL_PROJECT_ID:-1}
+      MIX_PANEL_USERNAME: ${MIX_PANEL_USERNAME:-local-placeholder}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-local-placeholder}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-local-placeholder}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
+    ports:
+      - "${BACKEND_HOST_PORT:-7070}:7070"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7070/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    profiles: ["tools"]
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_HOST_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: ["observability"]
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
+    ports:
+      - "${PROMETHEUS_HOST_PORT:-9090}:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      backend:
+        condition: service_healthy
+
   tempo:
     image: grafana/tempo:2.0.0
-    container_name: celebut-tempo
+    profiles: ["observability"]
     restart: unless-stopped
-    command: [-config.file=/etc/tempo.yaml]
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "${TEMPO_OTLP_HOST_PORT:-4317}:4317"
+      - "${TEMPO_HTTP_HOST_PORT:-3200}:3200"
     volumes:
-      - ./tempo.yaml:/etc/tempo.yaml
+      - ../tempo.yaml:/etc/tempo.yaml:ro
       - tempo_data:/tmp/tempo
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "3200:3200"   # Tempo UI
 
-  # Optional: Prometheus for metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: celebut-prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    depends_on:
-      - backend
-      - ai-service
-
-  # Optional: Grafana for visualization
   grafana:
-    image: grafana/grafana:latest
-    container_name: celebut-grafana
+    image: grafana/grafana:12.1.0
+    profiles: ["observability"]
     restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me}
     ports:
-      - "3000:3000"
+      - "${GRAFANA_HOST_PORT:-3000}:3000"
+    volumes:
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
 
 volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  tempo_data:
+  ai_models:
+  ai_data:
   prometheus_data:
   grafana_data:
+  tempo_data:

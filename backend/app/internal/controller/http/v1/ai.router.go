@@ -13,8 +13,8 @@ func AIRoutes(server *gin.RouterGroup, handler handlers.Operations, mw *middlewa
 	ai := server.Group("/ai", handler.AuthenticatedUserMiddleware())
 	{
 		// Rate limiting for AI endpoints - moderate limits as these may be used frequently
-		aiLimiter := mw.rateLimiter.RateLimit(middleware.RateLimiterConfig{
-			Requests: 50,    // 50 requests
+		aiLimiter := mw.RateLimiter.RateLimit(middleware.RateLimiterConfig{
+			Requests: 50,          // 50 requests
 			Window:   time.Minute, // per minute
 			KeyFunc:  middleware.KeyFuncs.UserEndpoint,
 		})

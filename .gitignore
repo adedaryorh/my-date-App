@@ -22,3 +22,10 @@ bin/
 #go
 go.work*
 backend/*/tmp
+
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+ai-service/.venv/

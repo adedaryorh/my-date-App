@@ -31,7 +31,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 		ToSql()
 
 	if err != nil {
-		r.log.Error("UserPostgresRepo - CreateUser - r.Builder: %w", err)
+		r.log.Error("UserPostgresRepo - CreateUser - r.Builder: %v", err)
 		return nil, errors.New("something went wrong")
 	}
 
@@ -39,7 +39,7 @@ func (r *Repo) CreateUser(ctx context.Context, user *models.User) (*models.User,
 
 	err = row.Scan(&user.ID)
 	if err != nil {
-		r.log.Error("UserPostgresRepo - CreateUser - r.Pool.Scan: %w", err)
+		r.log.Error("UserPostgresRepo - CreateUser - r.Pool.Scan: %v", err)
 		return nil, errors.New("something went wrong")
 	}
 	return user, nil
@@ -54,7 +54,7 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		ToSql()
 
 	if err != nil {
-		r.log.Error("unable to build query: %w", err)
+		r.log.Error("unable to build query: %v", err)
 		return nil, errors.New("something went wrong")
 	}
 	row := r.postgres.Pool.QueryRow(ctx, sql, args...)
@@ -96,7 +96,7 @@ func (r *Repo) GetUserByField(ctx context.Context, filter map[string]interface{}
 		if err == pgx.ErrNoRows {
 			return nil, messages.ErrUserNotFound
 		}
-		r.log.Error("row.Scan: %w", err)
+		r.log.Error("row.Scan: %v", err)
 		return nil, errors.New("something went wrong")
 	}
 	return &u, nil
@@ -306,7 +306,7 @@ func (r *Repo) UpdateUserRole(ctx context.Context, userID string, role string) e
 	sql, args, err := r.postgres.Builder.
 		Update("users").
 		Set("role", role).
-		Where(squirrel.Eq{"user_id": userID}).
+		Where(squirrel.Eq{"id": userID}).
 		ToSql()
 
 	if err != nil {
@@ -327,7 +327,7 @@ func (r *Repo) UpdateUserRole(ctx context.Context, userID string, role string) e
 func (r *Repo) DeleteUser(ctx context.Context, userID string) error {
 	sql, args, err := r.postgres.Builder.
 		Delete("users").
-		Where(squirrel.Eq{"user_id": userID}).
+		Where(squirrel.Eq{"id": userID}).
 		ToSql()
 
 	if err != nil {

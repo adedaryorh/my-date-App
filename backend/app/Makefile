@@ -1,5 +1,5 @@
 SHELL:=bash
-POSTGRES_DB:=postgres://postgres:root@127.0.0.1:5432/celebut_db?sslmode=disable
+POSTGRES_DB?=postgres://celebut:celebut_local_password@127.0.0.1:5432/celebut_db?sslmode=disable
 ifndef MIGRATION_STEPS
 override MIGRATION_STEPS = 1
 endif
@@ -55,6 +55,10 @@ migrate-force:
 migrate-down:
 	migrate -path migrations -database '$(POSTGRES_DB)' down $(MIGRATION_STEPS)
 .PHONY: migrate-down
+
+migrate-version:
+	migrate -path migrations -database '$(POSTGRES_DB)' version
+.PHONY: migrate-version
 
 run: ## Start the containers and attach it
 	@docker-compose up -d

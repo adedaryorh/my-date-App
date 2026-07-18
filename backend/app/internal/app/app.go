@@ -23,10 +23,6 @@ func Run(cfg *configs.Config) {
 	l := logger.New(cfg.LogLevel)
 	var err error
 
-	if cfg.AppEnv != "dev" {
-		runMigrations(cfg, l)
-	}
-
 	// Connect to DB
 	db := database.ConnectDB(cfg, l)
 	defer db.Postgres.Close()
@@ -41,7 +37,10 @@ func Run(cfg *configs.Config) {
 	server.Use(middleware.ObservabilityMiddleware())
 
 	handler := handlers.NewHandler(l, cfg, &db)
-	mw := middleware.NewMiddleware(&db, cfg, l) // Create middleware instance
+	mw, err := middleware.NewMiddleware(&db, cfg, l)
+	if err != nil {
+		l.Fatal("middleware error: %v", err)
+	}
 	routesWithServer := v1.NewAppRouter(server, handler, mw, cfg)
 	routesWithServer.RegisterRoutes(server, handler)
 
